@@ -11,13 +11,3 @@ interface Rebate {
 }
 
 type RebateTable = Rebate[];
-
-interface Customer {
-  supplierName: string;
-  category: string;
-  customerName: string;
-  internalId: string;
-  fuseId: number;
-}
-
-type CustomerTable = Customer[];
