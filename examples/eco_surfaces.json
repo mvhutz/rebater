@@ -1,0 +1,82 @@
+{
+  "name": "Eco Surfaces",
+  "properties": [
+    {
+      "name": "purchaseId",
+      "type": "number",
+      "value": {
+        "type": "counter",
+        "name": "default"
+      }
+    },
+    {
+      "name": "transactionDate",
+      "type": "date",
+      "value": {
+        "type": "column",
+        "index": 2
+      }
+    },
+    {
+      "name": "supplierId",
+      "type": "number",
+      "value": {
+        "type": "literal",
+        "value": "1122"
+      }
+    },
+    {
+      "name": "memberId",
+      "type": "number",
+      "value": {
+        "type": "customer",
+        "from": "customerName",
+        "to": "fuseId",
+        "value": {
+          "type": "column",
+          "index": 1
+        }
+      }
+    },
+    {
+      "name": "distributorName",
+      "type": "string",
+      "value": {
+        "type": "literal",
+        "value": "ECOSurfaces"
+      }
+    },
+    {
+      "name": "purchaseAmount",
+      "type": "number",
+      "value": {
+        "type": "column",
+        "index": 8
+      }
+    },
+    {
+      "name": "rebateAmount",
+      "type": "number",
+      "value": {
+        "type": "column",
+        "index": 11
+      }
+    },
+    {
+      "name": "invoiceId",
+      "type": "number",
+      "value": {
+        "type": "column",
+        "index": 0
+      }
+    },
+    {
+      "name": "invoiceDate",
+      "type": "date",
+      "value": {
+        "type": "column",
+        "index": 2
+      }
+    }
+  ]
+}
