@@ -5,7 +5,8 @@ type Expression =
   | ColumnExpression
   | LiteralExpression
   | CustomerExpression
-  | MatchExpression;
+  | MatchExpression
+  | EqualExpression;
 
 interface CounterExpression {
   type: "counter";
@@ -19,7 +20,7 @@ interface ColumnExpression {
 
 interface LiteralExpression {
   type: "literal";
-  value: string; 
+  value: string | number; 
 }
 
 interface CustomerExpression {
@@ -27,6 +28,11 @@ interface CustomerExpression {
   from: keyof Customer;
   to: keyof Customer;
   value: Expression; 
+}
+
+interface EqualExpression {
+  type: "equal";
+  value: Expression[]; 
 }
 
 interface MatchExpression {
