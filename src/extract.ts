@@ -78,7 +78,7 @@ async function extractSource(source: Source, path: string): Promise<SourceFile[]
   if (source.rows != null) {
     const { from, to } = source.rows;
     sourceFiles.forEach(file => {
-      file.data = file.data.slice(from ?? 0, to ?? -1);
+      file.data = file.data.slice(from ?? 0, to ?? undefined);
     })
   }
 
