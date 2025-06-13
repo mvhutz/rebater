@@ -4,13 +4,7 @@ import Path from "path";
 import * as XLSX from 'xlsx';
 import { z } from "zod/v4";
 import Papa from 'papaparse';
-
-const DIRECTORY = 'data';
-const QUARTER = '4';
-const YEAR = '2024';
-const COUNTER = {
-  default: 0
-};
+import { COUNTER, DIRECTORY, QUARTER, YEAR } from "./magic";
 
 type Atom<T> = T & {
   labels: Set<string>;
