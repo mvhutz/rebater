@@ -1,6 +1,10 @@
-export  const DIRECTORY = 'data';
-export  const QUARTER = '4';
-export  const YEAR = '2024';
-export  const COUNTER = {
-  default: 0
+const MAGIC = {
+  DIRECTORY: 'data',
+  QUARTER: '4',
+  YEAR: '2024',
+  COUNTER: {
+    default: 0
+  }
 };
+
+export default MAGIC;
