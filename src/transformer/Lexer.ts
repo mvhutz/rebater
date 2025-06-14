@@ -13,12 +13,7 @@ export const XMLSchema = z.object({
 export type XML = z.infer<typeof XMLSchema>;
 
 const ConfigSchema = z.object({
-  elements: z.tuple([
-    z.object({
-      name: z.literal("transformer"),
-      elements: z.array(XMLSchema)
-    })
-  ])
+  elements: z.array(XMLSchema)
 });
 
 export class Lexer {

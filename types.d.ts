@@ -1,3 +1,5 @@
+type FilterByPropertyType<T, K extends keyof T, V> = T extends { [P in K]: V } ? T : never;
+
 namespace ETL {
   interface Atom {
     labels: Set<string>;
@@ -42,6 +44,8 @@ namespace ETL {
 
   type Data = File | Workbook | Table | Row | ReferenceTable | Cell;
 
+  type Filter<T> = FilterByPropertyType<Data, "type", T>
+
   interface Action {
     name: string;
   }
@@ -55,3 +59,9 @@ namespace ETL {
 
   type Transformer = Map<symbol, Process>;
 }
+
+type A = 1 | 2 | 3 | 4;
+
+type B = 1 | 2 | 3;
+
+type C = B extends A ? true : false;

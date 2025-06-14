@@ -1,46 +1,18 @@
-import z from 'zod/v4';
-import { ActionRegistry } from '../transformer/ActionRegistry';
-import { TagRegistry } from '../transformer/TagRegistry';
-
-const PROCESS_NAME = "debug";
+import { makeBasicRegistration } from './Base';
 
 /** ------------------------------------------------------------------------- */
 
-const DebugActionSchema = z.object({
-  name: z.literal(PROCESS_NAME),
-});
-
-type DebugAction = z.infer<typeof DebugActionSchema>;
-
-async function runDebugAction(process: ETL.Process, state: ETL.Data[][]): Promise<ETL.Data[]> {
-  void DebugActionSchema.parse(process.action);
-  const result = state.flat(1);
-
+async function runProcess(_: ETL.Action, data: ETL.Data[][]): Promise<ETL.Data[]> {
+  const result = data.flat(1);
   console.log(result);
   return result;
 }
 
-export function registerActions(registry: ActionRegistry) {
-  registry.add(PROCESS_NAME, runDebugAction);
-}
+const Debug = makeBasicRegistration<object, ETL.Data, ETL.Data>({
+  name: "debug",
+  act: runProcess
+});
 
 /** ------------------------------------------------------------------------- */
 
-function parseDebugTag(_: Record<string, string>, children: ETL.Process[], transformer: ETL.Transformer): ETL.Process<DebugAction> {
-  const process = {
-    id: Symbol(),
-    dependents: new Set(children.map(c => c.id)),
-    action: {
-      name: PROCESS_NAME,
-    } satisfies DebugAction
-  }
-
-  transformer.set(process.id, process);
-  return process;
-}
-
-/** ------------------------------------------------------------------------- */
-
-export function registerTags(registry: TagRegistry) {
-  registry.add(PROCESS_NAME, parseDebugTag);
-}
+export default Debug;

@@ -1,7 +1,9 @@
-import * as LABEL from "../processes/Label";
-import * as READ from "../processes/Read";
+import Debug from "../processes/Debug";
+import Excel from "../processes/Excel";
+import Label from "../processes/Label";
+import Read from "../processes/Read";
+import Transform from "../processes/Transform";
 import * as VAR from "../processes/Var";
-import * as DEBUG from "../processes/Debug";
 
 type Actor = (process: ETL.Process, state: ETL.Data[][]) => Promise<ETL.Data[]>;
 
@@ -11,10 +13,12 @@ export class ActionRegistry {
   constructor() {
     this.data = new Map();
 
-    LABEL.registerActions(this);
-    READ.registerActions(this);
+    Label.registerActions(this);
+    Read.registerActions(this);
     VAR.registerActions(this);
-    DEBUG.registerActions(this);
+    Debug.registerActions(this);
+    Excel.registerActions(this);
+    Transform.registerActions(this);
   }
 
   public add(name: string, parser: Actor) {

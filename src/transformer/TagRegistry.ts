@@ -1,8 +1,9 @@
-import * as LABEL from "../processes/Label";
-import * as READ from "../processes/Read";
-import * as TRANSFORMER from "../processes/Transformer";
+import Label from "../processes/Label";
+import Read from "../processes/Read";
+import Transform from "../processes/Transform";
 import * as VAR from "../processes/Var";
-import * as DEBUG from "../processes/Debug";
+import Debug from "../processes/Debug";
+import Excel from "../processes/Excel";
 import { XML } from "./Lexer";
 
 type TagParser = (attributes: Record<string, string>, children: ETL.Process[], parser: ETL.Transformer) => ETL.Process;
@@ -13,11 +14,12 @@ export class TagRegistry {
   constructor() {
     this.data = new Map();
 
-    LABEL.registerTags(this);
-    READ.registerTags(this);
-    TRANSFORMER.registerTags(this);
+    Label.registerTags(this);
+    Read.registerTags(this);
+    Transform.registerTags(this);
     VAR.registerTags(this);
-    DEBUG.registerTags(this);
+    Debug.registerTags(this);
+    Excel.registerTags(this);
   }
 
   public add(name: string, parser: TagParser) {
