@@ -1,6 +1,8 @@
+import type { WorkBook } from "xlsx";
+
 type FilterByPropertyType<T, K extends keyof T, V> = T extends { [P in K]: V } ? T : never;
 
-namespace ETL {
+export namespace ETL {
   interface Atom {
     labels: Set<string>;
   }
@@ -12,7 +14,7 @@ namespace ETL {
 
   interface Workbook extends Atom {
     type: "workbook";
-    workbook: XLSX.WorkBook;
+    workbook: WorkBook;
   }
 
   interface Table extends Atom {
@@ -47,7 +49,7 @@ namespace ETL {
   type Filter<T> = FilterByPropertyType<Data, "type", T>
 
   interface Action {
-    name: string;
+    type: string;
   }
 
   interface Process<T extends Action = Action> {

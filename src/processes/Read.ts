@@ -3,6 +3,7 @@ import MAGIC from '../magic';
 import Path from 'path';
 import FS from 'fs/promises';
 import { makeBasicRegistration } from './Base';
+import { ETL } from '../../types';
 
 /** ------------------------------------------------------------------------- */
 

@@ -1,5 +1,6 @@
 import assert from "node:assert";
 import { ActionRegistry } from "./ActionRegistry";
+import { ETL } from "../../types";
 
 interface CompleteStatus {
   id: symbol;
@@ -54,7 +55,7 @@ export class Runner {
     }
 
     const actor = this.registry.get(process);
-    console.log(`Running ${process.action.name}`)
+    console.log(`Running ${process.action.type}`)
     const output = await actor(process, input);
 
     state.set(process.id, {

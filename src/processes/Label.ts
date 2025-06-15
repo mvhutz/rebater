@@ -1,5 +1,6 @@
 import z from 'zod/v4';
 import { makeBasicRegistration } from './Base';
+import { ETL } from '../../types';
 
 /** ------------------------------------------------------------------------- */
 

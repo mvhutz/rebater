@@ -1,6 +1,7 @@
 import z from 'zod/v4';
 import { ActionRegistry } from '../transformer/ActionRegistry';
 import { TagRegistry } from '../transformer/TagRegistry';
+import { ETL } from '../../types';
 
 /** ------------------------------------------------------------------------- */
 
@@ -12,7 +13,7 @@ function getVariable(name: string, transformer: ETL.Transformer): ETL.Process {
       id: processID,
       name: name,
       dependents: new Set(),
-      action: { name: "pass" }
+      action: { type: "pass" }
     };
 
     transformer.set(processID, result);
@@ -24,7 +25,7 @@ function getVariable(name: string, transformer: ETL.Transformer): ETL.Process {
 /** ------------------------------------------------------------------------- */
 
 const PassActionSchema = z.object({
-  name: z.literal("pass"),
+  type: z.literal("pass"),
 });
 
 async function runPassAction(process: ETL.Process, state: ETL.Data[][]): Promise<ETL.Data[]> {
@@ -72,3 +73,4 @@ export function registerTags(registry: TagRegistry) {
   registry.add("from", parseFromTag);
   registry.add("to", parseToTag);
 }
+

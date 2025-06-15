@@ -1,6 +1,7 @@
 import z from 'zod/v4';
 import { ActionRegistry } from '../transformer/ActionRegistry';
 import { TagRegistry } from '../transformer/TagRegistry';
+import { ETL } from '../../types';
 
 export function makeBasicRegistration<A extends object, Input extends ETL.Data, Output extends ETL.Data>(options: {
   name: string,
@@ -11,7 +12,7 @@ export function makeBasicRegistration<A extends object, Input extends ETL.Data, 
   const { schema = z.object({}) as z.ZodType<A> } = options;
 
   const BaseActionSchema = z.intersection(schema, z.object({
-    name: z.literal(options.name),
+    type: z.literal(options.name),
   }));
 
   type BaseAction = z.infer<typeof BaseActionSchema>;
@@ -21,7 +22,7 @@ export function makeBasicRegistration<A extends object, Input extends ETL.Data, 
 
     const input = matrix.map(row => row.map(datum => {
       if (options.types && !options.types.includes(datum.type)) {
-        throw Error(`Invalid type for '${name}': '${datum.type}'`);
+        throw Error(`Invalid type for '${options.name}': '${datum.type}'`);
       }
 
       return datum as Input;
@@ -36,7 +37,7 @@ export function makeBasicRegistration<A extends object, Input extends ETL.Data, 
     const process = {
       id: Symbol(),
       dependents: new Set(children.map(c => c.id)),
-      action: { ...attributes, name: options.name } satisfies BaseAction
+      action: { ...attributes, type: options.name } satisfies BaseAction
     }
 
     transformer.set(process.id, process);

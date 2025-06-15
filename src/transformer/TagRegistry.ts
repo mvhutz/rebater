@@ -5,6 +5,8 @@ import * as VAR from "../processes/Var";
 import Debug from "../processes/Debug";
 import Excel from "../processes/Excel";
 import { XML } from "./Lexer";
+import Sheet from "../processes/Sheet";
+import type { ETL } from '../../types';
 
 type TagParser = (attributes: Record<string, string>, children: ETL.Process[], parser: ETL.Transformer) => ETL.Process;
 
@@ -20,6 +22,7 @@ export class TagRegistry {
     VAR.registerTags(this);
     Debug.registerTags(this);
     Excel.registerTags(this);
+    Sheet.registerTags(this);
   }
 
   public add(name: string, parser: TagParser) {

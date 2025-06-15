@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import { makeBasicRegistration } from './Base';
+import { ETL } from '../../types';
 
 /** ------------------------------------------------------------------------- */
 
