@@ -2,6 +2,7 @@ import z from 'zod/v4';
 import { ActionRegistry } from '../transformer/ActionRegistry';
 import { TagRegistry } from '../transformer/TagRegistry';
 import { ETL } from '../../types';
+import assert from 'assert';
 
 export function makeBasicRegistration<A extends object, Input extends ETL.Data, Output extends ETL.Data>(options: {
   name: string,
@@ -21,9 +22,8 @@ export function makeBasicRegistration<A extends object, Input extends ETL.Data, 
     const action = BaseActionSchema.parse(process.action);
 
     const input = matrix.map(row => row.map(datum => {
-      if (options.types && !options.types.includes(datum.type)) {
-        throw Error(`Invalid type for '${options.name}': '${datum.type}'`);
-      }
+      assert.ok(options.types == null || options.types.includes(datum.type),
+        `Invalid type for '${options.name}': '${datum.type}'`);
 
       return datum as Input;
     }));

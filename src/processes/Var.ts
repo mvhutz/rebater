@@ -2,6 +2,7 @@ import z from 'zod/v4';
 import { ActionRegistry } from '../transformer/ActionRegistry';
 import { TagRegistry } from '../transformer/TagRegistry';
 import { ETL } from '../../types';
+import assert from 'assert';
 
 /** ------------------------------------------------------------------------- */
 
@@ -44,9 +45,7 @@ const FromTagAttributes = z.object({
 });
 
 function parseFromTag(attributes: Record<string, string>, children: ETL.Process[], transformer: ETL.Transformer): ETL.Process {
-  if (children.length > 0) {
-    throw Error("From tag should not have children.");
-  }
+  assert.ok(children.length == 0, "From tag should not have children.");
 
   const { var: _var } = FromTagAttributes.parse(attributes);
   return getVariable(_var, transformer);
