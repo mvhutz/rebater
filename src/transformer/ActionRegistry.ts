@@ -11,6 +11,9 @@ import * as Var from "../processes/Var";
 import Slice from "../processes/Slice";
 import Transpose from "../processes/Transpose";
 import Column from "../processes/Column";
+import Literal from "../processes/Literal";
+import Counter from "../processes/Counter";
+import Coerce from "../processes/Coerce";
 
 type Actor = (process: ETL.Process, state: ETL.Data[][]) => Promise<ETL.Data[]>;
 
@@ -31,6 +34,9 @@ export class ActionRegistry {
     Slice.registerActions(this);
     Transpose.registerActions(this);
     Column.registerActions(this);
+    Literal.registerActions(this);
+    Counter.registerActions(this);
+    Coerce.registerActions(this);
   }
 
   public add(name: string, parser: Actor) {
