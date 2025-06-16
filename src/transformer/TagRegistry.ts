@@ -16,6 +16,9 @@ import Literal from "../processes/Literal";
 import Counter from "../processes/Counter";
 import Coerce from "../processes/Coerce";
 import Reference from "../processes/Reference";
+import Row from "../processes/Row";
+import Stack from "../processes/Stack";
+import Write from "../processes/Write";
 
 type TagParser = (attributes: Record<string, string>, children: ETL.Process[], parser: ETL.Transformer) => ETL.Process;
 
@@ -40,6 +43,9 @@ export class TagRegistry {
     Counter.registerTags(this);
     Coerce.registerTags(this);
     Reference.registerTags(this);
+    Row.registerTags(this);
+    Stack.registerTags(this);
+    Write.registerTags(this);
   }
 
   public add(name: string, parser: TagParser) {

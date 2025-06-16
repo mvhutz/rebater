@@ -15,6 +15,9 @@ import Literal from "../processes/Literal";
 import Counter from "../processes/Counter";
 import Coerce from "../processes/Coerce";
 import Reference from "../processes/Reference";
+import Row from "../processes/Row";
+import Stack from "../processes/Stack";
+import Write from "../processes/Write";
 
 type Actor = (process: ETL.Process, state: ETL.Data[][]) => Promise<ETL.Data[]>;
 
@@ -39,6 +42,9 @@ export class ActionRegistry {
     Counter.registerActions(this);
     Coerce.registerActions(this);
     Reference.registerActions(this);
+    Row.registerActions(this);
+    Stack.registerActions(this);
+    Write.registerActions(this);
   }
 
   public add(name: string, parser: Actor) {
