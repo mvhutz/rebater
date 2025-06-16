@@ -4,6 +4,9 @@ const MAGIC = {
   YEAR: '2024',
   COUNTER: {
     default: 0
+  },
+  LOCK: {
+    prompt: false
   }
 };
 

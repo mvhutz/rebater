@@ -6,19 +6,20 @@ import { ETL } from '../../types';
 
 const AttributesSchema = z.object({
   index: z.coerce.number(),
+  trimmed: z.coerce.boolean().default(false),
 });
 
 type Attributes = z.infer<typeof AttributesSchema>;
 
 async function runProcess(attributes: Attributes, data: ETL.Row[][]): Promise<ETL.Cell[]> {
-  const { index } = attributes;
+  const { index, trimmed } = attributes;
 
   return data.flat(1).map(row => ({
     type: "cell",
     table: row.table,
     row: row.row,
     column: index,
-    data: row.data[index],
+    data: trimmed ? row.data[index].trim() : row.data[index],
     labels: row.labels
   }));
 }

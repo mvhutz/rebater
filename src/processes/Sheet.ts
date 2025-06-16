@@ -21,14 +21,14 @@ async function runProcess(attributes: Attributes, data: ETL.Workbook[][]): Promi
     assert.ok(sheet != null, `Sheet '${name}' does not exist on workbook!`);
 
     const unclean = XLSX.utils.sheet_to_json(sheet, {
-      raw: false,
+      raw: true,
       blankrows: false,
       defval: '',
       header: 1,
     });
 
     const id = nanoid();
-    const parsed = z.array(z.array(z.string())).parse(unclean);
+    const parsed = z.array(z.array(z.coerce.string())).parse(unclean);
     return { type: 'table', data: parsed, table: id, labels: atom.labels };
   });
 }

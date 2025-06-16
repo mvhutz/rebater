@@ -19,6 +19,8 @@ import Reference from "../processes/Reference";
 import Row from "../processes/Row";
 import Stack from "../processes/Stack";
 import Write from "../processes/Write";
+import DropRow from "../processes/DropRow";
+import Match from "../processes/Match";
 
 type TagParser = (attributes: Record<string, string>, children: ETL.Process[], parser: ETL.Transformer) => ETL.Process;
 
@@ -46,6 +48,8 @@ export class TagRegistry {
     Row.registerTags(this);
     Stack.registerTags(this);
     Write.registerTags(this);
+    DropRow.registerTags(this);
+    Match.registerTags(this);
   }
 
   public add(name: string, parser: TagParser) {

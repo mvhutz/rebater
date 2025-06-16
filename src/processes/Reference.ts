@@ -6,6 +6,8 @@ import Path from 'path';
 import FS from 'fs/promises';
 import Papa from 'papaparse';
 import assert from 'assert';
+import mutexify from 'mutexify/promise';
+import consola from 'consola';
 
 /** ------------------------------------------------------------------------- */
 
@@ -20,9 +22,14 @@ async function getReferenceTable(name: string): Promise<ETL.ReferenceTable> {
   const { data: unclean } = Papa.parse(file, { header: true });
   const parsed = z.array(z.record(z.string(), z.string())).parse(unclean);
 
-  const result = { type: "reference", name, data: parsed } as const;
+  const result = { type: "reference", name, data: parsed, path } as const;
   TABLE_CACHE[name] = result;
   return result;
+}
+
+async function appendReferenceTable(table: ETL.ReferenceTable, row: Record<string, string>) {
+  table.data.push(row);
+  await FS.writeFile(table.path, Papa.unparse(table.data));
 }
 
 /** ------------------------------------------------------------------------- */
@@ -35,17 +42,35 @@ const AttributesSchema = z.object({
 
 type Attributes = z.infer<typeof AttributesSchema>;
 
+const lock = mutexify();
+
 async function runProcess(attributes: Attributes, data: ETL.Cell[][]): Promise<ETL.Cell[]> {
   const { table, match, take } = attributes;
   const reference_table = await getReferenceTable(table);
 
-  function onValue(datum: string) {
+  async function onValue(datum: string) {
+    const release = await lock();
+
     const row = reference_table.data.find(r => r[match] === datum);
-    assert.ok(row != null, `Table '${reference_table.name}' has no item '${datum}' for '${match}'.`);
-    return row[take];
+    if (row != null) {
+      release();
+      return row[take];
+    }
+    
+    const answer = await consola.prompt(`The '${take}' of '${datum}' is?`, {
+      type: "text",
+      cancel: "reject"
+    });
+
+    assert.ok(answer != null, `Table '${reference_table.name}' has no item '${datum}' for '${match}'.`);
+
+    await appendReferenceTable(reference_table, { [match]: datum, [take]: answer });
+
+    release();
+    return answer;
   }
 
-  return data.flat(1).map(cell => ({ ...cell, data: onValue(cell.data) }));
+  return await Promise.all(data.flat(1).map(async cell => ({ ...cell, data: await onValue(cell.data) })));
 }
 
 const Reference = makeBasicRegistration<Attributes, ETL.Cell, ETL.Cell>({

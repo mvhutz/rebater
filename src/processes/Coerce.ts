@@ -5,12 +5,20 @@ import { ETL } from '../../types';
 /** ------------------------------------------------------------------------- */
 
 function coerceDate(datum: string): string {
-  const date = new Date(datum);
+  const attemptInt = Number(datum);
+
+  let date: Date;
+  if (isNaN(attemptInt)) {
+    date = new Date(datum);
+  } else {
+    date = new Date(Date.UTC(0, 0, attemptInt));
+  }
+
   return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
 }
 
 function coerceNumber(datum: string): string {
-  return parseInt(datum).toString();
+  return parseFloat(datum).toString();
 }
 
 function coerceUSD(datum: string): string {

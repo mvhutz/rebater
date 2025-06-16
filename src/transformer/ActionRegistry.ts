@@ -18,6 +18,8 @@ import Reference from "../processes/Reference";
 import Row from "../processes/Row";
 import Stack from "../processes/Stack";
 import Write from "../processes/Write";
+import DropRow from "../processes/DropRow";
+import Match from "../processes/Match";
 
 type Actor = (process: ETL.Process, state: ETL.Data[][]) => Promise<ETL.Data[]>;
 
@@ -45,6 +47,8 @@ export class ActionRegistry {
     Row.registerActions(this);
     Stack.registerActions(this);
     Write.registerActions(this);
+    DropRow.registerActions(this);
+    Match.registerActions(this);
   }
 
   public add(name: string, parser: Actor) {

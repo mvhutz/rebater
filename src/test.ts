@@ -17,7 +17,7 @@ export async function fromPath(path: string, ignore: string[] = []) {
     return Object.values(deleted).join();
   });
 
-  return rows
+  return rows.filter(r => r.length > 0);
 }
 
 export async function fromDir(dir: string, ignore: string[] = []) {

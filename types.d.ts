@@ -32,6 +32,7 @@ export namespace ETL {
 
   interface ReferenceTable {
     type: "reference";
+    path: string;
     data: Record<string, string>[];
     name: string;
   }
