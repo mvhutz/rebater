@@ -10,9 +10,28 @@ const AttributesSchema = z.object({
 
 type Attributes = z.infer<typeof AttributesSchema>;
 
+function runPostParse(attributes: Attributes, process: ETL.Process, transformer: ETL.Transformer) {
+  const { into } = attributes;
+  if (into === "rows") return process;
+
+  const transpose: ETL.Process = {
+    id: Symbol(),
+    dependents: process.dependents,
+    action: { type: "transpose" }
+  }
+
+  process.dependents = new Set([transpose.id]);
+  transformer.set(transpose.id, transpose);
+
+  return process;
+}
+
 async function runProcess(attributes: Attributes, data: ETL.Table[][]): Promise<ETL.Row[]> {
-  // const { into } = attributes;
-  // if (into === "columns") group = transpose(group);
+  const { into } = attributes;
+  if (into === "columns") {
+    // group = transpose(group);
+    throw new Error("Transposing 'slice' tag not implemented.")
+  }
 
   const results = new Array<ETL.Row>();
 
@@ -37,7 +56,8 @@ const Slice = makeBasicRegistration<Attributes, ETL.Table, ETL.Row>({
   name: "slice",
   schema: AttributesSchema,
   types: ["table"],
-  act: runProcess
+  act: runProcess,
+  postParse: runPostParse,
 });
 
 /** ------------------------------------------------------------------------- */

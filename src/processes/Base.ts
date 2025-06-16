@@ -8,7 +8,8 @@ export function makeBasicRegistration<A extends object, Input extends ETL.Data, 
   name: string,
   schema?: z.ZodType<A>,
   types?: Input["type"][],
-  act: (action: A & ETL.Action, data: Input[][]) => Promise<Output[]>
+  act: (action: A & ETL.Action, data: Input[][]) => Promise<Output[]>,
+  postParse?: (attributes: A, process: ETL.Process, transformer: ETL.Transformer) => ETL.Process,
 }) {
   const { schema = z.object({}) as z.ZodType<A> } = options;
 
@@ -31,7 +32,7 @@ export function makeBasicRegistration<A extends object, Input extends ETL.Data, 
     return await options.act(action, input);
   }
 
-  function parseBaseTag(_attributes: Record<string, string>, children: ETL.Process[], transformer: ETL.Transformer): ETL.Process<BaseAction> {
+  function parseBaseTag(_attributes: Record<string, string>, children: ETL.Process[], transformer: ETL.Transformer): ETL.Process {
     const attributes = schema.parse(_attributes);
     
     const process = {
@@ -41,7 +42,8 @@ export function makeBasicRegistration<A extends object, Input extends ETL.Data, 
     }
 
     transformer.set(process.id, process);
-    return process;
+
+    return options?.postParse?.(attributes, process, transformer) ?? process;
   }
 
   return {
