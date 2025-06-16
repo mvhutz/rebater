@@ -10,6 +10,8 @@ import type { ETL } from '../../types';
 import Trim from "../processes/Trim";
 import assert from "assert";
 import Slice from "../processes/Slice";
+import Transpose from "../processes/Transpose";
+import Column from "../processes/Column";
 
 type TagParser = (attributes: Record<string, string>, children: ETL.Process[], parser: ETL.Transformer) => ETL.Process;
 
@@ -28,6 +30,8 @@ export class TagRegistry {
     Sheet.registerTags(this);
     Trim.registerTags(this);
     Slice.registerTags(this);
+    Transpose.registerTags(this);
+    Column.registerTags(this);
   }
 
   public add(name: string, parser: TagParser) {

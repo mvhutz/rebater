@@ -181,9 +181,7 @@ function updateCell<T extends ETLCell | ETLRow>(options: { value: (cell: Atom<T>
 export function column(options: { index: number }, group: Group<ETLRow>): Group<ETLCell> {
   const { index } = options;
 
-  return updateCell({
-    value: c => Array.isArray(c.data) ? c.data[index] : c.data,
-  }, group);
+  return updateCell({ value: c => c.data[index] }, group);
 }
 
 export function literal(options: { value: string }, group: Group<ETLCell | ETLRow>): Group<ETLCell> {

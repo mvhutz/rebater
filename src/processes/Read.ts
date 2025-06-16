@@ -9,18 +9,18 @@ import { ETL } from '../../types';
 
 const AttributesSchema = z.object({
   class: z.string(),
-  subclass: z.string(),
+  subClass: z.string(),
 });
 
 type Attributes = z.infer<typeof AttributesSchema>;
 
 async function runProcess(attributes: Attributes): Promise<ETL.File[]> {
-  const { class: _class, subclass } = attributes;
+  const { class: _class, subClass } = attributes;
   
   const path = Path.join(
     MAGIC.DIRECTORY,
     _class,
-    subclass, MAGIC.YEAR, `Q${MAGIC.QUARTER}`, '**/*');
+    subClass, MAGIC.YEAR, `Q${MAGIC.QUARTER}`, '**/*');
 
   const results = new Array<ETL.File>();
 

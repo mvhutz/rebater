@@ -50,6 +50,7 @@ export namespace ETL {
 
   interface Action {
     type: string;
+    [T: string]: unknown;
   }
 
   interface Process<T extends Action = Action> {

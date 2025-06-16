@@ -15,7 +15,7 @@ async function runProcess(_, data: ETL.Table[][]): Promise<ETL.Table[]> {
   });
 }
 
-const Trim = makeBasicRegistration<object, ETL.Table, ETL.Table>({
+const Transpose = makeBasicRegistration<object, ETL.Table, ETL.Table>({
   name: "transpose",
   types: ["table"],
   act: runProcess
@@ -23,4 +23,4 @@ const Trim = makeBasicRegistration<object, ETL.Table, ETL.Table>({
 
 /** ------------------------------------------------------------------------- */
 
-export default Trim;
+export default Transpose;

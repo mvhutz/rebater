@@ -3,25 +3,7 @@ import { ActionRegistry } from '../transformer/ActionRegistry';
 import { TagRegistry } from '../transformer/TagRegistry';
 import { ETL } from '../../types';
 import assert from 'assert';
-
-/** ------------------------------------------------------------------------- */
-
-function getVariable(name: string, transformer: ETL.Transformer): ETL.Process {
-  const processID = Symbol.for(name);
-  let result = transformer.get(processID);
-  if (result == null) {
-    result = {
-      id: processID,
-      name: name,
-      dependents: new Set(),
-      action: { type: "pass" }
-    };
-
-    transformer.set(processID, result);
-  }
-  
-  return result;
-}
+import { getVariable } from './Base';
 
 /** ------------------------------------------------------------------------- */
 

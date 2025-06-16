@@ -9,6 +9,8 @@ import Transform from "../processes/Transform";
 import Trim from "../processes/Trim";
 import * as Var from "../processes/Var";
 import Slice from "../processes/Slice";
+import Transpose from "../processes/Transpose";
+import Column from "../processes/Column";
 
 type Actor = (process: ETL.Process, state: ETL.Data[][]) => Promise<ETL.Data[]>;
 
@@ -27,6 +29,8 @@ export class ActionRegistry {
     Sheet.registerActions(this);
     Trim.registerActions(this);
     Slice.registerActions(this);
+    Transpose.registerActions(this);
+    Column.registerActions(this);
   }
 
   public add(name: string, parser: Actor) {
