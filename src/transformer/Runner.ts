@@ -17,11 +17,9 @@ type Status = IncompleteStatus | CompleteStatus;
 type State = Map<symbol, Status>;
 
 export class Runner {
-  public transformer: ETL.Transformer;
   public registry: ActionRegistry;
 
-  constructor(transformer: ETL.Transformer, registry: ActionRegistry) {
-    this.transformer = transformer;
+  constructor(registry: ActionRegistry) {
     this.registry = registry;
   }
 
@@ -55,7 +53,7 @@ export class Runner {
     }
 
     const actor = this.registry.get(process);
-    console.log(`Running ${process.action.type}`)
+    // console.log(`Running ${process.action.type}`)
     const output = await actor(process, input);
 
     state.set(process.id, {
@@ -67,10 +65,10 @@ export class Runner {
     return true;
   }
 
-  private async stepAll(state: State) {
+  private async stepAll(state: State, transformer: ETL.Transformer) {
     let changed = false;
 
-    for (const [, process] of this.transformer) {
+    for (const [, process] of transformer) {
       const updated = await this.stepOne(process, state);
       changed ||= updated;
     }
@@ -78,18 +76,19 @@ export class Runner {
     return changed;
   }
 
-  public async run() {
+  public async run(transformer: ETL.Transformer) {
     const state: State = new Map();
 
-    for (const [id, ] of this.transformer) {
+    for (const [id, ] of transformer) {
       state.set(id, { id, complete: false })
     }
 
     let changed: boolean;
     let i = 0;
     do {
-      console.log(`Iteration ${i++}`);
-      changed = await this.stepAll(state);
+      // console.log(`Iteration ${i}`);
+      i++;
+      changed = await this.stepAll(state, transformer);
     } while (changed && i < 100);
   }
 }
