@@ -33,13 +33,7 @@ type Attributes = z.infer<typeof AttributesSchema>;
 
 async function runProcess(attributes: Attributes, data: ETL.Cell[][]): Promise<ETL.Cell[]> {
   const { as } = attributes;
-
-  return data.flat(1).map(cell => ({ 
-    ...cell,
-    type: 'cell',
-    column: cell.column,
-    data: COERCERS[as](cell.data),
-  }));
+  return data.flat(1).map(cell => ({ ...cell, data: COERCERS[as](cell.data) }));
 }
 
 const Coerce = makeBasicRegistration<Attributes, ETL.Cell, ETL.Cell>({

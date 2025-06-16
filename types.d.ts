@@ -30,8 +30,8 @@ export namespace ETL {
     row: number;
   }
 
-  interface ReferenceTable extends Atom {
-    type: "table";
+  interface ReferenceTable {
+    type: "reference";
     data: Record<string, string>[];
     name: string;
   }
@@ -44,7 +44,7 @@ export namespace ETL {
     column: number;
   }
 
-  type Data = File | Workbook | Table | Row | ReferenceTable | Cell;
+  type Data = File | Workbook | Table | Row | Cell;
 
   type Filter<T> = FilterByPropertyType<Data, "type", T>
 
