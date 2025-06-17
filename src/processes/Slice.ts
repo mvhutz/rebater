@@ -16,11 +16,11 @@ function runPostParse(attributes: Attributes, process: ETL.Process, transformer:
 
   const transpose: ETL.Process = {
     id: Symbol(),
-    dependents: process.dependents,
+    dependencies: process.dependencies,
     action: { type: "transpose" }
   }
 
-  process.dependents = new Set([transpose.id]);
+  process.dependencies = new Set([transpose.id]);
   transformer.set(transpose.id, transpose);
 
   return process;

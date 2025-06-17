@@ -57,7 +57,7 @@ export namespace ETL {
   interface Process<T extends Action = Action> {
     id: symbol
     name?: string;
-    dependents: Set<symbol>;
+    dependencies: Set<symbol>;
     action: T;
   }
 

@@ -43,7 +43,7 @@ function parseToTag(attributes: Record<string, string>, children: ETL.Process[],
   const { var: _var } = ToTagAttributes.parse(attributes);
 
   const variable = getVariable(_var, transformer);
-  children.forEach(c => variable.dependents.add(c.id));
+  children.forEach(c => variable.dependencies.add(c.id));
 
   return variable;
 }

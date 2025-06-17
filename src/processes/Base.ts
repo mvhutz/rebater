@@ -11,7 +11,7 @@ export function getVariable(name: string, transformer: ETL.Transformer): ETL.Pro
     result = {
       id: processID,
       name: name,
-      dependents: new Set(),
+      dependencies: new Set(),
       action: { type: "pass" }
     };
 
@@ -70,7 +70,7 @@ export function makeBasicRegistration<A extends object, Input extends ETL.Data, 
     return children.map(child => {
       const filter: ETL.Process = {
         id: Symbol(),
-        dependents: new Set([child.id]),
+        dependencies: new Set([child.id]),
         action: {
           type: 'label',
           filter: labelFilter
@@ -87,7 +87,7 @@ export function makeBasicRegistration<A extends object, Input extends ETL.Data, 
     if (toVar == null) return process;
 
     const variable = getVariable(toVar, transformer);
-    variable.dependents.add(process.id);
+    variable.dependencies.add(process.id);
     return variable;
   }
 
@@ -97,7 +97,7 @@ export function makeBasicRegistration<A extends object, Input extends ETL.Data, 
 
     const labeler: ETL.Process = {
       id: Symbol(),
-      dependents: new Set([process.id]),
+      dependencies: new Set([process.id]),
       action: {
         type: 'label',
         add: labelAdd,
@@ -116,7 +116,7 @@ export function makeBasicRegistration<A extends object, Input extends ETL.Data, 
     
     let process: ETL.Process = {
       id: Symbol(),
-      dependents: new Set(children.map(c => c.id)),
+      dependencies: new Set(children.map(c => c.id)),
       action: { ...attributes, type: options.name }
     };
 

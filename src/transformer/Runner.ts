@@ -29,8 +29,8 @@ export class Runner {
 
     if (status.complete) return false;
 
-    for (const dependent of process.dependents) {
-      const their_status = state.get(dependent);
+    for (const dependency of process.dependencies) {
+      const their_status = state.get(dependency);
       assert.ok(their_status != null);
 
       if (!their_status.complete) return false;
@@ -45,8 +45,8 @@ export class Runner {
 
     const input = new Array<ETL.Data[]>();
 
-    for (const dependent of process.dependents) {
-      const their_status = state.get(dependent)!;
+    for (const dependency of process.dependencies) {
+      const their_status = state.get(dependency)!;
       assert.ok(their_status.complete);
 
       input.push(their_status.data);

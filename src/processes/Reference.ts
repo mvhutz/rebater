@@ -49,13 +49,19 @@ async function runProcess(attributes: Attributes, data: ETL.Cell[][]): Promise<E
   const { table, match, take, group } = attributes;
   const reference_table = await getReferenceTable(table);
 
+  const querier: Record<string, string> = {};
+  for (const row of reference_table.data) {
+    if (row.group !== group) continue;
+    querier[row[match]] = row[take];
+  }
+
   async function onValue(datum: string) {
     const release = await lock();
 
-    const row = reference_table.data.find(r => r[match] === datum && r.group === group);
-    if (row != null) {
+    const value = querier[datum];
+    if (value != null) {
       release();
-      return row[take];
+      return value;
     }
     
     const answer = await consola.prompt(`For '${group}', the '${take}' of '${datum}' is?`, {
