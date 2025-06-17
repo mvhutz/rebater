@@ -23,9 +23,9 @@ async function getTransformers() {
 async function main() {
   const files = await getTransformers();
 
-  console.log('-- [RUNNING TRANSFORMERS] --')
+  console.log('\n==== [RUNNING TRANSFORMERS] ====\n')
   for (const file of files) {
-    console.time(file);
+    console.time("\t" + file);
     const xml = await Lexer.fromConfig(file);
 
     const tag_registry = new TagRegistry();
@@ -35,10 +35,10 @@ async function main() {
     const action_registry = new ActionRegistry();
     const runner = new Runner(action_registry);
     await runner.run(transformer);
-    console.timeEnd(file);
+    console.timeEnd("\t" + file);
   }
 
-  console.log('\n-- [COMPARING SOURCES] --');
+  console.log('\n==== [COMPARING SOURCES] ====');
 
   const answers = await availableAnswers();
   for (const path of answers) {
@@ -46,13 +46,15 @@ async function main() {
       ignore: ['purchaseId']
     });
 
-    console.log(`${path}: +${file2.length} -${file1.length}.`);
+    console.log(`\n${path}: +${file2.length} -${file1.length}.`);
     for (const line of file1) {
-      console.log(">", line)
+      console.log("\t[-]", line)
     }
 
+    if (file1.length > 0 && file2.length > 0) console.log('');
+
     for (const line of file2) {
-      console.log("<", line)
+      console.log("\t[+]", line)
     }
   }
 }
