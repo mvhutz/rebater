@@ -38,6 +38,7 @@ const AttributesSchema = z.object({
   table: z.string(),
   match: z.string(),
   take: z.string(),
+  group: z.string(),
 });
 
 type Attributes = z.infer<typeof AttributesSchema>;
@@ -45,26 +46,26 @@ type Attributes = z.infer<typeof AttributesSchema>;
 const lock = mutexify();
 
 async function runProcess(attributes: Attributes, data: ETL.Cell[][]): Promise<ETL.Cell[]> {
-  const { table, match, take } = attributes;
+  const { table, match, take, group } = attributes;
   const reference_table = await getReferenceTable(table);
 
   async function onValue(datum: string) {
     const release = await lock();
 
-    const row = reference_table.data.find(r => r[match] === datum);
+    const row = reference_table.data.find(r => r[match] === datum && r.group === group);
     if (row != null) {
       release();
       return row[take];
     }
     
-    const answer = await consola.prompt(`The '${take}' of '${datum}' is?`, {
+    const answer = await consola.prompt(`For '${group}', the '${take}' of '${datum}' is?`, {
       type: "text",
       cancel: "reject"
     });
 
     assert.ok(answer != null, `Table '${reference_table.name}' has no item '${datum}' for '${match}'.`);
 
-    await appendReferenceTable(reference_table, { [match]: datum, [take]: answer });
+    await appendReferenceTable(reference_table, { [match]: datum, [take]: answer, group: group });
 
     release();
     return answer;
