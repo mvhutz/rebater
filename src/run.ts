@@ -45,7 +45,7 @@ async function runTrimRowTransformation(transformation: TrimRowTransformation, t
 
   return { 
     ...table,
-    data: table.data.slice(top, bottom == null ? undefined : -bottom)
+    data: table.data.slice(top == null ? undefined : top - 1, bottom == null ? undefined : -bottom)
   };
 }
 
@@ -63,10 +63,8 @@ async function runSelectRowTransformation(transformation: SelectRowTransformatio
   const { column, is, isnt, action } = transformation;
 
   const rows = table.data.filter(row => {
-    const datum = row[column];
-    const selected = (is != null && is == datum) || (isnt != null && isnt != datum);
-    // Basically, if "keep", it is `selected`, and if "drop", it is `!selected`.
-    return selected === (action === "keep");
+    const datum = row.data[column];
+    return (action === "keep") === ((is != null && is == datum) || (isnt != null && isnt != datum));
   });
 
   return { ...table, data: rows };
@@ -319,7 +317,7 @@ export async function runAllConfigs(context: Context): Promise<RunResults> {
   }
 
   for (const config_file of config_files) {
-    const name = path.parse(config_file).base;
+    const name = path.parse(config_file).name;
     const config = await getConfig(config_file);
 
     console.log(`Running ${name}...`)

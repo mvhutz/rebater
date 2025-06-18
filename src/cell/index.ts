@@ -7,6 +7,8 @@ import Replace from "./Replace";
 import Trim from "./Trim";
 import assert from "node:assert";
 import Reference from "./Reference";
+import Character from "./Character";
+import Multiply from "./Multiply";
 
 const REGISTERED = [
   Coerce,
@@ -15,7 +17,9 @@ const REGISTERED = [
   Literal,
   Replace,
   Trim,
-  Reference
+  Reference,
+  Character,
+  Multiply
 ] as const;
 
 export const CellTransformationSchema = z.union(REGISTERED.map(e => e.schema));

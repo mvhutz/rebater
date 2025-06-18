@@ -6,18 +6,25 @@ const NAME = "replace";
 
 const schema = z.object({
   type: z.literal(NAME),
-  find: z.string().min(1),
-  put: z.string().length(1),
+  characters: z.string().min(1).optional(),
+  substring: z.string().min(1).optional(),
+  put: z.string(),
 });
 
 type Transformation = z.infer<typeof schema>;
 
 async function run(transformation: Transformation, value: string) {
-  const { find, put } = transformation;
+  const { characters, put, substring } = transformation;
   let result = value;
 
-  for (const character of find) {
-    result = result.replace(character, put);
+  if (characters != null) {
+    for (const character of characters) {
+      result = result.replace(character, put);
+    }
+  }
+
+  if (substring != null) {
+    result = result.replace(substring, put);
   }
 
   return result;
