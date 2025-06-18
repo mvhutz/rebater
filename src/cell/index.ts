@@ -22,13 +22,10 @@ const REGISTERED = [
   Multiply
 ] as const;
 
-export const CellTransformationSchema = z.union(REGISTERED.map(e => e.schema));
+export const _Schema = z.union(REGISTERED.map(e => e.schema));
+type CellTransformation = z.infer<typeof _Schema>;
 
-export type CellTransformation = z.infer<typeof CellTransformationSchema>;
-
-export async function runOnce(transformation: CellTransformation, value: string, row: Row, context: Context) {
-  void context;
-
+export async function _runOnce(transformation: CellTransformation, value: string, row: Row, context: Context) {
   const transformer = REGISTERED.find(r => r.name === transformation.type);
   assert.ok(transformer != null, `Cell transformer ${transformation.type} not found.`);
 
@@ -36,12 +33,22 @@ export async function runOnce(transformation: CellTransformation, value: string,
   return transformer.run(transformation as never, value, row, context);
 }
 
-export async function runMany(transformations: CellTransformation[], row: Row, context: Context) {
+export async function _runMany(transformations: CellTransformation[], row: Row, context: Context) {
   let final = "";
 
   for (const transformation of transformations) {
-    final = await runOnce(transformation, final, row, context);
+    final = await _runOnce(transformation, final, row, context);
   }
 
   return final;
 }
+
+/** ------------------------------------------------------------------------- */
+
+const CellTransformation = {
+  Schema: _Schema,
+  runOnce: _runOnce,
+  runMany: _runMany,
+}
+
+export default CellTransformation;

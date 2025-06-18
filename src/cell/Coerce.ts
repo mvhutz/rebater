@@ -67,5 +67,7 @@ async function run(transformation: Transformation, value: string, row: Row, cont
   return coercer.run(value, transformation, context);
 }
 
+/** ------------------------------------------------------------------------- */
+
 const Coerce = { schema, run, name: NAME };
 export default Coerce;

@@ -30,5 +30,7 @@ async function run(transformation: Transformation, value: string) {
   return result;
 }
 
+/** ------------------------------------------------------------------------- */
+
 const Replace = { schema, run, name: NAME };
 export default Replace;

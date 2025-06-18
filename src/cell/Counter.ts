@@ -14,5 +14,7 @@ async function run(transformation: Transformation, value: string, row: Row, cont
   return (context.counter++).toString();
 }
 
+/** ------------------------------------------------------------------------- */
+
 const Counter = { schema, run, name: NAME };
 export default Counter;

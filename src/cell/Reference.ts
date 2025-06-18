@@ -69,5 +69,7 @@ async function run(transformation: Transformation, value: string, row: Row, cont
   return answer;
 }
 
+/** ------------------------------------------------------------------------- */
+
 const Reference = { schema, run, name: NAME };
 export default Reference;

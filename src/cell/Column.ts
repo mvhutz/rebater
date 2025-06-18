@@ -15,5 +15,7 @@ async function run(transformation: Transformation, value: string, row: Row) {
   return row.data[transformation.index];
 }
 
+/** ------------------------------------------------------------------------- */
+
 const Column = { schema, run, name: NAME };
 export default Column;

@@ -1,4 +1,4 @@
-import { runAllConfigs } from "./src/run";
+import { runAllConfigs } from "./src/config";
 import { printResults } from "./src/test";
 
 async function main() {

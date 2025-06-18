@@ -6,12 +6,19 @@ const NAME = "trim";
 
 const schema = z.object({
   type: z.literal(NAME),
+  top: z.number().optional(),
+  bottom: z.number().optional(),
 });
 
-type Transformation = z.infer<typeof schema>;
+type Schema = z.infer<typeof schema>;
 
-async function run(transformation: Transformation, value: string) {
-  return value.trim();
+async function run(transformation: Schema, table: Table) {
+  const { top, bottom } = transformation;
+
+  return { 
+    ...table,
+    data: table.data.slice(top == null ? undefined : top - 1, bottom == null ? undefined : -bottom)
+  };
 }
 
 /** ------------------------------------------------------------------------- */

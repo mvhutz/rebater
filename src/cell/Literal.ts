@@ -15,5 +15,7 @@ async function run(transformation: Transformation) {
   return transformation.value;
 }
 
+/** ------------------------------------------------------------------------- */
+
 const Literal = { schema, run, name: NAME };
 export default Literal;

@@ -21,5 +21,7 @@ async function run(transformation: Transformation, value: string) {
     .join("");
 }
 
+/** ------------------------------------------------------------------------- */
+
 const Character = { schema, run, name: NAME };
 export default Character;
