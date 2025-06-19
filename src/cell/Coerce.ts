@@ -20,6 +20,7 @@ function coerceDate(datum: string, attributes: Attributes, context: Context): st
   let date: Date;
 
   if (attributes.parse) {
+    if (datum.length === 5) datum = "0" + datum;
     date = moment(datum, attributes.parse).toDate();
   } else if (isNaN(attemptInt)) {
     date = new Date(datum);

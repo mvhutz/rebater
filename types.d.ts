@@ -28,8 +28,8 @@ interface ConfigResult {
 
 interface DiscrepencyResult {
   name: string;
-  take: string[];
-  drop: string[];
+  take: Rebate[];
+  drop: Rebate[];
 }
 
 interface RunResults {
