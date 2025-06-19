@@ -22,6 +22,8 @@ async function run(transformation: Schema, table: Table) {
     return (action === "keep") === ((is != null && is == datum) || (isnt != null && isnt != datum));
   });
 
+  // console.log(`${table.data.length - rows.length} rows dropped!`);
+
   return { ...table, data: rows };
 }
 

@@ -17,7 +17,7 @@ async function run(transformation: Schema, table: Table) {
 
   return { 
     ...table,
-    data: table.data.slice(top == null ? undefined : top - 1, bottom == null ? undefined : -bottom)
+    data: table.data.slice(top == null ? undefined : top, bottom == null ? undefined : -bottom)
   };
 }
 

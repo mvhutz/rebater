@@ -7,24 +7,33 @@ const NAME = "chop";
 const schema = z.object({
   type: z.literal("chop"),
   column: z.number(),
-  is: z.string(),
-  keep: z.union([z.literal("top"), z.literal("bottom")]).default("bottom")
+  is: z.array(z.string()),
+  keep: z.union([z.literal("top"), z.literal("bottom")]).default("bottom"),
+  otherwise: z.union([z.literal("drop"), z.literal("take")]).default("drop")
 });
 
 type Schema = z.infer<typeof schema>;
 
 async function run(transformation: Schema, table: Table, context: Context) {
-  void context;
+  void [context];
 
-  const { column, is, keep } = transformation;
+  const { column, is, keep, otherwise } = transformation;
 
-  const index = table.data.findIndex(row => row[column] == is);
-  return {
-    ...table,
-    data: keep === "top"
-      ? table.data.slice(0, index)
-      : table.data.slice(index)
-  };
+  const index = table.data.findIndex(row => is.includes(row.data[column].trim()));
+  if (index === -1) {
+    // console.log(`Chop not found for ${table.path}`);
+    if (otherwise === "take") {
+      return table;
+    } else {
+      return { ...table, data: [] };
+    }
+  }
+
+  const data = keep === "top"
+      ? table.data.slice(undefined, index)
+      : table.data.slice(index, undefined);
+
+  return { ...table, data };
 }
 
 /** ------------------------------------------------------------------------- */

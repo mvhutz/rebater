@@ -1,3 +1,4 @@
+import moment from "moment";
 import assert from "node:assert";
 import z from "zod/v4";
 
@@ -8,6 +9,7 @@ const NAME = "coerce";
 const attributes = z.object({
    year: z.union([z.literal("assume")]).optional(),
    round: z.union([z.literal("up"), z.literal("down"), z.literal("default")]).default("default"),
+   parse: z.string().optional()
 });
 
 type Attributes = z.infer<typeof attributes>;
@@ -16,7 +18,10 @@ function coerceDate(datum: string, attributes: Attributes, context: Context): st
   const attemptInt = Number(datum);
 
   let date: Date;
-  if (isNaN(attemptInt)) {
+
+  if (attributes.parse) {
+    date = moment(datum, attributes.parse).toDate();
+  } else if (isNaN(attemptInt)) {
     date = new Date(datum);
   } else {
     date = new Date(Date.UTC(0, 0, attemptInt));
@@ -28,6 +33,9 @@ function coerceDate(datum: string, attributes: Attributes, context: Context): st
 
   return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
 }
+
+// 11/13/2024,1098,1341,EF Contract,$2752.03,$55.04,4085112,11/13/2024
+// 10/16/2024,1098,1341,EF Contract,$2752.03,$55.04,4085112,10/16/2024
 
 function coerceNumber(datum: string): string {
   return parseFloat(datum).toString();

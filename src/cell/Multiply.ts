@@ -15,7 +15,6 @@ type Transformation = z.infer<typeof schema>;
 async function run(transformation: Transformation, value: string, row: Row, context: Context) {
   const extra = z.array(_Schema).parse(transformation.with);
   const extra_value = await _runMany(extra, row, context);
-  console.log(extra_value, value, (Number(extra_value) * Number(value)).toString());
   return (Number(extra_value) * Number(value)).toString();
 }
 

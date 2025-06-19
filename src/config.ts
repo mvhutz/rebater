@@ -17,29 +17,40 @@ const ConfigSchema = z.object({
   destination: Destination.Schema,
 });
 
-type Config = z.infer<typeof ConfigSchema>;
+type ConfigData = z.infer<typeof ConfigSchema>;
+
+interface Config {
+  data: ConfigData;
+  name: string;
+  path: string;
+}
 
 /** ------------------------------------------------------------------------- */
 
-export async function getConfig(path: string): Promise<Config> {
-  const file = await readFile(path, 'utf-8');
-  const json = JSON.parse(file);
-  return ConfigSchema.parse(json);
+export async function getConfig(file: string): Promise<Config> {
+  const raw = await readFile(file, 'utf-8');
+  const json = JSON.parse(raw);
+
+  return {
+    data: ConfigSchema.parse(json),
+    name: path.parse(file).name,
+    path: file,
+  }
 }
 
 export async function runConfig(config: Config, context: Context) {
   const start = performance.now();
-  const { preprocess = [], postprocess = [] } = config;
-  const sources = await Source.runMany(config.sources, context);
+  const { preprocess = [], postprocess = [], sources, destination, properties } = config.data;
+  const source_data = await Source.runMany(sources, context);
 
-  const preprocessed = await RowTransformation.runMany(preprocess, sources, context);
+  const preprocessed_data = await RowTransformation.runMany(preprocess, source_data, context);
 
-  const rows = preprocessed.map(table => table.data).flat(1);
+  const rows = preprocessed_data.map(table => table.data).flat(1);
   const recombined: Table = {
-    path: "<None>",
+    path: config.path,
     data: [
       {
-        data: Object.keys(config.properties)
+        data: Object.keys(properties)
       }
     ]
   }
@@ -47,7 +58,7 @@ export async function runConfig(config: Config, context: Context) {
   for (const row of rows) {
     const result = new Array<string>();
 
-    for (const transformations of Object.values(config.properties)) {
+    for (const transformations of Object.values(properties)) {
       const output = await CellTransformation.runMany(transformations, row, context);
       result.push(output);
     }
@@ -57,11 +68,11 @@ export async function runConfig(config: Config, context: Context) {
     });
   }
 
-  const [postprocessed] = await RowTransformation.runMany(postprocess, [recombined], context);
-  await Destination.runOnce(config.destination, postprocessed, context);
+  const [postprocessed_data] = await RowTransformation.runMany(postprocess, [recombined], context);
+  await Destination.runOnce(destination, postprocessed_data, context);
 
   const end = performance.now();
-  return { start, end };
+  return { start, end, name: config.name };
 }
 
 async function findConfigs(context: Context) {  
@@ -88,9 +99,7 @@ export async function runAllConfigs(context: Context): Promise<RunResults> {
     const config = await getConfig(config_file);
 
     console.log(`Running ${name}...`)
-    const { start, end} = await runConfig(config, context);
-
-    results.config.push({ start, end, name });
+    results.config.push(await runConfig(config, context));
   }
 
   const answers = await availableAnswers(context);

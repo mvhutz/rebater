@@ -18,7 +18,7 @@ type Schema = z.infer<typeof schema>;
 async function run(destination: Schema, table: Table, context: Context) {
   const { group, subgroup } = destination;
   const directory = path.join(context.directory, group, subgroup);
-  const file = path.join(directory, 'guess.csv');
+  const file = path.join(directory, `${path.parse(table.path).name}.csv`);
   
   const data = table.data.map(row => row.data);
 
