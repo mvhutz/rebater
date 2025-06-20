@@ -9,6 +9,8 @@ interface Context {
   counter: number;
   directory: string;
   references: Map<string, Reference>;
+  ask: (text: string) => Promise<string>;
+  escalate: (fn: () => T) => Promise<T>;
 }
 
 interface Row {

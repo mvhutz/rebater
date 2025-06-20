@@ -1,12 +1,13 @@
 import { glob, readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { parse } from "papaparse";
+import XLSX from "xlsx";
 import z from "zod/v4";
 
 /** ------------------------------------------------------------------------- */
 
 const RebateSchema = z.object({
-  // purchaseId: z.string(),
+  purchaseId: z.string(),
   transactionDate: z.string(),
   supplierId: z.string(),
   memberId: z.string(),
@@ -44,6 +45,8 @@ export async function compareRebates(dir1: string, dir2: string, context: Contex
 
   const rSet1 = new Set();
   for (const rebate of rebates1) {
+    rebate.purchaseId = "X";
+
     const rebateAmount = Number(rebate.rebateAmount.replace(/[$,]/g, ""));
     rSet1.add(Object.values({ ...rebate, rebateAmount: `$${(rebateAmount - 0.01).toFixed(2)}` }).join());
     rSet1.add(Object.values({ ...rebate, rebateAmount: `$${(rebateAmount + 0.00).toFixed(2)}` }).join());
@@ -52,6 +55,8 @@ export async function compareRebates(dir1: string, dir2: string, context: Contex
 
   const rSet2 = new Set();
   for (const rebate of rebates2) {
+    rebate.purchaseId = "X";
+
     const rebateAmount = Number(rebate.rebateAmount.replace(/[$,]/g, ""));
     rSet2.add(Object.values({ ...rebate, rebateAmount: `$${(rebateAmount - 0.01).toFixed(2)}` }).join());
     rSet2.add(Object.values({ ...rebate, rebateAmount: `$${(rebateAmount + 0.00).toFixed(2)}` }).join());
@@ -96,4 +101,14 @@ export function printResults(results: RunResults) {
       console.log("\t[+]", line)
     }
   }
+}
+
+export async function pushToXLSX(file: string, context: Context) {
+  const rebates = await fromDir("rebates", context);
+
+  const sheet = XLSX.utils.json_to_sheet(rebates);
+  const book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(book, sheet, "Rebates");
+  
+  XLSX.writeFileXLSX(book, file);
 }
