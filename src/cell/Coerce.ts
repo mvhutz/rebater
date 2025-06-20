@@ -7,9 +7,9 @@ const NAME = "coerce";
 /** ------------------------------------------------------------------------- */
 
 const attributes = z.object({
-   year: z.union([z.literal("assume")]).optional(),
-   round: z.union([z.literal("up"), z.literal("down"), z.literal("default")]).default("default"),
-   parse: z.string().optional()
+  year: z.union([z.literal("assume")]).optional(),
+  round: z.union([z.literal("up"), z.literal("down"), z.literal("default")]).default("default"),
+  parse: z.string().optional()
 });
 
 type Attributes = z.infer<typeof attributes>;
@@ -62,10 +62,10 @@ const COERCERS = [
 
 /** ------------------------------------------------------------------------- */
 
-const schema = attributes.and(z.object({
+const schema = z.intersection(z.object({
   type: z.literal(NAME),
   as: z.enum(COERCERS.map(e => e.name))
-}));
+}), attributes);
 
 type Transformation = z.infer<typeof schema>;
 

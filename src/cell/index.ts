@@ -9,6 +9,8 @@ import assert from "node:assert";
 import Reference from "./Reference";
 import Character from "./Character";
 import Multiply from "./Multiply";
+import Meta from "./Meta";
+import Add from "./Add";
 
 const REGISTERED = [
   Coerce,
@@ -19,7 +21,9 @@ const REGISTERED = [
   Trim,
   Reference,
   Character,
-  Multiply
+  Multiply,
+  Meta,
+  Add
 ] as const;
 
 export const _Schema = z.union(REGISTERED.map(e => e.schema));
