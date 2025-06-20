@@ -1,8 +1,8 @@
 import csv
 from typing import Dict, List
 
-NAME = "Esmer Tile"
-ID = "1106"
+NAME = "Futura"
+ID = "1113"
 
 # ---------------------------------------------------------------------------- #
 
@@ -51,3 +51,8 @@ with open(CUSTOMER_OUTPUT, 'w') as csvfile:
 with open(DISTRIBUTOR_OUTPUT, 'w') as csvfile:
     writer = csv.writer(csvfile, delimiter=',', quotechar='"')
     writer.writerows(distributorOutput)
+
+# 12/18/2024,1113,1174,TA Supply,$97.40,$3.90,517355,12/18/2024
+# 12/17/2024,1113,1174,TA Supply,$97.40,$3.90,517355,12/17/2024
+
+# 11/6/2024,1113,1340,TA Supply,$8.51,$0.34,479723,11/6/2024
