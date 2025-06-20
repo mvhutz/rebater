@@ -1,8 +1,8 @@
 import csv
 from typing import Dict, List
 
-NAME = "Futura"
-ID = "1113"
+NAME = "Gallaher"
+ID = "1107"
 
 # ---------------------------------------------------------------------------- #
 

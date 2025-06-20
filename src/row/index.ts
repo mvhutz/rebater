@@ -4,6 +4,7 @@ import Drop from "./Drop";
 import Select from "./Select";
 import Trim from "./Trim";
 import assert from "node:assert";
+import Header from "./Header";
 
 /** ------------------------------------------------------------------------- */
 
@@ -11,7 +12,8 @@ const REGISTERED = [
   Chop,
   Drop,
   Select,
-  Trim
+  Trim,
+  Header
 ] as const;
 
 const RowTransformationSchema = z.union(REGISTERED.map(e => e.schema));
