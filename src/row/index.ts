@@ -5,6 +5,8 @@ import Select from "./Select";
 import Trim from "./Trim";
 import assert from "node:assert";
 import Header from "./Header";
+import Coalesce from "./Coalesce";
+import Debug from "./Debug";
 
 /** ------------------------------------------------------------------------- */
 
@@ -13,7 +15,9 @@ const REGISTERED = [
   Filter,
   Select,
   Trim,
-  Header
+  Header,
+  Coalesce,
+  Debug
 ] as const;
 
 const RowTransformationSchema = z.union(REGISTERED.map(e => e.schema));

@@ -1,4 +1,5 @@
 import z from "zod/v4";
+import { ExcelIndexSchema, getTrueIndex } from "../util";
 
 const NAME = "select";
 
@@ -6,7 +7,7 @@ const NAME = "select";
 
 const schema = z.object({
   type: z.literal("select"),
-  column: z.number(),
+  column: ExcelIndexSchema,
   is: z.union([z.string(), z.array(z.string())]).optional(),
   isnt: z.union([z.string(), z.array(z.string())]).optional(),
   action: z.union([z.literal("drop"), z.literal("keep")]).default("keep"),
@@ -21,11 +22,9 @@ async function run(transformation: Schema, table: Table) {
   const trueIsnt = isnt == null || Array.isArray(isnt) ? isnt : [isnt];
 
   const rows = table.data.filter(row => {
-    const datum = row.data[column];
+    const datum = row.data[getTrueIndex(column)];
     return (action === "keep") === (trueIs?.includes(datum) || (trueIsnt != null && !trueIsnt.includes(datum)));
   });
-
-  // console.log(`${table.data.length - rows.length} rows dropped!`);
 
   return { ...table, data: rows };
 }
