@@ -11,6 +11,7 @@ import Character from "./Character";
 import Multiply from "./Multiply";
 import Meta from "./Meta";
 import Add from "./Add";
+import Equals from "./Equals";
 
 const REGISTERED = [
   Coerce,
@@ -23,7 +24,8 @@ const REGISTERED = [
   Character,
   Multiply,
   Meta,
-  Add
+  Add,
+  Equals
 ] as const;
 
 export const _Schema = z.union(REGISTERED.map(e => e.schema));

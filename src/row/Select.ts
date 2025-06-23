@@ -7,8 +7,8 @@ const NAME = "select";
 const schema = z.object({
   type: z.literal("select"),
   column: z.number(),
-  is: z.string().optional(),
-  isnt: z.string().optional(),
+  is: z.union([z.string(), z.array(z.string())]).optional(),
+  isnt: z.union([z.string(), z.array(z.string())]).optional(),
   action: z.union([z.literal("drop"), z.literal("keep")]).default("keep"),
 });
 
@@ -17,9 +17,12 @@ type Schema = z.infer<typeof schema>;
 async function run(transformation: Schema, table: Table) {
   const { column, is, isnt, action } = transformation;
 
+  const trueIs = is == null || Array.isArray(is) ? is : [is];
+  const trueIsnt = isnt == null || Array.isArray(isnt) ? isnt : [isnt];
+
   const rows = table.data.filter(row => {
     const datum = row.data[column];
-    return (action === "keep") === ((is != null && is == datum) || (isnt != null && isnt != datum));
+    return (action === "keep") === (trueIs?.includes(datum) || (trueIsnt != null && !trueIsnt.includes(datum)));
   });
 
   // console.log(`${table.data.length - rows.length} rows dropped!`);

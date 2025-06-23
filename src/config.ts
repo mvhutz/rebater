@@ -98,7 +98,7 @@ export async function runAllConfigs(context: Context): Promise<RunResults> {
 
     process.stdout.clearLine(0);
     process.stdout.cursorTo(0);
-    process.stdout.write(`[${c}/${config_files.length}] Running ${name}...`);
+    process.stdout.write(`[${c + 1}/${config_files.length}] Running ${name}...`);
     results.config.push(await runConfig(config, context));
   }
 

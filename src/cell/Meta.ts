@@ -13,8 +13,13 @@ function getQuarterLastDay(context: Context) {
     .format("MM/DD/YYYY");
 }
 
+function getQuarterNumber( context: Context) {
+  return context.quarter;
+}
+
 const META = [
-  { name: "quarter.lastday", get: getQuarterLastDay }
+  { name: "quarter.lastday", get: getQuarterLastDay },
+  { name: "quarter.number", get: getQuarterNumber }
 ] as const;
 
 /** ------------------------------------------------------------------------- */
@@ -28,7 +33,7 @@ type Transformation = z.infer<typeof schema>;
 
 async function run(transformation: Transformation, value: string, row: Row, context: Context) {
   const meta = META.find(m => m.name === transformation.value)!;
-  return meta.get(context);
+  return meta.get(context).toString();
 }
 
 /** ------------------------------------------------------------------------- */

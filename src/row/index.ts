@@ -1,6 +1,6 @@
 import z from "zod/v4";
 import Chop from "./Chop";
-import Drop from "./Drop";
+import Filter from "./Filter";
 import Select from "./Select";
 import Trim from "./Trim";
 import assert from "node:assert";
@@ -10,7 +10,7 @@ import Header from "./Header";
 
 const REGISTERED = [
   Chop,
-  Drop,
+  Filter,
   Select,
   Trim,
   Header
