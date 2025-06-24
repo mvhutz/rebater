@@ -1,8 +1,8 @@
 import csv
 from typing import Dict, List
 
-NAME = "Chapco"
-ID = "1039"
+NAME = "Mapei"
+ID = "1086"
 
 # ---------------------------------------------------------------------------- #
 
@@ -25,10 +25,15 @@ customerMatches: Dict[str, str] = {}
 distributorsMatches: Dict[str, str] = {}
 
 for ident1, customerName, fuzzyName in customerNames:
+  matching = False
   for ident2, fuseId, trueName in fuseIds:
     if ident1 != ident2: continue
     customerMatches[customerName] = fuseId
     distributorsMatches[fuzzyName] = trueName
+    matching = True
+  
+  if not matching:
+    print(f"No match for {ident1}!")
 
 customerOutput: List[List[str]] = [
   ["group", "customerName", "fuseId"]

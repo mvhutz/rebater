@@ -21,6 +21,7 @@ function coerceDate(datum: string, attributes: Attributes, context: Context): st
 
   if (attributes.parse) {
     if (datum.length === 5) datum = "0" + datum;
+    if (datum.length === 7) datum = "0" + datum;
     date = moment(datum, attributes.parse);
   } else if (!isNaN(attemptInt)) {
     date = moment(Date.UTC(0, 0, attemptInt));
@@ -34,6 +35,7 @@ function coerceDate(datum: string, attributes: Attributes, context: Context): st
     date.year(context.year);
   }
 
+  assert.ok(date.isValid(), `Date ${datum} could not be parsed.`);
   return date.format("M/D/YYYY");
 }
 
