@@ -5,7 +5,7 @@ const NAME = "filter";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.object({
+const schema = z.strictObject({
   type: z.literal(NAME),
   criteria: z.array(z.unknown()) // Actually a cell transformation.
 });

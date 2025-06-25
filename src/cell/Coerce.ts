@@ -6,17 +6,17 @@ const NAME = "coerce";
 
 /** ------------------------------------------------------------------------- */
 
-const attributes = z.object({
+const attributes = z.strictObject({
   year: z.union([z.literal("assume")]).optional(),
   round: z.union([z.literal("up"), z.literal("down"), z.literal("default")]).default("default"),
-  parse: z.string().optional()
+  parse: z.string().optional(),
+  otherwise: z.string().optional(),
 });
 
 type Attributes = z.infer<typeof attributes>;
 
 function coerceDate(datum: string, attributes: Attributes, context: Context): string {
   const attemptInt = Number(datum);
-
   let date: Moment;
 
   if (attributes.parse) {
@@ -39,8 +39,14 @@ function coerceDate(datum: string, attributes: Attributes, context: Context): st
   return date.format("M/D/YYYY");
 }
 
-function coerceNumber(datum: string): string {
-  return parseFloat(datum).toString();
+function coerceNumber(datum: string, attributes: Attributes): string {
+  const float = parseFloat(datum);
+
+  if (isNaN(float) && attributes.otherwise != null) {
+    return attributes.otherwise;
+  } else {
+    return float.toString();
+  }
 }
 
 function coerceUSD(datum: string, attributes: Attributes): string {
@@ -63,10 +69,11 @@ const COERCERS = [
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.intersection(z.object({
+const schema = z.strictObject({
   type: z.literal(NAME),
-  as: z.enum(COERCERS.map(e => e.name))
-}), attributes);
+  as: z.enum(COERCERS.map(e => e.name)),
+  ...attributes.shape
+});
 
 type Transformation = z.infer<typeof schema>;
 

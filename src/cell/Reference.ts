@@ -32,7 +32,7 @@ async function appendReferenceTable(table: Reference, row: Record<string, string
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.object({
+const schema = z.strictObject({
   type: z.literal("reference"),
   table: z.string(),
   match: z.string(),

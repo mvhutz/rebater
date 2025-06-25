@@ -4,7 +4,7 @@ const NAME = "counter";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.object({
+const schema = z.strictObject({
   type: z.literal(NAME),
 });
 

@@ -6,7 +6,7 @@ const NAME = "debug";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.object({
+const schema = z.strictObject({
   type: z.literal(NAME),
   name: z.string().default("default"),
 });

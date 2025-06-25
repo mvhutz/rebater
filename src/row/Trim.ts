@@ -4,7 +4,7 @@ const NAME = "trim";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.object({
+const schema = z.strictObject({
   type: z.literal(NAME),
   top: z.number().optional(),
   bottom: z.number().optional(),

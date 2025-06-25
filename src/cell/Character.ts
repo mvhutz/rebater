@@ -4,7 +4,7 @@ const NAME = "character";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.object({
+const schema = z.strictObject({
   type: z.literal(NAME),
   select: z.string(),
   action: z.union([z.literal("keep"), z.literal("drop")]).default("keep")

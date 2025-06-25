@@ -4,7 +4,7 @@ const NAME = "chop";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.object({
+const schema = z.strictObject({
   type: z.literal("chop"),
   column: z.number(),
   is: z.array(z.string()),

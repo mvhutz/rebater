@@ -7,7 +7,7 @@ const NAME = "csv";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.object({
+const schema = z.strictObject({
   type: z.literal(NAME),
   group: z.string(),
   subgroup: z.string(),

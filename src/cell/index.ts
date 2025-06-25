@@ -30,7 +30,10 @@ const REGISTERED = [
   Concat
 ] as const;
 
-export const _Schema = z.union(REGISTERED.map(e => e.schema));
+export const _Schema = z.discriminatedUnion("type", [
+  REGISTERED[0].schema,
+  ...REGISTERED.slice(1).map(r => r.schema)
+]);
 type CellTransformation = z.infer<typeof _Schema>;
 
 export async function _runOnce(transformation: CellTransformation, value: string, row: Row, context: Context) {

@@ -6,7 +6,7 @@ const NAME = "coalesce";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.object({
+const schema = z.strictObject({
   type: z.literal(NAME),
   match: z.array(ExcelIndexSchema),
   combine: z.array(ExcelIndexSchema).default([])

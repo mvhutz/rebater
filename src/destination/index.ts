@@ -6,7 +6,10 @@ const REGISTERED = [
   CSV
 ] as const;
 
-const DestinationSchema = z.union(REGISTERED.map(e => e.schema));
+export const DestinationSchema = z.discriminatedUnion("type", [
+  REGISTERED[0].schema,
+  ...REGISTERED.slice(1).map(r => r.schema)
+]);
 type Destination = z.infer<typeof DestinationSchema>;
 
 async function runOnce(source: Destination, table: Table, context: Context) {

@@ -4,7 +4,7 @@ const NAME = "literal";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.object({
+const schema = z.strictObject({
   type: z.literal(NAME),
   value: z.coerce.string()
 });

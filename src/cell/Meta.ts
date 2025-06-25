@@ -5,7 +5,7 @@ const NAME = "meta";
 
 /** ------------------------------------------------------------------------- */
 
-function getQuarterLastDay(context: Context) {
+export function getQuarterLastDay(context: Context) {
   return moment()
     .year(context.year)
     .quarter(context.quarter)
@@ -13,26 +13,26 @@ function getQuarterLastDay(context: Context) {
     .format("MM/DD/YYYY");
 }
 
-function getQuarterNumber( context: Context) {
+export function getQuarterNumber( context: Context) {
   return context.quarter;
 }
 
-const META = [
+const META_FUNCTIONS = [
   { name: "quarter.lastday", get: getQuarterLastDay },
   { name: "quarter.number", get: getQuarterNumber }
 ] as const;
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.object({
+const schema = z.strictObject({
   type: z.literal(NAME),
-  value: z.union(META.map(m => z.literal(m.name)))
+  value: z.union(META_FUNCTIONS.map(m => z.literal(m.name)))
 });
 
 type Transformation = z.infer<typeof schema>;
 
-async function run(transformation: Transformation, value: string, row: Row, context: Context) {
-  const meta = META.find(m => m.name === transformation.value)!;
+async function run(transformation: Transformation, _v: unknown, _r: unknown, context: Context) {
+  const meta = META_FUNCTIONS.find(m => m.name === transformation.value)!;
   return meta.get(context).toString();
 }
 

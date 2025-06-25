@@ -5,7 +5,7 @@ const NAME = "equals";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.object({
+const schema = z.strictObject({
   type: z.literal(NAME),
   with: z.array(z.any()), // Actually a cell transformation.
 });

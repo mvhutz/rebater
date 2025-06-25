@@ -5,7 +5,7 @@ const NAME = "column";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.object({
+const schema = z.strictObject({
   type: z.literal(NAME),
   index: ExcelIndexSchema,
 });

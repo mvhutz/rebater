@@ -5,7 +5,7 @@ const NAME = "select";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.object({
+const schema = z.strictObject({
   type: z.literal("select"),
   column: ExcelIndexSchema,
   is: z.union([z.string(), z.array(z.string())]).optional(),

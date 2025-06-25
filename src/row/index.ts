@@ -7,6 +7,7 @@ import assert from "node:assert";
 import Header from "./Header";
 import Coalesce from "./Coalesce";
 import Debug from "./Debug";
+import Percolate from "./Percolate";
 
 /** ------------------------------------------------------------------------- */
 
@@ -17,10 +18,14 @@ const REGISTERED = [
   Trim,
   Header,
   Coalesce,
-  Debug
+  Debug,
+  Percolate
 ] as const;
 
-const RowTransformationSchema = z.union(REGISTERED.map(e => e.schema));
+export const RowTransformationSchema = z.discriminatedUnion("type", [
+  REGISTERED[0].schema,
+  ...REGISTERED.slice(1).map(r => r.schema)
+]);
 type RowTransformation = z.infer<typeof RowTransformationSchema>;
 
 async function runOnce(transformation: RowTransformation, table: Table, context: Context) {

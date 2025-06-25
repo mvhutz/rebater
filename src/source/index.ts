@@ -8,7 +8,10 @@ const REGISTERED = [
   Excel
 ] as const;
 
-const SourceSchema = z.union(REGISTERED.map(e => e.schema));
+export const SourceSchema = z.discriminatedUnion("type", [
+  REGISTERED[0].schema,
+  ...REGISTERED.slice(1).map(r => r.schema)
+]);
 type Source = z.infer<typeof SourceSchema>;
 
 async function runOnce(source: Source, context: Context) {

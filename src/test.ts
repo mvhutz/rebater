@@ -6,7 +6,7 @@ import z from "zod/v4";
 
 /** ------------------------------------------------------------------------- */
 
-const RebateSchema = z.object({
+const RebateSchema = z.strictObject({
   purchaseId: z.string(),
   transactionDate: z.string(),
   supplierId: z.string(),

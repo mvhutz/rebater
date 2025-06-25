@@ -9,10 +9,10 @@ import Destination from "./destination";
 
 /** ------------------------------------------------------------------------- */
 
-const ConfigSchema = z.object({
+const ConfigSchema = z.strictObject({
   sources: z.array(Source.Schema),
   preprocess: z.array(RowTransformation.Schema).optional(),
-  properties: z.array(z.object({
+  properties: z.array(z.strictObject({
     name: z.string(),
     definition: z.array(CellTransformation.Schema)
   })),
@@ -72,7 +72,7 @@ export async function runConfig(config: Config, context: Context) {
 }
 
 async function findConfigs(context: Context) {  
-  const folder = path.join(context.directory, 'transformers', '**/*');
+  const folder = path.join(context.directory, 'transformers', '**/*.json');
 
   const results = new Array<string>();
 
