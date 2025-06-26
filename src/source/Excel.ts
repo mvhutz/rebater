@@ -34,8 +34,19 @@ async function run(source: Schema, context: Context) {
   for await (const file of glob(folder)) {
     const workbook = XLSX.readFile(file);
 
-    const sheetsToTake = sheets ?? workbook.SheetNames;
+    const sheetsToTake = new Set<string>();
+    if (sheets == null) {
+      workbook.SheetNames.forEach(m => sheetsToTake.add(m));
+    } else {
+      for (const sheet of sheets) {
+        const regex = new RegExp(`^${sheet}$`);
+        const matching = workbook.SheetNames.filter(n => regex.test(n));
+        matching.forEach(m => sheetsToTake.add(m));
+      }
+    }
+
     for (const sheetName of sheetsToTake) {
+
       const sheet = workbook.Sheets[sheetName];
       assert.ok(sheet != null, `Sheet '${sheetName}' does not exist on workbook!`);
 

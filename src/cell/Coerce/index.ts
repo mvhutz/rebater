@@ -18,7 +18,7 @@ const REGISTERED = [
 
 type Transformation = z.infer<typeof schema>;
 
-export const schema = z.discriminatedUnion("type", [
+export const schema = z.discriminatedUnion("as", [
   REGISTERED[0].attributes,
   ...REGISTERED.slice(1).map(r => r.attributes)
 ]);

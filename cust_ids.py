@@ -1,8 +1,9 @@
 import csv
+from sys import argv
 from typing import Dict, List
 
-NAME = "Matter Surfaces"
-ID = "1042"
+NAME = argv[1]
+ID = argv[2]
 
 # ---------------------------------------------------------------------------- #
 

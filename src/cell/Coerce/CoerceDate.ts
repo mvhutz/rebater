@@ -11,18 +11,20 @@ const attributes = z.strictObject({
   as: z.literal(NAME),
   year: z.union([z.literal("assume")]).optional(),
   parse: z.string().optional(),
+  format: z.string().default("M/D/YYYY")
 });
 
 type Attributes = z.infer<typeof attributes>;
 
 function run(datum: string, attributes: Attributes, context: Context) {
+  const { parse, year, format } = attributes;
   const attemptInt = Number(datum);
   let date: Moment;
 
-  if (attributes.parse) {
+  if (parse) {
     if (datum.length === 5) datum = "0" + datum;
     if (datum.length === 7) datum = "0" + datum;
-    date = moment(datum, attributes.parse);
+    date = moment(datum, parse);
   } else if (!isNaN(attemptInt)) {
     date = moment(Date.UTC(0, 0, attemptInt));
   } else if (/\d{1,2}\/\d{1,2}\/\d{2,4}/.test(datum)) {
@@ -31,12 +33,12 @@ function run(datum: string, attributes: Attributes, context: Context) {
     date = moment(datum);
   }
 
-  if (attributes.year === "assume") {
+  if (year === "assume") {
     date.year(context.year);
   }
 
   assert.ok(date.isValid(), `Date ${datum} could not be parsed.`);
-  return date.format("M/D/YYYY");
+  return date.format(format);
 }
 
 /** ------------------------------------------------------------------------- */
