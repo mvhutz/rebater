@@ -1,62 +1,43 @@
-import Path from 'path';
-import MAGIC from './src/magic';
-import { ActionRegistry } from './src/transformer/ActionRegistry';
-import { Lexer } from './src/transformer/Lexer';
-import { Parser } from './src/transformer/Parser';
-import { Runner } from './src/transformer/Runner';
-import { TagRegistry } from './src/transformer/TagRegistry';
-import FS from 'fs/promises';
-import { availableAnswers, compareRebates } from './src/test';
+import consola from "consola";
+import { runAllConfigs } from "./src/config";
+import { printResults, pushToXLSX } from "./src/test";
+import mutexify from "mutexify/promise";
 
-async function getTransformers() {  
-  const path = Path.join(MAGIC.DIRECTORY, 'transformers', '**/*');
+/** ------------------------------------------------------------------------- */
 
-  const results = new Array<string>();
+const lock = mutexify();
 
-  for await (const file of FS.glob(path)) {
-    results.push(Path.parse(file).name);
-  }
+async function escalate(fn: () => void | Promise<void>) {
+  const release = await lock();
+  const output = await fn();
+  release();
+  return output;
+}
 
-  return results;
+async function askQuestion(text: string) {
+  const answer = await consola.prompt(text, {
+    type: "text",
+    cancel: "reject"
+  });
+
+  return answer;
 }
 
 async function main() {
-  const files = await getTransformers();
+  const context = {
+    quarter: 4,
+    year: 2024,
+    counter: 0,
+    directory: "data",
+    references: new Map(),
+    escalate: escalate,
+    ask: askQuestion
+  };
 
-  console.log('\n==== [RUNNING TRANSFORMERS] ====\n')
-  for (const file of files) {
-    console.time("\t" + file);
-    const xml = await Lexer.fromConfig(file);
+  const results = await runAllConfigs(context);
+  printResults(results);
 
-    const tag_registry = new TagRegistry();
-    const parser = new Parser(tag_registry);
-    const transformer = parser.parse(xml);
-    
-    const action_registry = new ActionRegistry();
-    const runner = new Runner(action_registry);
-    await runner.run(transformer);
-    console.timeEnd("\t" + file);
-  }
-
-  console.log('\n==== [COMPARING SOURCES] ====');
-
-  const answers = await availableAnswers();
-  for (const path of answers) {
-    const { file1, file2 } = await compareRebates(`rebates/${path}`, `truth/${path}`, {
-      ignore: ['purchaseId']
-    });
-
-    console.log(`\n${path}: +${file2.length} -${file1.length}.`);
-    for (const line of file1) {
-      console.log("\t[-]", line)
-    }
-
-    if (file1.length > 0 && file2.length > 0) console.log('');
-
-    for (const line of file2) {
-      console.log("\t[+]", line)
-    }
-  }
+  pushToXLSX("data/OUTPUT.xlsx", context);
 }
 
-main();
+void main();
