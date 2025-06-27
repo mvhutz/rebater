@@ -13,7 +13,7 @@ To give some context, there are many types of formats for reports.
 
 The point is, generalizing a complex process like rebate processing is futile. Instead the Rebator takes in a set of transformers, each which convert a tiny subset of the data into processable rebates, and run them all concurrently.
 
-This makes the process (1) efficient while also (2) maximumizing customization.
+This makes the process (1) efficient while also (2) maximizing customization.
 
 ## Design
 
