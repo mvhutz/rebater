@@ -1,0 +1,3 @@
+# Destination Types
+
+WIP!
