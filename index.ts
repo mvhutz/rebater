@@ -4,6 +4,7 @@ import { printResults, pushToXLSX } from "./src/test";
 // import mutexify from "mutexify/promise";
 import { BasicState } from "./src/information/State";
 import { BasicSettings } from "./src/information/Settings";
+import { Handlers } from "./src/information/Handlers";
 
 /** ------------------------------------------------------------------------- */
 
@@ -28,7 +29,8 @@ import { BasicSettings } from "./src/information/Settings";
 async function main() {
   const time = { quarter: 4, year: 2024 } satisfies Time;
   const settings = new BasicSettings("./data");
-  const state = new BasicState(time, settings);
+  const handlers = new Handlers();
+  const state = new BasicState(time, settings, handlers);
 
   const results = await runAllConfigs(state);
   printResults(results);

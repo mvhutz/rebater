@@ -8,7 +8,7 @@ const NAME = "add";
 
 const schema = z.strictObject({
   type: z.literal(NAME),
-  with: z.array(z.any()), // Actually a cell transformation.
+  with: z.array(z.any()), // Actually a row transformation.
 });
 
 type Transformation = z.infer<typeof schema>;

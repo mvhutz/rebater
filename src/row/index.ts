@@ -1,64 +1,66 @@
 import z from "zod/v4";
-import Chop from "./Chop";
-import Filter from "./Filter";
-import Select from "./Select";
+import Counter from "./Counter";
+import Coerce from "./Coerce";
+import Column from "./Column";
+import Literal from "./Literal";
+import Replace from "./Replace";
 import Trim from "./Trim";
 import assert from "node:assert";
-import Header from "./Header";
-import Coalesce from "./Coalesce";
-import Debug from "./Debug";
-import Percolate from "./Percolate";
+import Reference from "./Reference";
+import Character from "./Character";
+import Multiply from "./Multiply";
+import Meta from "./Meta";
+import Add from "./Add";
+import Equals from "./Equals";
+import Concat from "./Concat";
 import { State } from "../information/State";
 
-/** ------------------------------------------------------------------------- */
-
 const REGISTERED = [
-  Chop,
-  Filter,
-  Select,
+  Coerce,
+  Column,
+  Counter,
+  Literal,
+  Replace,
   Trim,
-  Header,
-  Coalesce,
-  Debug,
-  Percolate
+  Reference,
+  Character,
+  Multiply,
+  Meta,
+  Add,
+  Equals,
+  Concat
 ] as const;
 
-export const RowTransformationSchema = z.discriminatedUnion("type", [
+export const _Schema = z.discriminatedUnion("type", [
   REGISTERED[0].schema,
   ...REGISTERED.slice(1).map(r => r.schema)
 ]);
-type RowTransformation = z.infer<typeof RowTransformationSchema>;
+type RowTransformation = z.infer<typeof _Schema>;
 
-async function runOnce(transformation: RowTransformation, table: Table, state: State) {
+export async function _runOnce(transformation: RowTransformation, value: string, row: Row, state: State) {
   const transformer = REGISTERED.find(r => r.name === transformation.type);
   assert.ok(transformer != null, `Row transformer ${transformation.type} not found.`);
 
   // We assume that the transformer takes the schema as valid input.
-  return await transformer.run(transformation as never, table, state);
+  return transformer.run(transformation as never, value, row, state);
 }
 
-async function runMany(transformations: RowTransformation[], tables: Table[], state: State) {
-  const results = Array<Table>();
+export async function _runMany(transformations: RowTransformation[], row: Row, state: State) {
+  let final = "";
 
-  for (const table of tables) {
-    let final = table;
-
-    for (const transformation of transformations) {
-      final = await runOnce(transformation, final, state);
-    }
-
-    results.push(final);
+  for (const transformation of transformations) {
+    final = await _runOnce(transformation, final, row, state);
   }
 
-  return results;
+  return final;
 }
 
 /** ------------------------------------------------------------------------- */
 
 const RowTransformation = {
-  runOnce,
-  runMany,
-  Schema: RowTransformationSchema,
+  Schema: _Schema,
+  runOnce: _runOnce,
+  runMany: _runMany,
 }
 
 export default RowTransformation;

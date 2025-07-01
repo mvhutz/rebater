@@ -1,6 +1,7 @@
 import { Settings } from "./Settings";
 import { BasicCounter, Counter } from "./Counter";
 import { BasicReference, Reference } from "./Reference";
+import { Handlers } from "./Handlers";
 
 /** ------------------------------------------------------------------------- */
 
@@ -11,6 +12,7 @@ export abstract class State {
   public abstract getCounter(name: string): Counter;
   public abstract getReference(name: string): Promise<Reference>;
   public abstract getSettings(): Settings;
+  public abstract get handlers(): Handlers;
 }
 
 export class BasicState extends State {
@@ -22,12 +24,14 @@ export class BasicState extends State {
   private references: Map<string, BasicReference>;
 
   private settings: Settings;
+  public handlers: Handlers;
 
-  constructor(time: Time, settings: Settings) {
+  constructor(time: Time, settings: Settings, handlers: Handlers) {
     super();
 
     this.time = time;
     this.settings = settings;
+    this.handlers = handlers;
     this.counters = new Map();
     this.references = new Map();
   }

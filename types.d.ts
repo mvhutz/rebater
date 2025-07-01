@@ -12,7 +12,7 @@ interface Table {
   data: Row[];
 }
 
-interface ConfigResult {
+interface TransformerResult {
   start: number;
   end: number;
   name: string;
@@ -25,6 +25,6 @@ interface DiscrepencyResult {
 }
 
 interface RunResults {
-  config: ConfigResult[];
+  config: TransformerResult[];
   discrepency: DiscrepencyResult[];
 }

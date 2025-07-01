@@ -1,5 +1,3 @@
-import consola from "consola";
-import mutexify from "mutexify/promise";
 import assert from "node:assert";
 import z from "zod/v4";
 import { State } from "../information/State";
@@ -18,23 +16,19 @@ const schema = z.strictObject({
 
 type Transformation = z.infer<typeof schema>;
 
-const lock = mutexify();
-
 async function run(transformation: Transformation, value: string, _row: Row, state: State): Promise<string> {
   const { table, match, take, group } = transformation;
   const reference = await state.getReference(transformation.table);
 
+  const release = await state.handlers.requestAsk();
+
   const result = reference.ask(match, value, take, group);
   if (result != null) {
+    release();
     return result;
   }
-
-  const release = await lock();
   
-  const answer = await consola.prompt(`For '${group}', the '${take}' of '${value}' is?`, {
-    type: "text",
-    cancel: "reject"
-  });
+  const answer = await state.handlers.ask(`For '${group}', the '${take}' of '${value}' is?`);
 
   assert.ok(answer != null, `Table '${table}' has no item '${value}' for '${match}'.`);
   reference.append({ [match]: value, [take]: answer, group: group });

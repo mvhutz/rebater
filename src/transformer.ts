@@ -2,74 +2,77 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import z from "zod/v4";
 import { compareRebates } from "./test";
+import TableTransformation from "./table";
 import RowTransformation from "./row";
-import CellTransformation from "./cell";
 import Source from "./source";
 import Destination from "./destination";
 import { State } from "./information/State";
 
 /** ------------------------------------------------------------------------- */
 
-const TransformerSchema = z.strictObject({
+const DataSchema = z.strictObject({
   sources: z.array(Source.Schema),
-  preprocess: z.array(RowTransformation.Schema).optional(),
+  preprocess: z.array(TableTransformation.Schema).optional(),
   properties: z.array(z.strictObject({
     name: z.string(),
-    definition: z.array(CellTransformation.Schema)
+    definition: z.array(RowTransformation.Schema)
   })),
-  postprocess: z.array(RowTransformation.Schema).optional(),
+  postprocess: z.array(TableTransformation.Schema).optional(),
   destination: Destination.Schema,
 });
 
-type Transformer = z.infer<typeof TransformerSchema>;
-
-interface Settings {
-  data: Transformer;
-  name: string;
-  path: string;
-}
+type Data = z.infer<typeof DataSchema>;
 
 /** ------------------------------------------------------------------------- */
 
-export async function getConfig(file: string): Promise<Settings> {
-  const raw = await readFile(file, 'utf-8');
-  const json = JSON.parse(raw);
+export class Transformer {
+  public data: Data;
+  public name: string;
+  public path: string;
 
-  return {
-    data: TransformerSchema.parse(json),
-    name: path.parse(file).name,
-    path: file,
-  }
-}
-
-export async function runConfig(config: Settings, state: State) {
-  const start = performance.now();
-  const { preprocess = [], postprocess = [], sources, destination, properties } = config.data;
-  const source_data = await Source.runMany(sources, state);
-  const preprocessed_data = await RowTransformation.runMany(preprocess, source_data, state);
-  
-  const recombined: Table = {
-    path: config.path,
-    data: [{ data: properties.map(p => p.name) }]
+  private constructor(data: Data, name: string, path: string) {
+    this.data = data;
+    this.name = name;
+    this.path = path;
   }
 
-  const rows = preprocessed_data.map(table => table.data).flat(1);
-  for (const row of rows) {
-    const result = new Array<string>();
+  public static async fromFile(filepath: string): Promise<Transformer> {
+    const raw = await readFile(filepath, 'utf-8');
+    const json = JSON.parse(raw);
 
-    for (const { definition } of properties) {
-      const output = await CellTransformation.runMany(definition, row, state);
-      result.push(output);
+    const name = path.parse(filepath).name;
+    return new Transformer(DataSchema.parse(json), name, filepath);
+  }
+
+  public async run(state: State): Promise<TransformerResult> {
+    const start = performance.now();
+    const { preprocess = [], postprocess = [], sources, destination, properties } = this.data;
+    const source_data = await Source.runMany(sources, state);
+    const preprocessed_data = await TableTransformation.runMany(preprocess, source_data, state);
+    
+    const recombined: Table = {
+      path: this.path,
+      data: [{ data: properties.map(p => p.name) }]
     }
 
-    recombined.data.push({ data: result });
+    const rows = preprocessed_data.map(table => table.data).flat(1);
+    for (const row of rows) {
+      const result = new Array<string>();
+
+      for (const { definition } of properties) {
+        const output = await RowTransformation.runMany(definition, row, state);
+        result.push(output);
+      }
+
+      recombined.data.push({ data: result });
+    }
+
+    const [postprocessed_data] = await TableTransformation.runMany(postprocess, [recombined], state);
+    await Destination.runOnce(destination, postprocessed_data, state);
+
+    const end = performance.now();
+    return { start, end, name: this.name };
   }
-
-  const [postprocessed_data] = await RowTransformation.runMany(postprocess, [recombined], state);
-  await Destination.runOnce(destination, postprocessed_data, state);
-
-  const end = performance.now();
-  return { start, end, name: config.name };
 }
 
 export async function runAllConfigs(state: State): Promise<RunResults> {
@@ -81,13 +84,12 @@ export async function runAllConfigs(state: State): Promise<RunResults> {
   }
 
   for (const [index, transformer_file] of transformer_files.entries()) {
-    const name = path.parse(transformer_file).name;
-    const transformer = await getConfig(transformer_file);
+    const transformer = await Transformer.fromFile(transformer_file);
 
-    // process.stdout.clearLine(0);
-    // process.stdout.cursorTo(0);
-    // process.stdout.write(`[${index + 1}/${transformer_files.length}] Running ${name}...`);
-    results.config.push(await runConfig(transformer, state));
+    process.stdout.clearLine(0);
+    process.stdout.cursorTo(0);
+    process.stdout.write(`[${index + 1}/${transformer_files.length}] Running ${transformer.name}...`);
+    results.config.push(await transformer.run(state));
   }
 
   const rebates_groups = await state.getSettings().listActualGroups();
