@@ -11,7 +11,7 @@ const schema = z.strictObject({
 
 type Transformation = z.infer<typeof schema>;
 
-async function run(transformation: Transformation) {
+async function run(transformation: Transformation): Promise<string> {
   return transformation.value;
 }
 

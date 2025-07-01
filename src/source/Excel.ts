@@ -1,8 +1,7 @@
-import { glob } from "node:fs/promises";
-import path from "node:path";
 import z from "zod/v4";
 import XLSX from "xlsx";
 import assert from "node:assert";
+import { State } from "../information/State";
 
 const NAME = "excel";
 
@@ -17,21 +16,14 @@ const schema = z.strictObject({
 
 type Schema = z.infer<typeof schema>;
 
-async function run(source: Schema, context: Context) {
+async function run(source: Schema, state: State) {
   const { group, subgroup, sheets } = source;
   
-  const folder = path.join(
-    context.directory,
-    group,
-    subgroup,
-    `${context.year}`,
-    `Q${context.quarter}`,
-    '**/*'
-  );
+  const files = await state.getSettings().listSourcePaths(group, subgroup, state.getTime());
 
   const results = new Array<Table>();
 
-  for await (const file of glob(folder)) {
+  for (const file of files) {
     const workbook = XLSX.readFile(file);
 
     const sheetsToTake = new Set<string>();

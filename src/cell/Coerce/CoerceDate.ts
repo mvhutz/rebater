@@ -1,6 +1,7 @@
 import moment, { Moment } from "moment";
 import assert from "node:assert";
 import z from "zod/v4";
+import { State } from "../../information/State";
 
 const NAME = "date";
 
@@ -16,7 +17,7 @@ const attributes = z.strictObject({
 
 type Attributes = z.infer<typeof attributes>;
 
-function run(datum: string, attributes: Attributes, context: Context) {
+function run(datum: string, attributes: Attributes, state: State) {
   const { parse, year, format } = attributes;
   const attemptInt = Number(datum);
   let date: Moment;
@@ -34,7 +35,7 @@ function run(datum: string, attributes: Attributes, context: Context) {
   }
 
   if (year === "assume") {
-    date.year(context.year);
+    date.year(state.getTime().year);
   }
 
   assert.ok(date.isValid(), `Date ${datum} could not be parsed.`);

@@ -13,7 +13,7 @@ const schema = z.strictObject({
 type Transformation = z.infer<typeof schema>;
 
 
-async function run(transformation: Transformation, value: string, row: Row) {
+async function run(transformation: Transformation, _value: string, row: Row): Promise<string> {
   return row.data[getTrueIndex(transformation.index)];
 }
 

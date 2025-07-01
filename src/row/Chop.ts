@@ -14,9 +14,7 @@ const schema = z.strictObject({
 
 type Schema = z.infer<typeof schema>;
 
-async function run(transformation: Schema, table: Table, context: Context) {
-  void [context];
-
+async function run(transformation: Schema, table: Table) {
   const { column, is, keep, otherwise } = transformation;
 
   const index = table.data.findIndex(row => is.includes(row.data[column].trim()));

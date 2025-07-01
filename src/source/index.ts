@@ -1,6 +1,7 @@
 import z from "zod/v4";
 import Excel from "./Excel";
 import assert from "node:assert";
+import { State } from "../information/State";
 
 /** ------------------------------------------------------------------------- */
 
@@ -14,16 +15,16 @@ export const SourceSchema = z.discriminatedUnion("type", [
 ]);
 type Source = z.infer<typeof SourceSchema>;
 
-async function runOnce(source: Source, context: Context) {
+async function runOnce(source: Source, state: State) {
   const transformer = REGISTERED.find(r => r.name === source.type);
   assert.ok(transformer != null, `Source ${source.type} not found.`);
 
   // We assume that the transformer takes the schema as valid input.
-  return await transformer.run(source as never, context);
+  return await transformer.run(source as never, state);
 }
 
-async function runMany(sources: Source[], context: Context) {
-  const results = await Promise.all(sources.map(s => runOnce(s, context)));
+async function runMany(sources: Source[], state: State) {
+  const results = await Promise.all(sources.map(s => runOnce(s, state)));
   return results.flat(1);
 }
 

@@ -8,6 +8,7 @@ import Header from "./Header";
 import Coalesce from "./Coalesce";
 import Debug from "./Debug";
 import Percolate from "./Percolate";
+import { State } from "../information/State";
 
 /** ------------------------------------------------------------------------- */
 
@@ -28,22 +29,22 @@ export const RowTransformationSchema = z.discriminatedUnion("type", [
 ]);
 type RowTransformation = z.infer<typeof RowTransformationSchema>;
 
-async function runOnce(transformation: RowTransformation, table: Table, context: Context) {
+async function runOnce(transformation: RowTransformation, table: Table, state: State) {
   const transformer = REGISTERED.find(r => r.name === transformation.type);
   assert.ok(transformer != null, `Row transformer ${transformation.type} not found.`);
 
   // We assume that the transformer takes the schema as valid input.
-  return await transformer.run(transformation as never, table, context);
+  return await transformer.run(transformation as never, table, state);
 }
 
-async function runMany(transformations: RowTransformation[], tables: Table[], context: Context) {
+async function runMany(transformations: RowTransformation[], tables: Table[], state: State) {
   const results = Array<Table>();
 
   for (const table of tables) {
     let final = table;
 
     for (const transformation of transformations) {
-      final = await runOnce(transformation, final, context);
+      final = await runOnce(transformation, final, state);
     }
 
     results.push(final);

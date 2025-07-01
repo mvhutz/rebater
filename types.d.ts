@@ -1,16 +1,6 @@
-interface Reference {
-  path: string;
-  data: Record<string, string>[];
-}
-
-interface Context {
-  quarter: number,
-  year: number,
-  counter: number;
-  directory: string;
-  references: Map<string, Reference>;
-  ask: (text: string) => Promise<string>;
-  escalate: (fn: () => T) => Promise<T>;
+interface Time {
+  quarter: 1 | 2 | 3 | 4;
+  year: number;
 }
 
 interface Row {

@@ -1,7 +1,9 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
+
 import { unparse } from "papaparse";
 import z from "zod/v4";
+import { State } from "../information/State";
+import fs from 'node:fs/promises';
+import path from "node:path";
 
 const NAME = "csv";
 
@@ -15,15 +17,14 @@ const schema = z.strictObject({
 
 type Schema = z.infer<typeof schema>;
 
-async function run(destination: Schema, table: Table, context: Context) {
+async function run(destination: Schema, table: Table, state: State) {
   const { group, subgroup } = destination;
-  const directory = path.join(context.directory, group, subgroup);
-  const file = path.join(directory, `${path.parse(table.path).name}.csv`);
+  const filepath = state.getSettings().getDestinationPath(table.path, group, subgroup, state.getTime());
   
   const data = table.data.map(row => row.data);
 
-  await mkdir(directory, { recursive: true });
-  await writeFile(file, unparse(data));
+  await fs.mkdir(path.dirname(filepath), { recursive: true });
+  await fs.writeFile(filepath, unparse(data));
 }
 
 /** ------------------------------------------------------------------------- */

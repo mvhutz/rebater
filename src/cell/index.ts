@@ -13,6 +13,7 @@ import Meta from "./Meta";
 import Add from "./Add";
 import Equals from "./Equals";
 import Concat from "./Concat";
+import { State } from "../information/State";
 
 const REGISTERED = [
   Coerce,
@@ -36,19 +37,19 @@ export const _Schema = z.discriminatedUnion("type", [
 ]);
 type CellTransformation = z.infer<typeof _Schema>;
 
-export async function _runOnce(transformation: CellTransformation, value: string, row: Row, context: Context) {
+export async function _runOnce(transformation: CellTransformation, value: string, row: Row, state: State) {
   const transformer = REGISTERED.find(r => r.name === transformation.type);
   assert.ok(transformer != null, `Cell transformer ${transformation.type} not found.`);
 
   // We assume that the transformer takes the schema as valid input.
-  return transformer.run(transformation as never, value, row, context);
+  return transformer.run(transformation as never, value, row, state);
 }
 
-export async function _runMany(transformations: CellTransformation[], row: Row, context: Context) {
+export async function _runMany(transformations: CellTransformation[], row: Row, state: State) {
   let final = "";
 
   for (const transformation of transformations) {
-    final = await _runOnce(transformation, final, row, context);
+    final = await _runOnce(transformation, final, row, state);
   }
 
   return final;

@@ -10,7 +10,7 @@ const schema = z.strictObject({
 
 type Transformation = z.infer<typeof schema>;
 
-async function run(transformation: Transformation, value: string) {
+async function run(_transformation: Transformation, value: string): Promise<string> {
   return value.trim();
 }
 

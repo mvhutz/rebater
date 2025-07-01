@@ -1,8 +1,8 @@
-import { glob, readdir, readFile } from "node:fs/promises";
-import path from "node:path";
+import { readFile } from "node:fs/promises";
 import { parse } from "papaparse";
 import XLSX from "xlsx";
 import z from "zod/v4";
+import { State } from "./information/State";
 
 /** ------------------------------------------------------------------------- */
 
@@ -22,60 +22,45 @@ type Rebate = z.infer<typeof RebateSchema>;
 
 /** ------------------------------------------------------------------------- */
 
-export async function fromPath(path: string) {
+export async function fromPath(path: string): Promise<Rebate[]> {
   const file = await readFile(path, 'utf-8');
   const { data } = parse(file, { header: true, skipEmptyLines: true });
   return z.array(RebateSchema).parse(data);
 }
 
-export async function fromDir(dir: string, context: Context) {
-  const folder = path.join(context.directory, dir, '**/*.csv');
+export async function compareRebates(group: string, state: State) {
+  const actual_files = await state.getSettings().listActualPaths(group);
+  const actual = (await Promise.all(actual_files.map(fromPath))).flat();
+  const expected_files = await state.getSettings().listExpectedPaths(group);
+  const expected = (await Promise.all(expected_files.map(fromPath))).flat();
 
-  const results = new Array<Rebate>();
-  for await (const filepath of glob(folder)) {
-    results.push(...await fromPath(filepath));
-  }
-
-  return results;
-}
-
-export async function compareRebates(dir1: string, dir2: string, context: Context) {
-  const rebates1 = await fromDir(dir1, context);
-  const rebates2 = await fromDir(dir2, context);
-
-  const rSet1 = new Set();
-  for (const rebate of rebates1) {
+  const actual_allowed_set = new Set();
+  for (const rebate of actual) {
     rebate.purchaseId = "X";
 
     const rebateAmount = Number(rebate.rebateAmount.replace(/[$,]/g, ""));
-    rSet1.add(Object.values({ ...rebate, rebateAmount: `$${(rebateAmount - 0.01).toFixed(2)}` }).join());
-    rSet1.add(Object.values({ ...rebate, rebateAmount: `$${(rebateAmount + 0.00).toFixed(2)}` }).join());
-    rSet1.add(Object.values({ ...rebate, rebateAmount: `$${(rebateAmount + 0.01).toFixed(2)}` }).join());
+    actual_allowed_set.add(Object.values({ ...rebate, rebateAmount: `$${(rebateAmount - 0.01).toFixed(2)}` }).join());
+    actual_allowed_set.add(Object.values({ ...rebate, rebateAmount: `$${(rebateAmount + 0.00).toFixed(2)}` }).join());
+    actual_allowed_set.add(Object.values({ ...rebate, rebateAmount: `$${(rebateAmount + 0.01).toFixed(2)}` }).join());
   }
 
-  const rSet2 = new Set();
-  for (const rebate of rebates2) {
+  const expected_allowed_set = new Set();
+  for (const rebate of expected) {
     rebate.purchaseId = "X";
 
     const rebateAmount = Number(rebate.rebateAmount.replace(/[$,]/g, ""));
-    rSet2.add(Object.values({ ...rebate, rebateAmount: `$${(rebateAmount - 0.01).toFixed(2)}` }).join());
-    rSet2.add(Object.values({ ...rebate, rebateAmount: `$${(rebateAmount + 0.00).toFixed(2)}` }).join());
-    rSet2.add(Object.values({ ...rebate, rebateAmount: `$${(rebateAmount + 0.01).toFixed(2)}` }).join());
+    expected_allowed_set.add(Object.values({ ...rebate, rebateAmount: `$${(rebateAmount - 0.01).toFixed(2)}` }).join());
+    expected_allowed_set.add(Object.values({ ...rebate, rebateAmount: `$${(rebateAmount + 0.00).toFixed(2)}` }).join());
+    expected_allowed_set.add(Object.values({ ...rebate, rebateAmount: `$${(rebateAmount + 0.01).toFixed(2)}` }).join());
   }
 
-  const rebateStrs1 = rebates1.map(r => Object.values(r).join());
-  const rebateStrs2 = rebates2.map(r => Object.values(r).join());
+  const actual_set = actual.map(r => Object.values(r).join());
+  const expected_set = expected.map(r => Object.values(r).join());
 
   return { 
-    file1: rebateStrs1.filter(r1 => !rSet2.has(r1)),
-    file2: rebateStrs2.filter(r2 => !rSet1.has(r2)),
+    drop: actual_set.filter(r1 => !expected_allowed_set.has(r1)),
+    take: expected_set.filter(r2 => !actual_allowed_set.has(r2)),
   }
-}
-
-export async function availableAnswers(context: Context) {
-  const total = path.join(context.directory, 'rebates');
-  const dir = await readdir(total);
-  return dir;
 }
 
 export function printResults(results: RunResults) {
@@ -103,8 +88,8 @@ export function printResults(results: RunResults) {
   }
 }
 
-export async function pushToXLSX(file: string, context: Context) {
-  const rebates = await fromDir("rebates", context);
+export async function pushToXLSX(file: string, state: State) {
+  const rebates = await state.getSettings().listActualGroups();
 
   const sheet = XLSX.utils.json_to_sheet(rebates);
   const book = XLSX.utils.book_new();

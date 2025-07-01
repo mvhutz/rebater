@@ -1,43 +1,39 @@
-import consola from "consola";
-import { runAllConfigs } from "./src/config";
+// import consola from "consola";
+import { runAllConfigs } from "./src/transformer";
 import { printResults, pushToXLSX } from "./src/test";
-import mutexify from "mutexify/promise";
+// import mutexify from "mutexify/promise";
+import { BasicState } from "./src/information/State";
+import { BasicSettings } from "./src/information/Settings";
 
 /** ------------------------------------------------------------------------- */
 
-const lock = mutexify();
+// const lock = mutexify();
 
-async function escalate(fn: () => void | Promise<void>) {
-  const release = await lock();
-  const output = await fn();
-  release();
-  return output;
-}
+// async function escalate(fn: () => void | Promise<void>) {
+//   const release = await lock();
+//   const output = await fn();
+//   release();
+//   return output;
+// }
 
-async function askQuestion(text: string) {
-  const answer = await consola.prompt(text, {
-    type: "text",
-    cancel: "reject"
-  });
+// async function askQuestion(text: string) {
+//   const answer = await consola.prompt(text, {
+//     type: "text",
+//     cancel: "reject"
+//   });
 
-  return answer;
-}
+//   return answer;
+// }
 
 async function main() {
-  const context = {
-    quarter: 4,
-    year: 2024,
-    counter: 0,
-    directory: "data",
-    references: new Map(),
-    escalate: escalate,
-    ask: askQuestion
-  };
+  const time = { quarter: 4, year: 2024 } satisfies Time;
+  const settings = new BasicSettings("./data");
+  const state = new BasicState(time, settings);
 
-  const results = await runAllConfigs(context);
+  const results = await runAllConfigs(state);
   printResults(results);
 
-  pushToXLSX("data/OUTPUT.xlsx", context);
+  pushToXLSX("data/OUTPUT.xlsx", state);
 }
 
 void main();

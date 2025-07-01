@@ -1,5 +1,6 @@
 import z from "zod/v4";
 import Meta from "./Meta";
+import { State } from "../information/State";
 
 const NAME = "replace";
 
@@ -16,13 +17,13 @@ const schema = z.strictObject({
 
 type Transformation = z.infer<typeof schema>;
 
-async function run(transformation: Transformation, value: string, _r: unknown, context: Context) {
+async function run(transformation: Transformation, value: string, _r: unknown, state: State): Promise<string> {
   const { characters, put, substring, put_meta, all } = transformation;
   let result = value;
 
   let truePut = put;
   if (put_meta) {
-    truePut = await Meta.run({ type: "meta", value: put_meta }, null, null, context);
+    truePut = await Meta.run({ type: "meta", value: put_meta }, null, null, state);
   }
 
   if (characters != null) {

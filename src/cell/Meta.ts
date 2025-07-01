@@ -1,20 +1,23 @@
 import moment from "moment";
 import z from "zod/v4";
+import { State } from "../information/State";
 
 const NAME = "meta";
 
 /** ------------------------------------------------------------------------- */
 
-export function getQuarterLastDay(context: Context) {
+export function getQuarterLastDay(state: State): string {
+  const time = state.getTime();
+
   return moment()
-    .year(context.year)
-    .quarter(context.quarter)
+    .year(time.year)
+    .quarter(time.quarter)
     .endOf("quarter")
     .format("MM/DD/YYYY");
 }
 
-export function getQuarterNumber( context: Context) {
-  return context.quarter;
+export function getQuarterNumber(state: State): string {
+  return state.getTime().quarter.toString();
 }
 
 const META_FUNCTIONS = [
@@ -31,9 +34,9 @@ const schema = z.strictObject({
 
 type Transformation = z.infer<typeof schema>;
 
-async function run(transformation: Transformation, _v: unknown, _r: unknown, context: Context) {
+async function run(transformation: Transformation, _v: unknown, _r: unknown, state: State): Promise<string> {
   const meta = META_FUNCTIONS.find(m => m.name === transformation.value)!;
-  return meta.get(context).toString();
+  return meta.get(state).toString();
 }
 
 /** ------------------------------------------------------------------------- */
