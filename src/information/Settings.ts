@@ -20,23 +20,15 @@ export abstract class Settings {
   public abstract getTransformerPath(name: string): string;
 
   public abstract getOutputFile(): string;
-
-  public abstract doTests(): boolean;
-  public abstract doCombineRebates(): boolean;
 }
 
 export class BasicSettings extends Settings {
   private directory: string;
 
-  private willDoTests: boolean;
-  private willDoCombineRebates: boolean;
-
-  constructor(directory: string, options?: { tests?: boolean, combine?: boolean }) {
+  constructor(directory: string) {
     super();
     
     this.directory = directory;
-    this.willDoTests = options?.tests ?? true;
-    this.willDoCombineRebates = options?.combine ?? true;
   }
 
   public getReferencePath(name: string): string {
@@ -128,14 +120,6 @@ export class BasicSettings extends Settings {
 
   public getTransformerPath(name: string): string {
     return path.join(this.directory, "transformer", `${name}.json`);
-  }
-
-  public doTests(): boolean {
-    return this.willDoTests;
-  }
-
-  public doCombineRebates(): boolean {
-    return this.willDoCombineRebates;
   }
 
   public getOutputFile(): string {

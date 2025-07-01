@@ -1,11 +1,29 @@
-import { Transformer } from "./transformer";
-import { State } from "./information/State";
+import { Transformer } from "../transformer";
+import { State } from "../information/State";
 import XLSX from 'xlsx';
-import { parseRebateFile } from "./util";
+import { parseRebateFile } from "../util";
 
 /** ------------------------------------------------------------------------- */
 
-export class Runner {
+interface CLIRunnerOptions {
+  quiet?: boolean;
+  test?: boolean;
+  combine?: boolean;
+}
+
+export class CLIRunner {
+  private quiet: boolean;
+  private test: boolean;
+  private combine: boolean;
+
+  constructor(options?: CLIRunnerOptions) {
+    const { test = true, quiet = false, combine = true } = options ?? {};
+
+    this.quiet = quiet;
+    this.test = test;
+    this.combine = combine;
+  }
+
   public async pushRebates(state: State) {
     const rebates = await state.getSettings().listActualGroups();
   
@@ -88,21 +106,29 @@ export class Runner {
     for (const [index, transformer_file] of transformer_files.entries()) {
       const transformer = await Transformer.fromFile(transformer_file);
 
-      process.stdout.clearLine(0);
-      process.stdout.cursorTo(0);
-      process.stdout.write(`[${index + 1}/${transformer_files.length}] Running ${transformer.name}...`);
-      state.handlers.onStartTransformer?.(transformer, index, transformer_files.length);
+      if (!this.quiet) {
+        process.stdout.clearLine(0);
+        process.stdout.cursorTo(0);
+        process.stdout.write(`[${index + 1}/${transformer_files.length}] Running ${transformer.name}...`);
+      }
       results.config.push(await transformer.run(state));
     }
 
-    const rebates_groups = await state.getSettings().listActualGroups();
-    for (const group of rebates_groups) {
-      const { take, drop } = await this.compareRebates(group, state);
+    if (this.test) {
+      const rebates_groups = await state.getSettings().listActualGroups();
+      for (const group of rebates_groups) {
+        const { take, drop } = await this.compareRebates(group, state);
 
-      results.discrepency.push({ name: group, take, drop })
+        results.discrepency.push({ name: group, take, drop })
+      }
     }
 
-    this.printResults(results);
-    this.pushRebates(state);
+    if (!this.quiet) {
+      this.printResults(results);
+    }
+
+    if (this.combine) {
+      this.pushRebates(state);
+    }
   }
 }
