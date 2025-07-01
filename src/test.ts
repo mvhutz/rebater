@@ -64,8 +64,8 @@ export async function compareRebates(group: string, state: State) {
 }
 
 export function printResults(results: RunResults) {
-  process.stdout.clearLine(0);
-  process.stdout.cursorTo(0);
+  // process.stdout.clearLine(0);
+  // process.stdout.cursorTo(0);
   console.log('==== [PERFORMANCE] ====\n')
   for (const config of results.config) {
     console.log(`\t${config.name}: ${(config.end - config.start).toFixed(2)}ms`)

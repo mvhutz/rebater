@@ -84,9 +84,9 @@ export async function runAllConfigs(state: State): Promise<RunResults> {
     const name = path.parse(transformer_file).name;
     const transformer = await getConfig(transformer_file);
 
-    process.stdout.clearLine(0);
-    process.stdout.cursorTo(0);
-    process.stdout.write(`[${index + 1}/${transformer_files.length}] Running ${name}...`);
+    // process.stdout.clearLine(0);
+    // process.stdout.cursorTo(0);
+    // process.stdout.write(`[${index + 1}/${transformer_files.length}] Running ${name}...`);
     results.config.push(await runConfig(transformer, state));
   }
 
