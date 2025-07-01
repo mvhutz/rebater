@@ -1,7 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import z from "zod/v4";
-import { compareRebates } from "./test";
 import TableTransformation from "./table";
 import RowTransformation from "./row";
 import Source from "./source";
@@ -73,31 +72,4 @@ export class Transformer {
     const end = performance.now();
     return { start, end, name: this.name };
   }
-}
-
-export async function runAllConfigs(state: State): Promise<RunResults> {
-  const transformer_files = await state.getSettings().listTransformerPaths();
-
-  const results: RunResults = {
-    config: [],
-    discrepency: [],
-  }
-
-  for (const [index, transformer_file] of transformer_files.entries()) {
-    const transformer = await Transformer.fromFile(transformer_file);
-
-    process.stdout.clearLine(0);
-    process.stdout.cursorTo(0);
-    process.stdout.write(`[${index + 1}/${transformer_files.length}] Running ${transformer.name}...`);
-    results.config.push(await transformer.run(state));
-  }
-
-  const rebates_groups = await state.getSettings().listActualGroups();
-  for (const group of rebates_groups) {
-    const { take, drop } = await compareRebates(group, state);
-
-    results.discrepency.push({ name: group, take, drop })
-  }
-
-  return results;
 }

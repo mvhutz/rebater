@@ -26,7 +26,7 @@ export class BasicState extends State {
   private settings: Settings;
   public handlers: Handlers;
 
-  constructor(time: Time, settings: Settings, handlers: Handlers) {
+  constructor(time: Time, settings: Settings, handlers: Handlers = {}) {
     super();
 
     this.time = time;
