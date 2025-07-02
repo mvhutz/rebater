@@ -1,6 +1,6 @@
-import { BasicState } from "./src/information/State";
-import { BasicSettings } from "./src/information/Settings";
-import { CLIRunner } from "./src/runner/CLIRunner";
+import { BasicState } from "./app/src/api/information/State";
+import { BasicSettings } from "./app/src/api/information/Settings";
+import { CLIRunner } from "./app/src/api/runner/CLIRunner";
 
 /** ------------------------------------------------------------------------- */
 

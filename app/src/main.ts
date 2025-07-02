@@ -1,7 +1,6 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
-import assert from 'node:assert';
 import IPC from './shared/ipc';
 
 /** ------------------------------------------------------------------------- */
@@ -20,6 +19,7 @@ const createWindow = () => {
       preload: path.join(__dirname, 'preload.js'),
       sandbox: false
     },
+    icon: './images/icon.png'
   });
 
   IPC.ipcMain.handle.getPing();
