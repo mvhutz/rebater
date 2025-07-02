@@ -1,7 +1,7 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
-import IPC from './shared/ipc';
+import IPC from './system/ipc';
 
 /** ------------------------------------------------------------------------- */
 
@@ -22,11 +22,11 @@ const createWindow = () => {
     icon: './images/icon.png'
   });
 
-  IPC.ipcMain.handle.getPing();
-
-  mainWindow.webContents.on('dom-ready', () => {
-    IPC.ipcMain.invoke.getPong(mainWindow, 'pong');
-  })
+  // Allow all handlers.
+  for (const key in IPC.ipcMain.handle) {
+    IPC.ipcMain.handle[key as keyof typeof IPC.ipcMain.handle]();
+  }
+  
 
   // and load the index.html of the app.
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
@@ -36,7 +36,7 @@ const createWindow = () => {
   }
 
   // Open the DevTools.
-  if (!Electron.app.isPackaged) {
+  if (!app.isPackaged) {
     mainWindow.webContents.openDevTools();
   }
 };

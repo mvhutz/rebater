@@ -1,5 +1,4 @@
-import { contextBridge, ipcRenderer } from "electron";
-import IPC from "./shared/ipc";
+import IPC from "./system/ipc";
 
 /** ------------------------------------------------------------------------- */
 

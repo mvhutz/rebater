@@ -3,15 +3,15 @@ import React from 'react';
 /** ------------------------------------------------------------------------- */
 
 function App() {
-  const { invoke, handle } = window.api;
+  const { invoke } = window.api;
 
   React.useEffect(() => {
     document.title = "Rebater — Fuse Alliance Rebate Processor";
   });
 
   const handleDirectory = React.useCallback(async () => {
-    invoke.getPing('ping');
-    handle.getPong();
+    const response = await invoke.chooseDir();
+    alert(response);
   }, [])
 
   return (

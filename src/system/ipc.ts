@@ -1,25 +1,21 @@
+import { dialog } from "electron";
 import { createInterprocess } from "interprocess";
 
 /** ------------------------------------------------------------------------- */
 
 const IPC = createInterprocess({
   main: {
-    async getPing(_, data: 'ping') {
-      const message = `from renderer: ${data} on main process`
-
-      console.log(message)
-
-      return message
+    async getPing() {
+      const message = "PONG!";
+      console.log("PING!");
+      return message;
     },
-  },
+    async chooseDir() {
+      const directory = await dialog.showOpenDialog({
+        properties: ['openDirectory']
+      });
 
-  renderer: {
-    async getPong(_, data: 'pong') {
-      const message = `from main: ${data} on renderer process`
-
-      console.log(message)
-
-      return message
+      return directory.filePaths;
     },
   },
 });
