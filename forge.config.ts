@@ -12,10 +12,12 @@ const config: ForgeConfig = {
     name: "Rebater",
     executableName: "Rebater",
     asar: true,
-    icon: './images/icon'
+    icon: './images/icon',
   },
-  rebuildConfig: {},
-  makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerRpm({}), new MakerDeb({})],
+  rebuildConfig: {
+    force: true
+  },
+  makers: [new MakerSquirrel({}), new MakerZIP({}), new MakerRpm({}), new MakerDeb({})],
   plugins: [
     new VitePlugin({
       // `build` can specify multiple entry builds, which can be Main process, Preload scripts, Worker process, etc.
