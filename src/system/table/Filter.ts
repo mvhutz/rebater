@@ -1,4 +1,4 @@
-import z from "zod/v4";
+import { z } from "zod/v4";
 import RowTransformation from "../row";
 import { State } from "../information/State";
 

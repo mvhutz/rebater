@@ -1,4 +1,4 @@
-import z from "zod/v4";
+import { z } from "zod/v4";
 import CSV from "../destination/CSV";
 import Destination from "../destination";
 import { State } from "../information/State";

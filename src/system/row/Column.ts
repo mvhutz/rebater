@@ -1,4 +1,4 @@
-import z from "zod/v4";
+import { z } from "zod/v4";
 import { ExcelIndexSchema, getTrueIndex } from "../util";
 
 const NAME = "column";

@@ -1,4 +1,4 @@
-import z from "zod/v4";
+import { z } from "zod/v4";
 import { _runMany, _Schema } from ".";
 import { State } from "../information/State";
 

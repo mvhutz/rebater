@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import z from "zod/v4";
+import { z } from "zod/v4";
 import TableTransformation from "./table";
 import RowTransformation from "./row";
 import Source from "./source";
@@ -33,15 +33,15 @@ export class Transformer {
     this.data = data;
     this.name = name;
     this.path = path;
-  }
+}
 
   public static async fromFile(filepath: string): Promise<Transformer> {
-    const raw = await readFile(filepath, 'utf-8');
-    const json = JSON.parse(raw);
+  const raw = await readFile(filepath, 'utf-8');
+  const json = JSON.parse(raw);
 
-    const name = path.parse(filepath).name;
+  const name = path.parse(filepath).name;
     return new Transformer(DataSchema.parse(json), name, filepath);
-  }
+}
 
   public async run(state: State): Promise<TransformerResult> {
     const start = performance.now();

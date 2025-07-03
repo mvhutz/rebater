@@ -1,4 +1,4 @@
-import z from "zod/v4";
+import { z } from "zod/v4";
 import XLSX from "xlsx";
 import assert from "node:assert";
 import { State } from "../information/State";

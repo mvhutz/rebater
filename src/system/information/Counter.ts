@@ -1,3 +1,7 @@
+export interface State {
+  amount: number;
+}
+
 export abstract class Counter {
   public abstract get(): number;
   public abstract increment(): void;

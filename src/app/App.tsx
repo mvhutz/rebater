@@ -1,23 +1,20 @@
 import React from 'react';
+import SettingsPage from './SettingsPage';
+import * as Settings from '../shared/settings/Settings';
 
 /** ------------------------------------------------------------------------- */
 
 function App() {
-  const { invoke } = window.api;
+  const [settings, setSettings] = React.useState<Settings.Data | undefined>(undefined);
 
   React.useEffect(() => {
     document.title = "Rebater — Fuse Alliance Rebate Processor";
   });
 
-  const handleDirectory = React.useCallback(async () => {
-    const response = await invoke.chooseDir();
-    alert(response);
-  }, [])
-
   return (
     <div>
-      <h1>Hello, World!</h1>
-      <button onClick={handleDirectory}>Pick Directory</button>
+      <h1>Rebater</h1>
+      <SettingsPage settings={settings} onSettings={setSettings}/>
     </div>
   );
 }

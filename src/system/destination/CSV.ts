@@ -1,6 +1,6 @@
 
 import { unparse } from "papaparse";
-import z from "zod/v4";
+import { z } from "zod/v4";
 import { State } from "../information/State";
 import fs from 'node:fs/promises';
 import path from "node:path";

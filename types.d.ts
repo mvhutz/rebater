@@ -28,3 +28,17 @@ interface RunResults {
   config: TransformerResult[];
   discrepency: DiscrepencyResult[];
 }
+
+interface BadAPIResonse {
+  good: false;
+  reason: string;
+  message?: string;
+}
+
+interface GoodAPIResonse<T> {
+  good: true;
+  data: T;
+  message?: string;
+}
+
+type APIResponse<T> = BadAPIResonse | GoodAPIResonse<T>;

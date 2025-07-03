@@ -1,4 +1,4 @@
-import z from "zod/v4";
+import { z } from "zod/v4";
 import Counter from "./Counter";
 import Coerce from "./Coerce";
 import Column from "./Column";

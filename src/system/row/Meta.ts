@@ -1,5 +1,5 @@
 import moment from "moment";
-import z from "zod/v4";
+import { z } from "zod/v4";
 import { State } from "../information/State";
 
 const NAME = "meta";

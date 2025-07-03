@@ -1,4 +1,4 @@
-import z from "zod/v4";
+import { z } from "zod/v4";
 import Meta from "./Meta";
 import { State } from "../information/State";
 

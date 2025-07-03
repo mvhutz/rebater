@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import Papa from "papaparse";
-import z from "zod/v4";
+import { z } from "zod/v4";
 
 /** ------------------------------------------------------------------------- */
 

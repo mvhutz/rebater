@@ -1,4 +1,4 @@
-import z from "zod/v4";
+import { z } from "zod/v4";
 import Chop from "./Chop";
 import Filter from "./Filter";
 import Select from "./Select";
