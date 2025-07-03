@@ -21,10 +21,10 @@ const IPC = createInterprocess({
 
       return directory.filePaths;
     },
-    async getSettings(): Promise<Settings.Data> {
+    async getSettings(): Promise<Settings.Data | undefined> {
       const file = path.join(app.getPath("userData"), "settings.json");
       if (!existsSync(file)) {
-        throw Error("Settings file does not exist.");
+        return undefined;
       }
 
       const stat = await fs.lstat(file);
