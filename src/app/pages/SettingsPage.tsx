@@ -1,6 +1,6 @@
 import React from 'react';
-import * as Settings from '../shared/settings/Settings';
-import * as SettingsStrategy from '../shared/settings/strategy';
+import * as SettingsStrategy from '../../shared/settings/strategy';
+import SettingsContext from '../context/SettingsContext';
 
 /** ------------------------------------------------------------------------- */
 
@@ -88,57 +88,26 @@ function StrategyForm(props: StrategyProps) {
 
 /** ------------------------------------------------------------------------- */
 
-interface SettingsPageProps {
-  settings?: Settings.Data;
-  onSettings?: (settings?: Settings.Data) => void;
-}
-
-function SettingsPage(props: SettingsPageProps) {
-  const { invoke } = window.api;
-  const { settings, onSettings } = props;
-
+function SettingsPage() {
+  const { settings, setSettings, pullSettings, pushSettings } = React.useContext(SettingsContext);
   const [strategy, setStrategy] = React.useState<SettingsStrategy.Data | undefined>();
 
   React.useEffect(() => {
-    if (strategy != null) {
-      onSettings?.({ strategy });
-    }
-  }, [onSettings, strategy]);
+    if (strategy == null) return;
+    setSettings(s => ({ ...s, strategy }));
+  }, [strategy, setSettings]);
 
   React.useEffect(() => {
     setStrategy(settings?.strategy);
   }, [settings?.strategy]);
-
-  const handleSave = React.useCallback(async () => {
-    if (settings == null) {
-      alert("No settings selected!");
-      return;
-    }
-
-    const { good, message } = await invoke.setSettings(settings);
-    if (good) {
-      alert("Saved!");
-    } else {
-      alert(`ERROR: '${message}'`);
-    }
-  }, [invoke, settings]);
-
-  const handleRefresh = React.useCallback(async () => {
-    const settings = await invoke.getSettings();
-    onSettings?.(settings);
-  }, [invoke, onSettings]);
-
-  React.useEffect(() => {
-    handleRefresh();
-  }, [handleRefresh]);
 
   return (
     <fieldset>
       <h2>Settings</h2>
       <StrategyForm strategy={strategy} onStrategy={setStrategy} />
       <h3>Options</h3>
-      <button onClick={handleSave}>Save</button>
-      <button onClick={handleRefresh}>Refresh</button>
+      <button onClick={pushSettings}>Save</button>
+      <button onClick={pullSettings}>Refresh</button>
     </fieldset>
   );
 }

@@ -3,7 +3,7 @@ import { createInterprocess } from "interprocess";
 import path from "node:path";
 import { existsSync } from "node:fs";
 import fs from 'node:fs/promises';
-import * as Settings from './settings/Settings';
+import * as Settings from './settings';
 
 /** ------------------------------------------------------------------------- */
 

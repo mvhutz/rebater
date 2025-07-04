@@ -1,7 +1,7 @@
 import { BasicCounter, Counter } from "./Counter";
 import { BasicReference, Reference } from "./Reference";
 import { Handlers } from "./Handlers";
-import type Settings from "../../shared/settings/Settings";
+import type Settings from "../../shared/settings";
 
 /** ------------------------------------------------------------------------- */
 

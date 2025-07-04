@@ -1,21 +1,23 @@
 import React from 'react';
-import SettingsPage from './SettingsPage';
-import * as Settings from '../shared/settings/Settings';
+import SettingsPage from './pages/SettingsPage';
+import { HashRouter, Route, Routes } from 'react-router';
+import SettingsProvider from './context/SettingsProvider';
 
 /** ------------------------------------------------------------------------- */
 
 function App() {
-  const [settings, setSettings] = React.useState<Settings.Data | undefined>(undefined);
-
   React.useEffect(() => {
     document.title = "Rebater — Fuse Alliance Rebate Processor";
   });
 
   return (
-    <div>
-      <h1>Rebater</h1>
-      <SettingsPage settings={settings} onSettings={setSettings}/>
-    </div>
+    <SettingsProvider>
+      <HashRouter>
+        <Routes>
+          <Route index path="/" element={<SettingsPage/>}/>
+        </Routes>
+      </HashRouter>
+    </SettingsProvider>
   );
 }
 
