@@ -4,18 +4,31 @@ import * as XLSX from "xlsx";
 import { parseRebateFile, Rebate } from "../util";
 import { writeFile } from "node:fs/promises";
 
+interface IdleStatus {
+  type: "idle";
+}
+
+interface RunningStatus {
+  type: "running";
+  progress: number;
+}
+
+export type RunnerStatus = IdleStatus | RunningStatus;
+
 /** ------------------------------------------------------------------------- */
 
 interface CLIRunnerOptions {
   quiet?: boolean;
   test?: boolean;
   combine?: boolean;
+  onStatus?: (status: RunnerStatus) => void;
 }
 
 export class CLIRunner {
   private quiet: boolean;
   private test: boolean;
   private combine: boolean;
+  private onStatus?: (status: RunnerStatus) => void;
 
   constructor(options?: CLIRunnerOptions) {
     const { test = true, quiet = false, combine = true } = options ?? {};
@@ -23,6 +36,7 @@ export class CLIRunner {
     this.quiet = quiet;
     this.test = test;
     this.combine = combine;
+    this.onStatus = options?.onStatus;
   }
 
   public async pushRebates(state: State) {
@@ -117,8 +131,9 @@ export class CLIRunner {
     }
 
     for (const [index, transformer_file] of transformer_files.entries()) {
+      this.onStatus?.({ type: "running", progress: index / transformer_files.length });
       const transformer = await Transformer.fromFile(transformer_file);
-
+      
       if (!this.quiet) {
         process.stdout.clearLine(0);
         process.stdout.cursorTo(0);
@@ -126,6 +141,8 @@ export class CLIRunner {
       }
       results.config.push(await transformer.run(state));
     }
+
+    this.onStatus?.({ type: "running", progress: 1 });
 
     if (this.test) {
       const rebates_groups = await state.getSettings().strategy.listActualGroups();
@@ -135,6 +152,8 @@ export class CLIRunner {
         results.discrepency.push({ name: group, take, drop })
       }
     }
+
+    this.onStatus?.({ type: "idle" });
 
     if (!this.quiet) {
       this.printResults(results);

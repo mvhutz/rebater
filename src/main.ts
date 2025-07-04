@@ -2,6 +2,9 @@ import { app, BrowserWindow } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import IPC from './shared/ipc';
+import Settings from './shared/settings';
+import { BasicState } from './system/information/State';
+import { CLIRunner } from './system/runner/CLIRunner';
 
 /** ------------------------------------------------------------------------- */
 
@@ -24,10 +27,26 @@ const createWindow = () => {
   });
 
   // Allow all handlers.
-  for (const key in IPC.ipcMain.handle) {
-    IPC.ipcMain.handle[key as keyof typeof IPC.ipcMain.handle]();
-  }
+  IPC.ipcMain.handle.chooseDir();
+  IPC.ipcMain.handle.getPing();
+  IPC.ipcMain.handle.getSettings();
+  IPC.ipcMain.handle.setSettings();
   
+  IPC.ipcMain.handle.runProgram(async (_, { runProgram, data } ) => {
+    const result = await runProgram(_, data);
+
+    const settings = Settings.parse(data);
+    const time: Time = { quarter: 4, year: 2024 };
+    const state = new BasicState(time, settings);
+    const runner = new CLIRunner({
+      quiet: true,
+      onStatus: status => IPC.ipcMain.invoke.runnerUpdate(mainWindow, status)
+    });
+
+    void runner.run(state);
+
+    return result;
+  })
 
   // and load the index.html of the app.
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {

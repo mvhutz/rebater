@@ -4,7 +4,7 @@ import path from "node:path";
 import { existsSync } from "node:fs";
 import fs from 'node:fs/promises';
 import { BasicState } from "../system/information/State";
-import { CLIRunner } from "../system/runner/CLIRunner";
+import { CLIRunner, RunnerStatus } from "../system/runner/CLIRunner";
 import Settings, { type SettingsData } from "./settings";
 
 /** ------------------------------------------------------------------------- */
@@ -44,15 +44,13 @@ const IPC = createInterprocess({
       await fs.writeFile(file, JSON.stringify(settings));
       return { good: true, message: file };
     },
-    async runProgram(_, settings_data: SettingsData) {
-      const settings = Settings.parse(settings_data);
-      const time: Time = { quarter: 4, year: 2024 };
-      const state = new BasicState(time, settings);
-      const runner = new CLIRunner({ quiet: true });
-
-      await runner.run(state);
+    async runProgram(event, settings_data: SettingsData) {
+      return "Started!";
     }
   },
+  renderer: {
+    async runnerUpdate(event, runner_status: RunnerStatus) { }
+  }
 });
 
 
