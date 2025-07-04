@@ -8,12 +8,17 @@ interface IdleStatus {
   type: "idle";
 }
 
+interface ErrorStatus {
+  type: "error";
+  message?: string;
+}
+
 interface RunningStatus {
   type: "running";
   progress: number;
 }
 
-export type RunnerStatus = IdleStatus | RunningStatus;
+export type RunnerStatus = IdleStatus | RunningStatus | ErrorStatus;
 
 /** ------------------------------------------------------------------------- */
 

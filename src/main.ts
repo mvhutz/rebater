@@ -13,6 +13,8 @@ if (started) {
   app.quit();
 }
 
+const { ipcMain } = IPC;
+
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -20,32 +22,36 @@ const createWindow = () => {
     height: 600,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
-      sandbox: false,
-      nodeIntegrationInWorker: true
+      sandbox: false
     },
     icon: './images/icon.png'
   });
 
   // Allow all handlers.
-  IPC.ipcMain.handle.chooseDir();
-  IPC.ipcMain.handle.getPing();
-  IPC.ipcMain.handle.getSettings();
-  IPC.ipcMain.handle.setSettings();
+  ipcMain.handle.chooseDir();
+  ipcMain.handle.getPing();
+  ipcMain.handle.getSettings();
+  ipcMain.handle.setSettings();
   
-  IPC.ipcMain.handle.runProgram(async (_, { runProgram, data } ) => {
-    const result = await runProgram(_, data);
-
+  ipcMain.handle.runProgram(async (_, { data } ) => {
+    ipcMain.invoke.runnerUpdate(mainWindow, { type: "idle" });
+    
     const settings = Settings.parse(data);
     const time: Time = { quarter: 4, year: 2024 };
     const state = new BasicState(time, settings);
     const runner = new CLIRunner({
       quiet: true,
-      onStatus: status => IPC.ipcMain.invoke.runnerUpdate(mainWindow, status)
+      onStatus: status => ipcMain.invoke.runnerUpdate(mainWindow, status)
     });
 
-    void runner.run(state);
-
-    return result;
+    void (async () => {
+      try {
+        await runner.run(state);
+      } catch (error) {
+        const message = error instanceof Error ? error.stack : `${error}`;
+        ipcMain.invoke.runnerUpdate(mainWindow, { type: "error", message });
+      }
+    })();
   })
 
   // and load the index.html of the app.

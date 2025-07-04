@@ -2,6 +2,7 @@ import path from "node:path";
 import fs from "node:fs/promises";
 import { z } from "zod/v4";
 import SettingsStrategy from "./base";
+import { glob } from "glob";
 
 /** ------------------------------------------------------------------------- */
 
@@ -33,7 +34,7 @@ export default class BasicSettingsStrategy extends SettingsStrategy {
       `**/*.csv`
     );
 
-    return await Array.fromAsync(fs.glob(folder));
+    return await glob(folder);
   }
 
   getDestinationPath(filepath: string, group: string, subgroup: string, time: Time): string {
@@ -62,7 +63,7 @@ export default class BasicSettingsStrategy extends SettingsStrategy {
       "**/*.csv"
     );
 
-    return await Array.fromAsync(fs.glob(folder));
+    return await glob(folder);
   }
 
   async listActualGroups(): Promise<string[]> {
@@ -82,7 +83,7 @@ export default class BasicSettingsStrategy extends SettingsStrategy {
       "**/*.csv"
     );
 
-    return await Array.fromAsync(fs.glob(folder));
+    return await glob(folder);
   }
 
   async listSourcePaths(group: string, subgroup: string, time: Time, extension = ""): Promise<string[]> {
@@ -95,7 +96,7 @@ export default class BasicSettingsStrategy extends SettingsStrategy {
       `**/*${extension}`
     );
 
-    return await Array.fromAsync(fs.glob(folder));
+    return await glob(folder);
   }
 
   async listTransformerPaths(): Promise<string[]> {
@@ -105,7 +106,7 @@ export default class BasicSettingsStrategy extends SettingsStrategy {
       '**/*.json'
     );
 
-    return await Array.fromAsync(fs.glob(folder));
+    return await glob(folder);
   }
 
   getTransformerPath(name: string): string {

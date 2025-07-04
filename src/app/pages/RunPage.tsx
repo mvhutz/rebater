@@ -11,13 +11,20 @@ function RunPage() {
 
   React.useEffect(() => {
     handle.runnerUpdate(async (_, { data }) => {
+      console.log("STATUS!", data);
       switch (data.type) {
         case "idle":
           setRunning(false);
           setProgress(0);
           break;
+        case "error":
+          setRunning(false);
+          setProgress(0);
+          alert(`Error during processing: ${data.message}`);
+          break;
         case "running":
-          setProgress(Math.round(100 * data.progress))
+          setProgress(Math.round(100 * data.progress));
+          break;
       }
     });
 

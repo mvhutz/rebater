@@ -44,9 +44,7 @@ const IPC = createInterprocess({
       await fs.writeFile(file, JSON.stringify(settings));
       return { good: true, message: file };
     },
-    async runProgram(event, settings_data: SettingsData) {
-      return "Started!";
-    }
+    async runProgram(event, settings_data: SettingsData) { }
   },
   renderer: {
     async runnerUpdate(event, runner_status: RunnerStatus) { }

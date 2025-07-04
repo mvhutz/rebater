@@ -28,7 +28,6 @@ function BasicStrategyForm(props: StrategyProps) {
   const { onStrategy, strategy } = props;
 
   const [directory, setDirectory] = React.useState<string | null>(null);
-  console.log(strategy);
   React.useEffect(() => {
     if (strategy != null && strategy.type === "basic") {
       setDirectory(strategy.directory);
