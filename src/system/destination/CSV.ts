@@ -19,7 +19,7 @@ type Schema = z.infer<typeof schema>;
 
 async function run(destination: Schema, table: Table, state: State) {
   const { group, subgroup } = destination;
-  const filepath = state.getSettings().getDestinationPath(table.path, group, subgroup, state.getTime());
+  const filepath = state.getSettings().strategy.getDestinationPath(table.path, group, subgroup, state.getTime());
   
   const data = table.data.map(row => row.data);
 

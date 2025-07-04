@@ -14,9 +14,6 @@ const config: ForgeConfig = {
     asar: true,
     icon: './images/icon',
   },
-  rebuildConfig: {
-    force: true
-  },
   makers: [new MakerSquirrel({}), new MakerZIP({}), new MakerRpm({}), new MakerDeb({})],
   plugins: [
     new VitePlugin({

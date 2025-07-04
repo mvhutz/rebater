@@ -36,7 +36,7 @@ const RebateSchema = z.strictObject({
   invoiceDate: z.string(),
 });
 
-type Rebate = z.infer<typeof RebateSchema>;
+export type Rebate = z.infer<typeof RebateSchema>;
 
 export async function parseRebateFile(path: string): Promise<Rebate[]> {
   const file = await fs.readFile(path, 'utf-8');

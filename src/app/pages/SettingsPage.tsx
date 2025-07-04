@@ -1,12 +1,12 @@
 import React from 'react';
-import * as SettingsStrategy from '../../shared/settings/strategy';
+import { SettingsData } from '../../shared/settings';
 import SettingsContext from '../context/SettingsContext';
 
 /** ------------------------------------------------------------------------- */
 
 interface StrategyProps {
-  onStrategy?: (strategy?: SettingsStrategy.Data) => void;
-  strategy?: SettingsStrategy.Data;
+  onStrategy?: (strategy?: SettingsData["strategy"]) => void;
+  strategy?: SettingsData["strategy"];
 }
 
 /** ------------------------------------------------------------------------- */
@@ -90,7 +90,7 @@ function StrategyForm(props: StrategyProps) {
 
 function SettingsPage() {
   const { settings, setSettings, pullSettings, pushSettings } = React.useContext(SettingsContext);
-  const [strategy, setStrategy] = React.useState<SettingsStrategy.Data | undefined>();
+  const [strategy, setStrategy] = React.useState<SettingsData["strategy"] | undefined>();
 
   React.useEffect(() => {
     if (strategy == null) return;

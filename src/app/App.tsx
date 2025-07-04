@@ -1,7 +1,9 @@
 import React from 'react';
 import SettingsPage from './pages/SettingsPage';
-import { HashRouter, Route, Routes } from 'react-router';
-import SettingsProvider from './context/SettingsProvider';
+import { Route, Routes } from 'react-router';
+import Navigation from './Navigation';
+import HomePage from './pages/HomePage';
+import RunPage from './pages/RunPage';
 
 /** ------------------------------------------------------------------------- */
 
@@ -10,15 +12,16 @@ function App() {
     document.title = "Rebater — Fuse Alliance Rebate Processor";
   });
 
-  return (
-    <SettingsProvider>
-      <HashRouter>
-        <Routes>
-          <Route index path="/" element={<SettingsPage/>}/>
-        </Routes>
-      </HashRouter>
-    </SettingsProvider>
-  );
+  return <>
+    <Navigation/>
+    <main>
+      <Routes>
+        <Route path="/settings" element={<SettingsPage/>}/>
+        <Route path="/run" element={<RunPage/>}/>
+        <Route path="/" element={<HomePage/>}/>
+      </Routes>
+    </main>
+  </>;
 }
 
 /** ------------------------------------------------------------------------- */

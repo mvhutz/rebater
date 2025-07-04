@@ -1,7 +1,8 @@
 import { Transformer } from "../transformer";
 import { State } from "../information/State";
-import XLSX from 'xlsx';
-import { parseRebateFile } from "../util";
+import * as XLSX from "xlsx";
+import { parseRebateFile, Rebate } from "../util";
+import { writeFile } from "node:fs/promises";
 
 /** ------------------------------------------------------------------------- */
 
@@ -25,20 +26,32 @@ export class CLIRunner {
   }
 
   public async pushRebates(state: State) {
-    const rebates = await state.getSettings().listActualGroups();
-  
+    const { strategy } = state.getSettings();
+    const rebate_groups = await strategy.listActualGroups();
+
+    const rebate_files = new Array<string>();
+    for (const rebate_group of rebate_groups) {
+      rebate_files.push(...await strategy.listActualPaths(rebate_group));
+    }
+
+    const rebates = new Array<Rebate>();
+    for (const rebate_file of rebate_files) {
+      rebates.push(...await parseRebateFile(rebate_file));
+    }
+
     const sheet = XLSX.utils.json_to_sheet(rebates);
     const book = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(book, sheet, "Rebates");
+    const buffer = XLSX.write(book, { type: "buffer" });
     
-    const file = state.getSettings().getOutputFile();
-    XLSX.writeFileXLSX(book, file);
+    const file = state.getSettings().strategy.getOutputFile();
+    await writeFile(file, buffer);
   }
 
   async compareRebates(group: string, state: State) {
-    const actual_files = await state.getSettings().listActualPaths(group);
+    const actual_files = await state.getSettings().strategy.listActualPaths(group);
     const actual = (await Promise.all(actual_files.map(parseRebateFile))).flat();
-    const expected_files = await state.getSettings().listExpectedPaths(group);
+    const expected_files = await state.getSettings().strategy.listExpectedPaths(group);
     const expected = (await Promise.all(expected_files.map(parseRebateFile))).flat();
   
     const actual_allowed_set = new Set();
@@ -61,7 +74,7 @@ export class CLIRunner {
       expected_allowed_set.add(Object.values({ ...rebate, rebateAmount: `$${(rebateAmount + 0.01).toFixed(2)}` }).join());
     }
   
-    const actual_set = actual.map(r => Object.values(r).join());
+    const actual_set = actual.map((r) => Object.values(r).join());
     const expected_set = expected.map(r => Object.values(r).join());
   
     return { 
@@ -96,7 +109,7 @@ export class CLIRunner {
   }
 
   public async run(state: State) {
-    const transformer_files = await state.getSettings().listTransformerPaths();
+    const transformer_files = await state.getSettings().strategy.listTransformerPaths();
 
     const results: RunResults = {
       config: [],
@@ -115,7 +128,7 @@ export class CLIRunner {
     }
 
     if (this.test) {
-      const rebates_groups = await state.getSettings().listActualGroups();
+      const rebates_groups = await state.getSettings().strategy.listActualGroups();
       for (const group of rebates_groups) {
         const { take, drop } = await this.compareRebates(group, state);
 

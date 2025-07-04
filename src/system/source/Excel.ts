@@ -1,7 +1,8 @@
 import { z } from "zod/v4";
-import XLSX from "xlsx";
+import * as XLSX from "xlsx";
 import assert from "node:assert";
 import { State } from "../information/State";
+import fs from "node:fs/promises";
 
 const NAME = "excel";
 
@@ -19,12 +20,13 @@ type Schema = z.infer<typeof schema>;
 async function run(source: Schema, state: State) {
   const { group, subgroup, sheets } = source;
   
-  const files = await state.getSettings().listSourcePaths(group, subgroup, state.getTime());
+  const files = await state.getSettings().strategy.listSourcePaths(group, subgroup, state.getTime());
 
   const results = new Array<Table>();
 
   for (const file of files) {
-    const workbook = XLSX.readFile(file);
+    const data = await fs.readFile(file);
+    const workbook = XLSX.read(data, { type: "buffer" });
 
     const sheetsToTake = new Set<string>();
     if (sheets == null) {

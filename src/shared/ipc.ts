@@ -3,7 +3,9 @@ import { createInterprocess } from "interprocess";
 import path from "node:path";
 import { existsSync } from "node:fs";
 import fs from 'node:fs/promises';
-import * as Settings from './settings';
+import { BasicState } from "../system/information/State";
+import { CLIRunner } from "../system/runner/CLIRunner";
+import Settings, { type SettingsData } from "./settings";
 
 /** ------------------------------------------------------------------------- */
 
@@ -21,7 +23,7 @@ const IPC = createInterprocess({
 
       return directory.filePaths;
     },
-    async getSettings(): Promise<Settings.Data | undefined> {
+    async getSettings(): Promise<SettingsData | undefined> {
       const file = path.join(app.getPath("userData"), "settings.json");
       if (!existsSync(file)) {
         return undefined;
@@ -33,25 +35,25 @@ const IPC = createInterprocess({
       }
 
       const raw = await fs.readFile(file, 'utf-8');
-      const data = Settings.Schema.parse(JSON.parse(raw));
-      return data;
+      const json = JSON.parse(raw);
+      const settings = Settings.parse(json);
+      return settings.data;
     },
-    async setSettings(_, settings: Settings.Data) {
+    async setSettings(_, settings: SettingsData) {
       const file = path.join(app.getPath("userData"), "settings.json");
       await fs.writeFile(file, JSON.stringify(settings));
       return { good: true, message: file };
     },
+    async runProgram(_, settings_data: SettingsData) {
+      const settings = Settings.parse(settings_data);
+      const time: Time = { quarter: 4, year: 2024 };
+      const state = new BasicState(time, settings);
+      const runner = new CLIRunner({ quiet: true });
+
+      await runner.run(state);
+    }
   },
 });
-
-// async function main() {
-//   const time = { quarter: 4, year: 2024 } satisfies Time;
-//   const settings = new BasicSettings("./data");
-//   const state = new BasicState(time, settings);
-//   const runner = new CLIRunner();
-
-//   runner.run(state);
-// }
 
 
 /** ------------------------------------------------------------------------- */

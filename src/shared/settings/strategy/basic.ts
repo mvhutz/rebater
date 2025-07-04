@@ -1,77 +1,93 @@
 import path from "node:path";
 import fs from "node:fs/promises";
 import { z } from "zod/v4";
+import SettingsStrategy from "./base";
 
 /** ------------------------------------------------------------------------- */
 
-export const Schema = z.object({
-  type: z.literal("basic"),
-  directory: z.string()
-});
+export type BasicSettingsStrategyData = z.input<typeof BasicSettingsStrategy.Schema>;
 
-export type Data = z.infer<typeof Schema>;
+export default class BasicSettingsStrategy extends SettingsStrategy {
+  public static readonly Schema = z.object({
+    type: z.literal("basic"),
+    directory: z.string()
+  });
 
-export const Operations = {
-  getReferencePath(data: Data, name: string): string {
-    return path.join(data.directory, "tables", `${name}.csv`);
-  },
-  async listDestinationPaths(data: Data, group: string, subgroup: string): Promise<string[]> {
+  public readonly data: BasicSettingsStrategyData;
+
+  constructor(data: BasicSettingsStrategyData) {
+    super();
+    
+    this.data = data;
+  }
+
+  getReferencePath(name: string): string {
+    return path.join(this.data.directory, "tables", `${name}.csv`);
+  }
+
+  async listDestinationPaths(group: string, subgroup: string): Promise<string[]> {
     const folder = path.join(
-      data.directory,
+      this.data.directory,
       group,
       subgroup,
       `**/*.csv`
     );
 
     return await Array.fromAsync(fs.glob(folder));
-  },
-  getDestinationPath(data: Data, filepath: string, group: string, subgroup: string): string {
+  }
+
+  getDestinationPath(filepath: string, group: string, subgroup: string, time: Time): string {
     return path.join(
-      data.directory,
+      this.data.directory,
       group,
       subgroup,
       `${path.parse(filepath).name}.csv`
     );
-  },
-  async listExpectedGroups(data: Data): Promise<string[]> {
+  }
+
+  async listExpectedGroups(): Promise<string[]> {
     const folder = path.join(
-      data.directory,
+      this.data.directory,
       "truth",
     );
 
     return await fs.readdir(folder);
-  },
-  async listExpectedPaths(data: Data, group: string): Promise<string[]> {
+  }
+
+  async listExpectedPaths(group: string): Promise<string[]> {
     const folder = path.join(
-      data.directory,
+      this.data.directory,
       "truth",
       group,
       "**/*.csv"
     );
 
     return await Array.fromAsync(fs.glob(folder));
-  },
-  async listActualGroups(data: Data): Promise<string[]> {
+  }
+
+  async listActualGroups(): Promise<string[]> {
     const folder = path.join(
-      data.directory,
+      this.data.directory,
       "rebates",
     );
 
     return await fs.readdir(folder);
-  },
-  async listActualPaths(data: Data, group: string): Promise<string[]> {
+  }
+
+  async listActualPaths(group: string): Promise<string[]> {
     const folder = path.join(
-      data.directory,
+      this.data.directory,
       "rebates",
       group,
       "**/*.csv"
     );
 
     return await Array.fromAsync(fs.glob(folder));
-  },
-  async listSourcePaths(data: Data, group: string, subgroup: string, time: Time, extension = ""): Promise<string[]> {
+  }
+
+  async listSourcePaths(group: string, subgroup: string, time: Time, extension = ""): Promise<string[]> {
     const folder = path.join(
-      data.directory,
+      this.data.directory,
       group,
       subgroup,
       time.year.toString(),
@@ -80,20 +96,23 @@ export const Operations = {
     );
 
     return await Array.fromAsync(fs.glob(folder));
-  },
-  async listTransformerPaths(data: Data): Promise<string[]> {
+  }
+
+  async listTransformerPaths(): Promise<string[]> {
     const folder = path.join(
-      data.directory,
+      this.data.directory,
       'transformers',
       '**/*.json'
     );
 
     return await Array.fromAsync(fs.glob(folder));
-  },
-  getTransformerPath(data: Data, name: string): string {
-    return path.join(data.directory, "transformer", `${name}.json`);
-  },
-  getOutputFile(data: Data): string {
-    return path.join(data.directory, "OUTPUT.xlsx");
-  },
+  }
+
+  getTransformerPath(name: string): string {
+    return path.join(this.data.directory, "transformer", `${name}.json`);
+  }
+
+  getOutputFile(): string {
+    return path.join(this.data.directory, "OUTPUT.xlsx");
+  }
 }

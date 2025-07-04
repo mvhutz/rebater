@@ -1,5 +1,5 @@
 import React from 'react';
-import * as Settings from '../../shared/settings';
+import { SettingsData } from '../../shared/settings';
 import SettingsContext from './SettingsContext';
 
 /** ------------------------------------------------------------------------- */
@@ -11,7 +11,7 @@ interface SettingsProviderProps {
 function SettingsProvider(props: SettingsProviderProps) {
   const { children } = props;
   const { invoke } = window.api;
-  const [settings, setSettings] = React.useState<Settings.Data | undefined>(undefined);
+  const [settings, setSettings] = React.useState<SettingsData | undefined>(undefined);
 
   const pushSettings = React.useCallback(async () => {
     if (settings == null) {
@@ -37,8 +37,8 @@ function SettingsProvider(props: SettingsProviderProps) {
   }, [pullSettings]);
 
   return (
-    <SettingsContext.Provider value= {{ settings, setSettings, pushSettings, pullSettings }}>
-      { children }
+    <SettingsContext.Provider value={{ settings, setSettings, pushSettings, pullSettings }}>
+      {children}
     </SettingsContext.Provider>
   );
 }

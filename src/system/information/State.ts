@@ -1,7 +1,7 @@
 import { BasicCounter, Counter } from "./Counter";
 import { BasicReference, Reference } from "./Reference";
 import { Handlers } from "./Handlers";
-import type Settings from "../../shared/settings";
+import Settings from "../../shared/settings";
 
 /** ------------------------------------------------------------------------- */
 
@@ -61,7 +61,7 @@ export class BasicState extends State {
     const counter = this.references.get(name);
     if (counter != null) return counter;
 
-    const path = this.getSettings().getReferencePath(name);
+    const path = this.getSettings().strategy.getReferencePath(name);
     const new_reference = await BasicReference.load(path);
     this.references.set(name, new_reference);
     return new_reference;

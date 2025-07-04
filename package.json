@@ -47,6 +47,7 @@
     "interprocess": "^0.2.6",
     "moment": "^2.30.1",
     "papaparse": "^5.5.3",
+    "promise-worker": "^2.0.1",
     "react": "^19.1.0",
     "react-router": "^7.6.3",
     "xlsx": "^0.18.5",
