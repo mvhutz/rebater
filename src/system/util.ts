@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
-import fs from 'node:fs/promises';
+import fs from 'fs/promises';
 import Papa from 'papaparse';
+import assert from "assert";
 
 /** ------------------------------------------------------------------------- */
 
@@ -25,21 +26,56 @@ export function getTrueIndex(index: ExcelIndex): number {
 /** ------------------------------------------------------------------------- */
 
 const RebateSchema = z.strictObject({
-  purchaseId: z.string(),
-  transactionDate: z.string(),
-  supplierId: z.string(),
-  memberId: z.string(),
-  distributorName: z.string(),
-  purchaseAmount: z.string(),
-  rebateAmount: z.string(),
-  invoiceId: z.string(),
-  invoiceDate: z.string(),
+  purchaseId: z.coerce.string(),
+  transactionDate: z.coerce.string(),
+  supplierId: z.coerce.string(),
+  memberId: z.coerce.string(),
+  distributorName: z.coerce.string(),
+  purchaseAmount: z.coerce.string(),
+  rebateAmount: z.coerce.string(),
+  invoiceId: z.coerce.string(),
+  invoiceDate: z.coerce.string(),
 });
 
 export type Rebate = z.infer<typeof RebateSchema>;
 
 export async function parseRebateFile(path: string): Promise<Rebate[]> {
-  const file = await fs.readFile(path, 'utf-8');
-  const { data } = Papa.parse(file, { header: true, skipEmptyLines: true });
-  return z.array(RebateSchema).parse(data);
+  try {
+    const file = await fs.readFile(path, 'utf-8');
+    const { data } = Papa.parse(file, { header: true, skipEmptyLines: true });
+    return z.array(RebateSchema).parse(data);
+  } catch (error) {
+    assert.ok(error instanceof z.ZodError);
+    throw new Error(`Error processing '${path}': ${z.prettifyError(error)}`)
+  }
+}
+
+export function getRebateHash(rebate: Rebate): string {
+  const { transactionDate, supplierId, memberId, distributorName, purchaseAmount, rebateAmount, invoiceId, invoiceDate } = rebate;
+  return `${transactionDate},${supplierId},${memberId},${distributorName},${purchaseAmount},${rebateAmount},${invoiceId},${invoiceDate}`;
+}
+
+export function getRebateHashFuzzy(rebate: Rebate): string[] {
+  const { transactionDate, supplierId, memberId, distributorName, purchaseAmount, rebateAmount, invoiceId, invoiceDate } = rebate;
+  const underRebateAmount = (Number(rebateAmount) - 0.01).toFixed(2);
+  const overRebateAmount = (Number(rebateAmount) + 0.01).toFixed(2);
+  return [
+    `${transactionDate},${supplierId},${memberId},${distributorName},${purchaseAmount},${underRebateAmount},${invoiceId},${invoiceDate}`,
+    `${transactionDate},${supplierId},${memberId},${distributorName},${purchaseAmount},${rebateAmount},${invoiceId},${invoiceDate}`,
+    `${transactionDate},${supplierId},${memberId},${distributorName},${purchaseAmount},${overRebateAmount},${invoiceId},${invoiceDate}`
+  ];
+}
+
+export function getPartition<O extends object, K extends keyof O>(objects: O[], key: K): Map<O[K], O[]> {
+  const buckets = new Map<O[K], O[]>();
+  for (const object of objects) {
+    const bucket = buckets.get(object[key]);
+    if (bucket == null) {
+      buckets.set(object[key], [object]);
+    } else {
+      bucket.push(object);
+    }
+  }
+
+  return buckets;
 }

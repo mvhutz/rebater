@@ -1,8 +1,7 @@
-import path from "node:path";
-import fs from "node:fs/promises";
+import path from "path";
+import fs from "fs/promises";
 import { z } from "zod/v4";
 import SettingsStrategy from "./base";
-import { glob } from "glob";
 
 /** ------------------------------------------------------------------------- */
 
@@ -26,77 +25,43 @@ export default class BasicSettingsStrategy extends SettingsStrategy {
     return path.join(this.data.directory, "tables", `${name}.csv`);
   }
 
-  async listDestinationPaths(group: string, subgroup: string): Promise<string[]> {
-    const folder = path.join(
-      this.data.directory,
-      group,
-      subgroup,
-      `**/*.csv`
-    );
-
-    return await glob(folder);
-  }
-
-  getDestinationPath(filepath: string, group: string, subgroup: string, time: Time): string {
+  getDestinationPath(name: string, time: Time): string {
     return path.join(
       this.data.directory,
-      group,
-      subgroup,
-      `${path.parse(filepath).name}.csv`
-    );
-  }
-
-  async listExpectedGroups(): Promise<string[]> {
-    const folder = path.join(
-      this.data.directory,
-      "truth",
-    );
-
-    return await fs.readdir(folder);
-  }
-
-  async listExpectedPaths(group: string): Promise<string[]> {
-    const folder = path.join(
-      this.data.directory,
-      "truth",
-      group,
-      "**/*.csv"
-    );
-
-    return await glob(folder);
-  }
-
-  async listActualGroups(): Promise<string[]> {
-    const folder = path.join(
-      this.data.directory,
       "rebates",
+      `${name}.csv`
     );
-
-    return await fs.readdir(folder);
   }
 
-  async listActualPaths(group: string): Promise<string[]> {
-    const folder = path.join(
+  getSourcePathGlob(group: string, time: Time, extension = ""): string {
+    return path.join(
       this.data.directory,
-      "rebates",
+      "sources",
       group,
-      "**/*.csv"
-    );
-
-    return await glob(folder);
-  }
-
-  async listSourcePaths(group: string, subgroup: string, time: Time, extension = ""): Promise<string[]> {
-    const folder = path.join(
-      this.data.directory,
-      group,
-      subgroup,
       time.year.toString(),
       `Q${time.quarter.toString()}`,
       `**/*${extension}`
     );
+  }
 
-    return await glob(folder);
+  public async getRebatePaths(time: Time): Promise<string[]> {
+    const folder = path.join(
+      this.data.directory,
+      "rebates",
+      `**/*.csv`
+    );
+
+    return Array.fromAsync(fs.glob(folder));
+  }
+
+  public async getTruthPaths(time: Time): Promise<string[]> {
+    const folder = path.join(
+      this.data.directory,
+      "rebates",
+      `**/*.csv`
+    );
+
+    return Array.fromAsync(fs.glob(folder));
   }
 
   async listTransformerPaths(): Promise<string[]> {
@@ -106,7 +71,7 @@ export default class BasicSettingsStrategy extends SettingsStrategy {
       '**/*.json'
     );
 
-    return await glob(folder);
+    return Array.fromAsync(fs.glob(folder));
   }
 
   getTransformerPath(name: string): string {

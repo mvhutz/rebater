@@ -1,32 +1,35 @@
 import { z } from "zod/v4";
 import * as XLSX from "xlsx";
-import assert from "node:assert";
+import assert from "assert";
 import { State } from "../information/State";
-import fs from "node:fs/promises";
-
-const NAME = "excel";
+import fs from "fs/promises";
+import BaseSource from "./base";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.strictObject({
-  type: z.literal(NAME),
-  group: z.string(),
-  subgroup: z.string(),
-  sheets: z.array(z.string()).optional(),
-});
+function getSchema() {
+  return z.strictObject({
+    type: z.literal("excel"),
+    group: z.string(),
+    sheets: z.array(z.string()).optional(),
+  });
+}
 
-type Schema = z.infer<typeof schema>;
+type Schema = z.infer<ReturnType<typeof getSchema>>;
 
-async function run(source: Schema, state: State) {
-  const { group, subgroup, sheets } = source;
+function getSourceFileGlob(source: Schema, state: State) {
+  const { group } = source;
+  return state.getSettings().strategy.getSourcePathGlob(group, state.getTime(), ".xlsx");
+}
+
+function run(source: Schema, state: State): Table[] {
+  const { group, sheets } = source;
   
-  const files = await state.getSettings().strategy.listSourcePaths(group, subgroup, state.getTime());
-
+  const files = state.pullSourceFileGlob(getSourceFileGlob(source, state));
   const results = new Array<Table>();
 
   for (const file of files) {
-    const data = await fs.readFile(file);
-    const workbook = XLSX.read(data, { type: "buffer" });
+    const workbook = XLSX.read(file, { type: "buffer" });
 
     const sheetsToTake = new Set<string>();
     if (sheets == null) {
@@ -53,7 +56,7 @@ async function run(source: Schema, state: State) {
 
       const parsed = z.array(z.array(z.coerce.string())).parse(unclean);
       results.push({
-        path: file,
+        path: "",
         data: parsed.map(data => ({ group, data }))
       });
     }
@@ -64,5 +67,4 @@ async function run(source: Schema, state: State) {
 
 /** ------------------------------------------------------------------------- */
 
-const Excel = { schema, run, name: NAME };
-export default Excel;
+export const ExcelSource: BaseSource<Schema> = { getSchema, run, getSourceFileGlob };

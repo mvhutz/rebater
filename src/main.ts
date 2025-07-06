@@ -1,10 +1,12 @@
 import { app, BrowserWindow } from 'electron';
-import path from 'node:path';
+import path from 'path';
 import started from 'electron-squirrel-startup';
 import IPC from './shared/ipc';
+import { Worker } from 'worker_threads';
 import Settings from './shared/settings';
 import { BasicState } from './system/information/State';
-import { CLIRunner } from './system/runner/CLIRunner';
+import { Runner } from './system/Runner';
+// import { processor } from './system/Processor.js';
 
 /** ------------------------------------------------------------------------- */
 
@@ -15,14 +17,15 @@ if (started) {
 
 const { ipcMain } = IPC;
 
-const createWindow = () => {
+const createWindow = async () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
-      sandbox: false
+      sandbox: false,
+      nodeIntegrationInWorker: true
     },
     icon: './images/icon.png'
   });
@@ -32,27 +35,17 @@ const createWindow = () => {
   ipcMain.handle.getPing();
   ipcMain.handle.getSettings();
   ipcMain.handle.setSettings();
-  
-  ipcMain.handle.runProgram(async (_, { data } ) => {
-    ipcMain.invoke.runnerUpdate(mainWindow, { type: "idle" });
-    
-    const settings = Settings.parse(data);
-    const time: Time = { quarter: 4, year: 2024 };
-    const state = new BasicState(time, settings);
-    const runner = new CLIRunner({
-      quiet: true,
-      onStatus: status => ipcMain.invoke.runnerUpdate(mainWindow, status)
+
+  const rootPath = app.isPackaged ? app.getAppPath() : __dirname;
+  const worker = new Worker(path.join(rootPath, 'worker.js'));
+
+  ipcMain.handle.runProgram(async (_, { data }) => {
+    worker.on("message", message => {
+      ipcMain.invoke.runnerUpdate(mainWindow, message)
     });
 
-    void (async () => {
-      try {
-        await runner.run(state);
-      } catch (error) {
-        const message = error instanceof Error ? error.stack : `${error}`;
-        ipcMain.invoke.runnerUpdate(mainWindow, { type: "error", message });
-      }
-    })();
-  })
+    worker.postMessage(data);
+  });
 
   // and load the index.html of the app.
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {

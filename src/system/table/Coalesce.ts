@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { ExcelIndex, ExcelIndexSchema, getTrueIndex } from "../util";
-import assert from "node:assert";
+import assert from "assert";
 
 const NAME = "coalesce";
 

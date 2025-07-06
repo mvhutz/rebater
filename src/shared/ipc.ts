@@ -1,10 +1,10 @@
 import { app, dialog } from "electron";
 import { createInterprocess } from "interprocess";
-import path from "node:path";
-import { existsSync } from "node:fs";
-import fs from 'node:fs/promises';
+import path from "path";
+import { existsSync } from "fs";
+import fs from 'fs/promises';
 import { BasicState } from "../system/information/State";
-import { CLIRunner, RunnerStatus } from "../system/runner/CLIRunner";
+import { Runner, RunnerStatus } from "../system/Runner";
 import Settings, { type SettingsData } from "./settings";
 
 /** ------------------------------------------------------------------------- */

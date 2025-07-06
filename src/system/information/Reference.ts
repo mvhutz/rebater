@@ -1,4 +1,4 @@
-import fs from "node:fs/promises";
+import fs from "fs/promises";
 import Papa from "papaparse";
 import { z } from "zod/v4";
 

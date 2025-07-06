@@ -5,7 +5,7 @@ import Column from "./Column";
 import Literal from "./Literal";
 import Replace from "./Replace";
 import Trim from "./Trim";
-import assert from "node:assert";
+import assert from "assert";
 import Reference from "./Reference";
 import Character from "./Character";
 import Multiply from "./Multiply";

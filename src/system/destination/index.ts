@@ -1,31 +1,34 @@
 import { z } from "zod/v4";
-import CSV from "./CSV";
-import assert from "node:assert";
 import { State } from "../information/State";
+import { CSVDestination } from "./csv";
+import BaseDestination from "./base";
 
-const REGISTERED = [
-  CSV
-] as const;
+/** ------------------------------------------------------------------------- */
 
-export const DestinationSchema = z.discriminatedUnion("type", [
-  REGISTERED[0].schema,
-  ...REGISTERED.slice(1).map(r => r.schema)
-]);
-type Destination = z.infer<typeof DestinationSchema>;
+function getSchema() {
+  return z.discriminatedUnion("type", [
+    CSVDestination.getSchema()
+  ]);
+}
 
-async function runOnce(source: Destination, table: Table, state: State) {
-  const transformer = REGISTERED.find(r => r.name === source.type);
-  assert.ok(transformer != null, `Destination ${source.type} not found.`);
+type Schema = z.infer<ReturnType<typeof getSchema>>;
 
-  // We assume that the transformer takes the schema as valid input.
-  return await transformer.run(source as never, table, state);
+function run(destination: Schema, table: Table, state: State) {
+  switch (destination.type) {
+    case "csv": return CSVDestination.run(destination, table, state);
+  }
+}
+
+function getDestinationFile(destination: Schema, state: State): string {
+  switch (destination.type) {
+    case "csv": return CSVDestination.getDestinationFile(destination, state);
+  }
 }
 
 /** ------------------------------------------------------------------------- */
 
-const Destination = {
-  runOnce,
-  Schema: DestinationSchema,
+export const Destination: BaseDestination<Schema> = {
+  run,
+  getSchema,
+  getDestinationFile
 }
-
-export default Destination;

@@ -2,32 +2,28 @@
 import { unparse } from "papaparse";
 import { z } from "zod/v4";
 import { State } from "../information/State";
-import fs from 'node:fs/promises';
-import path from "node:path";
-
-const NAME = "csv";
+import BaseDestination from "./base";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.strictObject({
-  type: z.literal(NAME),
-  group: z.string(),
-  subgroup: z.string(),
-});
+function getSchema() {
+  return z.strictObject({
+    type: z.literal("csv"),
+    name: z.string(),
+  });
+};
 
-type Schema = z.infer<typeof schema>;
+type Schema = z.infer<ReturnType<typeof getSchema>>;
 
-async function run(destination: Schema, table: Table, state: State) {
-  const { group, subgroup } = destination;
-  const filepath = state.getSettings().strategy.getDestinationPath(table.path, group, subgroup, state.getTime());
-  
-  const data = table.data.map(row => row.data);
-
-  await fs.mkdir(path.dirname(filepath), { recursive: true });
-  await fs.writeFile(filepath, unparse(data));
+function getDestinationFile(destination: Schema, state: State): string {
+  return state.getSettings().strategy.getDestinationPath(destination.name, state.getTime());
 }
 
-/** ------------------------------------------------------------------------- */
+function run(destination: Schema, table: Table, state: State): void {
+  const data = table.data.map(row => row.data);
+  const buffer = Buffer.from(unparse(data));
 
-const CSV = { schema, run, name: NAME };
-export default CSV;
+  state.appendDestinationFile(getDestinationFile(destination, state), buffer);
+}
+
+export const CSVDestination: BaseDestination<Schema> = { getSchema, run, getDestinationFile };

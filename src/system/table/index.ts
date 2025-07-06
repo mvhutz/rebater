@@ -3,7 +3,7 @@ import Chop from "./Chop";
 import Filter from "./Filter";
 import Select from "./Select";
 import Trim from "./Trim";
-import assert from "node:assert";
+import assert from "assert";
 import Header from "./Header";
 import Coalesce from "./Coalesce";
 import Debug from "./Debug";

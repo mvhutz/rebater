@@ -1,4 +1,4 @@
-import assert from "node:assert";
+import assert from "assert";
 import { z } from "zod/v4";
 import { State } from "../information/State";
 

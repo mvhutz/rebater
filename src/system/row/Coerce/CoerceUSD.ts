@@ -23,7 +23,7 @@ function run(datum: string, attributes: Attributes) {
     default: break;
   }
 
-  return `$${value.toFixed(2)}`;
+  return value.toFixed(2);
 }
 
 /** ------------------------------------------------------------------------- */
