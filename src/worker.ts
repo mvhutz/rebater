@@ -11,10 +11,7 @@ parentPort?.on("message", message => {
   const settings = Settings.parse(message);
   const time: Time = { quarter: 4, year: 2024 };
   const state = new BasicState(time, settings);
-  const runner = new Runner({
-    quiet: true,
-    onStatus: status => parentPort?.postMessage(status)
-  });
+  const runner = new Runner({ onStatus: s => parentPort?.postMessage(s) });
 
   void (async () => {
     try {

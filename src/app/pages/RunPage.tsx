@@ -1,65 +1,32 @@
 import React from 'react';
 import SettingsContext from '../context/SettingsContext';
+import ProcessorContext from '../context/ProcessorContext';
 
 /** ------------------------------------------------------------------------- */
 
 function RunPage() {
-  const { invoke, handle, remove } = window.api;
-  const [running, setRunning] = React.useState(false);
   const { settings } = React.useContext(SettingsContext);
-  const [progress, setProgress] = React.useState(0);
-  const [results, setResults] = React.useState<RunResults | null>(null);
-
-  React.useEffect(() => {
-    handle.runnerUpdate(async (_, { data }) => {
-      console.log("STATUS!", data);
-      switch (data.type) {
-        case "idle":
-          setResults(null);
-          setRunning(false);
-          setProgress(0);
-          break;
-        case "error":
-          setResults(null);
-          setRunning(false);
-          setProgress(0);
-          alert(`Error during processing: ${data.message}`);
-          break;
-        case "running":
-          setResults(null);
-          setProgress(Math.round(100 * data.progress));
-          break;
-        case "done":
-          setRunning(false);
-          setProgress(0);
-          setResults(data.results);
-          break;
-      }
-    });
-
-    return () => remove.runnerUpdate();
-  }, []);
+  const { status, run } = React.useContext(ProcessorContext);
 
   const handleRun = React.useCallback(async () => {
-    if (running) return;
-
     if (settings == null) {
       alert("Invalid settings!");
       return;
     }
 
-    await invoke.runProgram(settings);
-    setProgress(0);
-    setRunning(true);
+    run(settings);
     console.log("Started!");
-  }, []);
+  }, [settings, run]);
 
-  const button_text = running ? "Running..." : "Start Rebator!"
+  const running = status.type === "running";
+  const button_text = running ? "Running..." : "Start Rebator!";
+  const progress = status.type === "running" ? status.progress : 0;
+  const results = status.type === "done" ? status.results : null;
 
   return (
     <div>
       <button disabled={running} onClick={handleRun}>{button_text}</button>
-      { running && <progress value={progress} max="100"/> }
+      { running && <progress value={100 * progress} max="100"/> }
       { results && <>
         <table>
           <thead>
@@ -100,6 +67,12 @@ function RunPage() {
           </tbody>
         </table>
       </> }
+      { status.type === "error" && <section>
+        <h2>ERROR!</h2>
+        <code>
+          {status.message}
+        </code>
+      </section> }
     </div>
   );
 }
