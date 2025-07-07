@@ -67,7 +67,7 @@ export class Runner {
   
     const expected_allowed_set = new Set();
     for (const rebate of expected) {
-      getRebateHashFuzzy(rebate).forEach(s => actual_allowed_set.add(s));
+      getRebateHashFuzzy(rebate).forEach(s => expected_allowed_set.add(s));
     }
   
     const actual_set = actual.map(getRebateHash);
@@ -130,11 +130,9 @@ export class Runner {
     this.onStatus?.({ type: "running", progress: 1 });
 
     await state.saveDestinationFiles();
-
     results.discrepency = await this.compareAllRebates(state);
-
+    await this.pushRebates(state);
+    
     this.onStatus?.({ type: "done", results: results });
-
-    this.pushRebates(state);
   }
 }

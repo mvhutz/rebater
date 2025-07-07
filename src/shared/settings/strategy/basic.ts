@@ -57,7 +57,7 @@ export default class BasicSettingsStrategy extends SettingsStrategy {
   public async getTruthPaths(time: Time): Promise<string[]> {
     const folder = path.join(
       this.data.directory,
-      "rebates",
+      "truth",
       `**/*.csv`
     );
 
