@@ -24,7 +24,7 @@ function SettingsProvider(props: SettingsProviderProps) {
   }, [remove, handle]);
 
   const run = React.useCallback(async (settings: SettingsData) => {
-    if (status.type !== "idle") return false;
+    if (status.type === "loading" || status.type === "running") return false;
     await invoke.runProgram(settings);
   }, [invoke, status]);
 

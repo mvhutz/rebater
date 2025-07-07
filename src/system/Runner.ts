@@ -18,12 +18,17 @@ interface ErrorStatus {
   message?: string;
 }
 
+interface LoadingStatus {
+  type: "loading";
+  message?: string;
+}
+
 interface RunningStatus {
   type: "running";
   progress: number;
 }
 
-export type RunnerStatus = IdleStatus | RunningStatus | DoneStatus | ErrorStatus;
+export type RunnerStatus = IdleStatus | RunningStatus | DoneStatus | ErrorStatus | LoadingStatus;
 
 /** ------------------------------------------------------------------------- */
 
@@ -112,10 +117,12 @@ export class Runner {
 
     const transformers = new Array<Transformer>();
 
+    this.onStatus?.({ type: "loading", message: "Reading transformers..." });
     for (const transformer_file of transformer_files) {
       transformers.push(await Transformer.fromFile(transformer_file));
     }
 
+    this.onStatus?.({ type: "loading", message: "Loading sources..." });
     for (const transformer of transformers) {
       await state.loadSourceFilesQueries(...transformer.getSourcesGlobs(state));
     }
@@ -127,10 +134,13 @@ export class Runner {
       results.config.push(await transformer.run(state));
     }
 
-    this.onStatus?.({ type: "running", progress: 1 });
-
+    this.onStatus?.({ type: "loading", message: "Saving rebates..." });
     await state.saveDestinationFiles();
+
+    this.onStatus?.({ type: "loading", message: "Scoring accuracy..." });
     results.discrepency = await this.compareAllRebates(state);
+
+    this.onStatus?.({ type: "loading", message: "Compiling rebates..." });
     await this.pushRebates(state);
     
     this.onStatus?.({ type: "done", results: results });
