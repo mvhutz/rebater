@@ -1,0 +1,87 @@
+import { readFile } from "fs/promises";
+import path from "path";
+import { z } from "zod/v4";
+import TableTransformation from "./table";
+import RowTransformation from "./row";
+import { Source } from "./source";
+import { State } from "./information/State";
+import { Destination } from "./destination";
+import assert from "assert";
+
+/** ------------------------------------------------------------------------- */
+
+const DataSchema = z.strictObject({
+  name: z.string(),
+  tags: z.array(z.string()).default([]),
+  sources: z.array(Source.getSchema()),
+  preprocess: z.array(TableTransformation.Schema).optional(),
+  properties: z.array(z.strictObject({
+    name: z.string(),
+    definition: z.array(RowTransformation.Schema)
+  })),
+  postprocess: z.array(TableTransformation.Schema).optional(),
+  destination: Destination.getSchema(),
+});
+
+export type TransformerData = z.infer<typeof DataSchema>;
+
+/** ------------------------------------------------------------------------- */
+
+export class Transformer {
+  public data: TransformerData;
+  public name: string;
+  public path: string;
+
+  private constructor(data: TransformerData, name: string, path: string) {
+    this.data = data;
+    this.name = name;
+    this.path = path;
+  }
+
+  public static async fromFile(filepath: string): Promise<Transformer> {
+    const raw = await readFile(filepath, 'utf-8');
+    const json = JSON.parse(raw);
+
+    try {
+      const name = path.parse(filepath).name;
+      return new Transformer(DataSchema.parse(json), name, filepath);
+    } catch (error) {
+      assert.ok(error instanceof z.ZodError);
+      throw Error(`Invalid schema for ${filepath}: ${z.prettifyError(error)}`)
+    }
+  }
+
+  public getSourcesGlobs(state: State): string[] {
+    return this.data.sources.map(s => Source.getSourceFileGlob(s, state));
+  }
+
+  public async run(state: State): Promise<TransformerResult> {
+    const start = performance.now();
+    const { preprocess = [], postprocess = [], sources, destination, properties } = this.data;
+    const source_data = Source.runMany(sources, state);
+    const preprocessed_data = await TableTransformation.runMany(preprocess, source_data, state);
+    
+    const recombined: Table = {
+      path: this.path,
+      data: [{ data: properties.map(p => p.name) }]
+    }
+
+    const rows = preprocessed_data.map(table => table.data).flat(1);
+    for (const row of rows) {
+      const result = new Array<string>();
+
+      for (const { definition } of properties) {
+        const output = await RowTransformation.runMany(definition, row, state);
+        result.push(output);
+      }
+
+      recombined.data.push({ data: result });
+    }
+
+    const [postprocessed_data] = await TableTransformation.runMany(postprocess, [recombined], state);
+    Destination.run(destination, postprocessed_data, state);
+
+    const end = performance.now();
+    return { start, end, name: this.name };
+  }
+}

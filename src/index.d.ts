@@ -1,0 +1,1 @@
+declare const api: typeof import("./system").default;

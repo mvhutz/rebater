@@ -1,16 +1,6 @@
-interface Reference {
-  path: string;
-  data: Record<string, string>[];
-}
-
-interface Context {
-  quarter: number,
-  year: number,
-  counter: number;
-  directory: string;
-  references: Map<string, Reference>;
-  ask: (text: string) => Promise<string>;
-  escalate: (fn: () => T) => Promise<T>;
+interface Time {
+  quarter: 1 | 2 | 3 | 4;
+  year: number;
 }
 
 interface Row {
@@ -22,7 +12,7 @@ interface Table {
   data: Row[];
 }
 
-interface ConfigResult {
+interface TransformerResult {
   start: number;
   end: number;
   name: string;
@@ -35,6 +25,20 @@ interface DiscrepencyResult {
 }
 
 interface RunResults {
-  config: ConfigResult[];
+  config: TransformerResult[];
   discrepency: DiscrepencyResult[];
 }
+
+interface BadAPIResonse {
+  good: false;
+  reason: string;
+  message?: string;
+}
+
+interface GoodAPIResonse<T> {
+  good: true;
+  data: T;
+  message?: string;
+}
+
+type APIResponse<T> = BadAPIResonse | GoodAPIResonse<T>;
