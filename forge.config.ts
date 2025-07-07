@@ -21,14 +21,14 @@ const config: ForgeConfig = {
       // If you are familiar with Vite configuration, it will look really familiar.
       build: [
         {
+          entry: 'src/worker.ts',
+          config: 'vite.main.config.ts',
+        },
+        {
           // `entry` is just an alias for `build.lib.entry` in the corresponding file of `config`.
           entry: 'src/main.ts',
           config: 'vite.main.config.ts',
           target: 'main',
-        },
-        {
-          entry: 'src/worker.ts',
-          config: 'vite.main.config.ts',
         },
         {
           entry: 'src/preload.ts',
@@ -43,6 +43,10 @@ const config: ForgeConfig = {
         },
       ],
     }),
+    {
+      name: '@electron-forge/plugin-auto-unpack-natives',
+      config: {}
+    },
     // Fuses are used to enable/disable various Electron functionality
     // at package time, before code signing the application
     new FusesPlugin({

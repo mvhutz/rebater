@@ -3,10 +3,6 @@ import path from 'path';
 import started from 'electron-squirrel-startup';
 import IPC from './shared/ipc';
 import { Worker } from 'worker_threads';
-import Settings from './shared/settings';
-import { BasicState } from './system/information/State';
-import { Runner } from './system/Runner';
-// import { processor } from './system/Processor.js';
 
 /** ------------------------------------------------------------------------- */
 
@@ -36,8 +32,7 @@ const createWindow = async () => {
   ipcMain.handle.getSettings();
   ipcMain.handle.setSettings();
 
-  const rootPath = app.isPackaged ? app.getAppPath() : __dirname;
-  const worker = new Worker(path.join(rootPath, 'worker.js'));
+  const worker = new Worker(path.join(__dirname, 'worker.js'));
 
   ipcMain.handle.runProgram(async (_, { data }) => {
     worker.on("message", message => {

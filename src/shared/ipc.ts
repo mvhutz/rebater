@@ -3,8 +3,7 @@ import { createInterprocess } from "interprocess";
 import path from "path";
 import { existsSync } from "fs";
 import fs from 'fs/promises';
-import { BasicState } from "../system/information/State";
-import { Runner, RunnerStatus } from "../system/Runner";
+import { type RunnerStatus } from "../system/Runner";
 import Settings, { type SettingsData } from "./settings";
 
 /** ------------------------------------------------------------------------- */
