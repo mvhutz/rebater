@@ -2,11 +2,15 @@ import React from 'react';
 import { SettingsData } from '../../../shared/settings';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { getSystemSettings, isSystemActive, pullSystemSettings, pushSystemSettings, startSystem } from '../../store/slices/system';
-import { Accordion, AccordionDetails, AccordionGroup, AccordionSummary, Button, Chip, FormControl, FormHelperText, FormLabel, ListDivider, ListItemContent, Sheet, Stack, ToggleButtonGroup, Typography } from '@mui/joy';
+import { Accordion, AccordionDetails, AccordionGroup, AccordionSummary, Button, Chip, FormControl, FormHelperText, FormLabel, IconButton, Input, ListDivider, ListItemContent, Sheet, Stack, ToggleButtonGroup, Typography } from '@mui/joy';
 import { SxProps } from '@mui/joy/styles/types';
 import SettingsRounded from '@mui/icons-material/SettingsRounded';
 import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded';
+import FormatPaintRounded from '@mui/icons-material/FormatPaintRounded';
+import MemoryRoundedIcon from '@mui/icons-material/MemoryRounded';
 import FolderSpecialIcon from '@mui/icons-material/FolderSpecial';
+import FlashOnRoundedIcon from '@mui/icons-material/FlashOnRounded';
+import BrushRoundedIcon from '@mui/icons-material/BrushRounded';
 
 /** ------------------------------------------------------------------------- */
 
@@ -55,12 +59,10 @@ function BasicStrategyForm(props: StrategyProps) {
   return (
     <FormControl>
       <FormLabel>Data Directory</FormLabel>
-      <Button onClick={handleDirectory} startDecorator={<FolderSpecialIcon/>}>Select Folder</Button>
-      {directory != null &&
-        <FormHelperText>
-          Currently, <Chip variant="outlined" color="primary" onClick={handleOpenDirectory}>{folder ?? ""}</Chip> is chosen.
-        </FormHelperText>
-      }
+      <Stack direction="row" spacing={1}>
+        <Input value={directory ?? "No folder selected..."} fullWidth/>
+        <IconButton onClick={handleDirectory} variant="soft" color="primary"><FolderSpecialIcon/></IconButton>
+      </Stack>
     </FormControl>
   );
 }
@@ -90,6 +92,40 @@ function StrategyForm(props: StrategyProps) {
 
     {type === "basic" && <BasicStrategyForm onStrategy={onStrategy} strategy={strategy} />}
   </>;
+}
+
+/** ------------------------------------------------------------------------- */
+
+function ContextSettings() {
+  return (
+    <Accordion>
+      <AccordionSummary variant="soft">
+        <BrushRoundedIcon />
+        <ListItemContent>
+          <Typography level="title-lg">Context</Typography>
+        </ListItemContent>
+      </AccordionSummary>
+      <AccordionDetails>
+      </AccordionDetails>
+    </Accordion>
+  );
+}
+
+/** ------------------------------------------------------------------------- */
+
+function TransformerSettings() {
+  return (
+    <Accordion>
+      <AccordionSummary variant="soft">
+        <FlashOnRoundedIcon />
+        <ListItemContent>
+          <Typography level="title-lg">Transformers</Typography>
+        </ListItemContent>
+      </AccordionSummary>
+      <AccordionDetails>
+      </AccordionDetails>
+    </Accordion>
+  );
 }
 
 /** ------------------------------------------------------------------------- */
@@ -136,18 +172,12 @@ function GeneralSettings() {
       <AccordionSummary variant="soft">
         <SettingsRounded />
         <ListItemContent>
-          <Typography level="title-lg">General</Typography>
+          <Typography level="title-lg">Advanced</Typography>
         </ListItemContent>
       </AccordionSummary>
       <AccordionDetails>
         <Stack spacing={2} pt={1}>
         <StrategyForm strategy={newSettings?.strategy} onStrategy={setStrategy}/>
-        {/* <FormControl>
-          <Stack direction="row" spacing={1}>
-            <IconButton onClick={refreshSettings} variant="outlined"><RestoreIcon/></IconButton>
-            <Button onClick={saveSettings} variant="soft" color="neutral" fullWidth>Save</Button>
-          </Stack>
-        </FormControl> */}
         </Stack>
       </AccordionDetails>
     </Accordion>
@@ -169,6 +199,8 @@ function SettingsPane() {
     <Sheet sx={SETTINGS_SX} variant="outlined" color="neutral">
       <Stack direction="column" overflow="scroll" height="100vh">
         <AccordionGroup variant="plain" transition="0.2s" size='lg'>
+          <ContextSettings />
+          <TransformerSettings />
           <GeneralSettings />
         </AccordionGroup>
         <ListDivider/>
