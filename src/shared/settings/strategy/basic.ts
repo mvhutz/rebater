@@ -29,6 +29,8 @@ export default class BasicSettingsStrategy extends SettingsStrategy {
     return path.join(
       this.data.directory,
       "rebates",
+      time.year.toString(),
+      `Q${time.quarter.toString()}`,
       `${name}.csv`
     );
   }
@@ -48,6 +50,8 @@ export default class BasicSettingsStrategy extends SettingsStrategy {
     const folder = path.join(
       this.data.directory,
       "rebates",
+      time.year.toString(),
+      `Q${time.quarter.toString()}`,
       `**/*.csv`
     );
 
@@ -58,6 +62,8 @@ export default class BasicSettingsStrategy extends SettingsStrategy {
     const folder = path.join(
       this.data.directory,
       "truth",
+      time.year.toString(),
+      `Q${time.quarter.toString()}`,
       `**/*.csv`
     );
 
@@ -78,7 +84,13 @@ export default class BasicSettingsStrategy extends SettingsStrategy {
     return path.join(this.data.directory, "transformer", `${name}.json`);
   }
 
-  getOutputFile(): string {
-    return path.join(this.data.directory, "OUTPUT.xlsx");
+  getOutputFile(time: Time, extension: string): string {
+    return path.join(
+      this.data.directory,
+      "upload",
+      time.year.toString(),
+      `Q${time.quarter.toString()}`,
+      `TOTAL.${extension}`
+    );
   }
 }

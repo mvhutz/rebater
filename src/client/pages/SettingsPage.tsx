@@ -1,6 +1,7 @@
 import React from 'react';
 import { SettingsData } from '../../shared/settings';
-import SettingsContext from '../context/SettingsContext';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { getSystemSettings, pullSystemSettings, pushSystemSettings } from '../store/slices/system';
 
 /** ------------------------------------------------------------------------- */
 
@@ -88,25 +89,39 @@ function StrategyForm(props: StrategyProps) {
 /** ------------------------------------------------------------------------- */
 
 function SettingsPage() {
-  const { settings, setSettings, pullSettings, pushSettings } = React.useContext(SettingsContext);
-  const [strategy, setStrategy] = React.useState<SettingsData["strategy"] | undefined>();
+  const trueSettings = useAppSelector(getSystemSettings);
+  const dispatch = useAppDispatch();
+  const [newSettings, setNewSettings] = React.useState<Maybe<SettingsData>>();
+  const [strategy, setStrategy] = React.useState<Maybe<SettingsData["strategy"]>>();
+
+  React.useEffect(() => {
+    setNewSettings(trueSettings.data);
+  }, [trueSettings]);
 
   React.useEffect(() => {
     if (strategy == null) return;
-    setSettings(s => ({ ...s, strategy }));
-  }, [strategy, setSettings]);
+    setNewSettings(s => ({ ...s, strategy }));
+  }, [strategy]);
 
   React.useEffect(() => {
-    setStrategy(settings?.strategy);
-  }, [settings?.strategy]);
+    setStrategy(newSettings?.strategy);
+  }, [newSettings?.strategy]);
+
+  const refreshSettings = React.useCallback(() => {
+    dispatch(pullSystemSettings());
+  }, []);
+
+  const saveSettings = React.useCallback(() => {
+    dispatch(pushSystemSettings(newSettings));
+  }, [newSettings]);
 
   return (
     <fieldset>
       <h2>Settings</h2>
       <StrategyForm strategy={strategy} onStrategy={setStrategy} />
       <h3>Options</h3>
-      <button onClick={pushSettings}>Save</button>
-      <button onClick={pullSettings}>Refresh</button>
+      <button onClick={saveSettings}>Save</button>
+      <button onClick={refreshSettings}>Refresh</button>
     </fieldset>
   );
 }

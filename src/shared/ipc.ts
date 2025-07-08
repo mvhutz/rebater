@@ -22,28 +22,30 @@ const IPC = createInterprocess({
 
       return directory.filePaths;
     },
-    async getSettings(): Promise<SettingsData | undefined> {
+    async getSettings(): Promise<APIResponse<SettingsData | undefined>> {
       const file = path.join(app.getPath("userData"), "settings.json");
       if (!existsSync(file)) {
-        return undefined;
+        return { good: true, data: undefined };
       }
 
       const stat = await fs.lstat(file);
       if (!stat.isFile()) {
-        throw Error("File not found in settings location.");
+        return { good: false, reason: "File not found in settings location." };
       }
 
       const raw = await fs.readFile(file, 'utf-8');
       const json = JSON.parse(raw);
       const settings = Settings.parse(json);
-      return settings.data;
+      return { good: true, data: settings.data };
     },
-    async setSettings(_, settings: SettingsData) {
+    async setSettings(_, settings: SettingsData): Promise<APIResponse<string>> {
       const file = path.join(app.getPath("userData"), "settings.json");
       await fs.writeFile(file, JSON.stringify(settings));
-      return { good: true, message: file };
+      return { good: true, data: file };
     },
-    async runProgram(event, settings_data: SettingsData) { }
+    async runProgram(event, settings_data?: SettingsData): Promise<APIResponse<undefined>> {
+      return { good: true, data: undefined };
+    }
   },
   renderer: {
     async runnerUpdate(event, runner_status: RunnerStatus) { }

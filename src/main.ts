@@ -32,14 +32,19 @@ const createWindow = async () => {
   ipcMain.handle.getSettings();
   ipcMain.handle.setSettings();
 
+  // Talking with system.
   const worker = new Worker(path.join(__dirname, 'worker.js'));
+  worker.on("message", message => {
+    ipcMain.invoke.runnerUpdate(mainWindow, message);
+  });
 
   ipcMain.handle.runProgram(async (_, { data }) => {
-    worker.on("message", message => {
-      ipcMain.invoke.runnerUpdate(mainWindow, message)
-    });
+    if (data == null) {
+      return { good: false, reason: "Cannot give empty settings." };
+    }
 
     worker.postMessage(data);
+    return { good: true, data: undefined };
   });
 
   // and load the index.html of the app.

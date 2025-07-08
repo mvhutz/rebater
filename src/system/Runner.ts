@@ -2,7 +2,8 @@ import { Transformer } from "./Transformer";
 import { State } from "./information/State";
 import * as XLSX from "xlsx";
 import { getPartition, getRebateHash, getRebateHashFuzzy, parseRebateFile, Rebate } from "./util";
-import { writeFile } from "fs/promises";
+import { mkdir, writeFile } from "fs/promises";
+import path from "path";
 
 interface IdleStatus {
   type: "idle";
@@ -60,7 +61,8 @@ export class Runner {
     XLSX.utils.book_append_sheet(book, sheet, "Rebates");
     const buffer = XLSX.write(book, { type: "buffer" });
     
-    const file = state.getSettings().strategy.getOutputFile();
+    const file = state.getSettings().strategy.getOutputFile(state.getTime(), "xlsx");
+    await mkdir(path.dirname(file), { recursive: true });
     await writeFile(file, buffer);
   }
 

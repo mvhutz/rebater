@@ -42,3 +42,5 @@ interface GoodAPIResonse<T> {
 }
 
 type APIResponse<T> = BadAPIResonse | GoodAPIResonse<T>;
+
+type Maybe<T> = T | undefined;

@@ -6,5 +6,5 @@ export default abstract class SettingsStrategy {
   public abstract getSourcePathGlob(group: string, time: Time, extension?: string): string;
   public abstract listTransformerPaths(): Promise<string[]>;
   public abstract getTransformerPath(name: string): string;
-  public abstract getOutputFile(): string;
+  public abstract getOutputFile(time: Time, extension: string): string;
 }

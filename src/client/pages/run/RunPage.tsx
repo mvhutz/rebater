@@ -1,6 +1,4 @@
 import React from 'react';
-import SettingsContext from '../../context/SettingsContext';
-import ProcessorContext from '../../context/ProcessorContext';
 import DiscrepancyTable from './DiscrepancyTable';
 import SupplierResultsTable from './SupplierResultsTable';
 import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded';
@@ -17,71 +15,46 @@ import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import NightsStayRoundedIcon from '@mui/icons-material/NightsStayRounded';
 import DoneRoundedIcon from '@mui/icons-material/DoneRounded';
 import PriorityHighRoundedIcon from '@mui/icons-material/PriorityHighRounded';
+import { getSystemProgress, getSystemSettings, getSystemStatus, getSystemStatusName, isSystemLoading, startSystem } from '../../../client/store/slices/system';
+import { useAppDispatch, useAppSelector } from '../../../client/store/hooks';
+import { RunnerStatus } from 'src/system/Runner';
+
+/** ------------------------------------------------------------------------- */
+
+function InnerText({ status }: { status: RunnerStatus }) {
+  switch (status.type) {
+    case "done":    return <DoneRoundedIcon fontSize="large" />;
+    case "idle":    return <NightsStayRoundedIcon fontSize="large" />;
+    case "loading": return <HourglassEmptyIcon fontSize="large" />;
+    case "running": return `${(Math.round(100 * status.progress))}%`;
+    case "error":   return <PriorityHighRoundedIcon fontSize="large" />;
+  }
+}
 
 /** ------------------------------------------------------------------------- */
 
 function RunPage() {
-  const { settings } = React.useContext(SettingsContext);
-  const { status, run } = React.useContext(ProcessorContext);
+  const status = useAppSelector(getSystemStatus);
+  const dispatch = useAppDispatch();
 
-  const handleRun = React.useCallback(async () => {
-    if (settings == null) {
-      alert("Invalid settings!");
-      return;
-    }
+  const messageText = useAppSelector(getSystemStatusName);
+  const progress = useAppSelector(getSystemProgress);
+  const loading = useAppSelector(isSystemLoading);
 
-    run(settings);
-    console.log("Started!");
-  }, [settings, run]);
+  const handleRun = React.useCallback(() => {
+    dispatch(startSystem());
+  }, [dispatch]);
 
   const running = status.type === "running";
   const results = status.type === "done" ? status.results : null;
-
-  let innerText;
-  let messageText;
-  let progress;
-  let determinate;
-
-  switch (status.type) {
-    case "done":
-      innerText = <DoneRoundedIcon fontSize="large" />;
-      messageText = "Done!";
-      progress = 0;
-      determinate = true;
-      break;
-    case "idle":
-      innerText = <NightsStayRoundedIcon fontSize="large" />;
-      messageText = "Idle";
-      progress = 0;
-      determinate = true;
-      break;
-    case "loading":
-      innerText = <HourglassEmptyIcon fontSize="large" />;
-      messageText = status.message ?? "Loading...";
-      progress = 0;
-      determinate = false;
-      break;
-    case "running":
-      progress = 100 * status.progress;
-      innerText = `${(Math.round(100 * status.progress))}%`;
-      messageText = "Running transformers...";
-      determinate = true;
-      break;
-    case "error":
-      innerText = <PriorityHighRoundedIcon fontSize="large" />;
-      messageText = "Error encountered!";
-      determinate = true;
-      progress = 0;
-      break;
-  }
 
   return (
     <Stack direction="column" component="main" alignItems="center" padding={2}>
       <Card variant="solid" color="primary" sx={{ padding: 3, minWidth: "400px", gap: 4, borderRadius: 40 }} invertedColors orientation="horizontal">
         <Stack direction="column" gap={2} flexGrow={1} alignItems="center">
           <Typography level="h3">Processor</Typography>
-          <CircularProgress color="primary" variant="soft" value={progress} determinate={determinate} size="lg" sx={{ '--CircularProgress-size': '100px' }}>
-            {innerText}
+          <CircularProgress color="primary" variant="soft" value={progress} determinate={!loading} size="lg" sx={{ '--CircularProgress-size': '100px' }}>
+            <InnerText status={status}/>
           </CircularProgress>
           <Typography>{messageText}</Typography>
         </Stack>
