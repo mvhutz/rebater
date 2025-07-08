@@ -31,6 +31,7 @@ const createWindow = async () => {
   ipcMain.handle.getPing();
   ipcMain.handle.getSettings();
   ipcMain.handle.setSettings();
+  ipcMain.handle.openDir();
 
   // Talking with system.
   const worker = new Worker(path.join(__dirname, 'worker.js'));

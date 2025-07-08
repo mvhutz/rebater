@@ -145,6 +145,10 @@ export const isSystemLoading = (state: RootState) => {
   return state.system.status.type === "loading";
 }
 
+export const isSystemActive = (state: RootState) => {
+  return state.system.status.type === "running" || state.system.status.type === "loading";
+}
+
 export const getSystemStatusName = (state: RootState) => {
   switch (state.system.status.type) {
     case "done": return "Done!";

@@ -1,4 +1,4 @@
-import { app, dialog } from "electron";
+import { app, dialog, shell } from "electron";
 import { createInterprocess } from "interprocess";
 import path from "path";
 import { existsSync } from "fs";
@@ -21,6 +21,9 @@ const IPC = createInterprocess({
       });
 
       return directory.filePaths;
+    },
+    async openDir(_, filepath: string) {
+      shell.showItemInFolder(filepath);
     },
     async getSettings(): Promise<APIResponse<SettingsData | undefined>> {
       const file = path.join(app.getPath("userData"), "settings.json");

@@ -1,10 +1,8 @@
 import React from 'react';
-import SettingsPage from './pages/SettingsPage';
-import { Route, Routes } from 'react-router';
-import Navigation from './navigation/Navigation';
-import HomePage from './pages/HomePage';
-import RunPage from './pages/run/RunPage';
-import Sheet from '@mui/joy/Sheet';
+import SettingsPane from './pages/settings/SettingsPane';
+import RunPane from './pages/run/RunPane';
+import Stack from '@mui/joy/Stack';
+import Divider from '@mui/joy/Divider';
 
 /** ------------------------------------------------------------------------- */
 
@@ -14,14 +12,11 @@ function App() {
   });
 
   return (
-    <Sheet component="article">
-      <Navigation/>
-      <Routes>
-        <Route path="/settings" element={<SettingsPage/>}/>
-        <Route path="/processor" element={<RunPage/>}/>
-        <Route path="/" element={<HomePage/>}/>
-      </Routes>
-    </Sheet>
+    <Stack component="article" direction="row">
+      <RunPane/>
+      <Divider />
+      <SettingsPane />
+    </Stack>
   );
 }
 

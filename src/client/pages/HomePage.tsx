@@ -2,7 +2,7 @@ import React from 'react';
 
 /** ------------------------------------------------------------------------- */
 
-function RunPage() {
+function RunPane() {
   const [running, setRunning] = React.useState(false);
 
   return (
@@ -17,4 +17,4 @@ function RunPage() {
 
 /** ------------------------------------------------------------------------- */
 
-export default React.memo(RunPage);
+export default React.memo(RunPane);

@@ -9,8 +9,6 @@ import { Store } from './store';
 
 ReactDOM.createRoot(document.body).render(
   <Provider store={Store}>
-      <HashRouter>
-        <App/>
-      </HashRouter>
+    <App/>
   </Provider>
 );
