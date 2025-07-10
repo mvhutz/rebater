@@ -29,18 +29,4 @@ interface RunResults {
   discrepency: DiscrepencyResult[];
 }
 
-interface BadAPIResonse {
-  good: false;
-  reason: string;
-  message?: string;
-}
-
-interface GoodAPIResonse<T> {
-  good: true;
-  data: T;
-  message?: string;
-}
-
-type APIResponse<T> = BadAPIResonse | GoodAPIResonse<T>;
-
-type Maybe<T> = T | undefined;
+type Maybe<T> = T | undefined | null;

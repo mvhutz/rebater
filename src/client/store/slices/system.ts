@@ -1,80 +1,21 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { type RootState } from '..'
-import { type RunnerStatus } from '../../../system/Runner';
-import { type SettingsData } from '../../../shared/settings';
+import { DEFAULT_SETTINGS, Settings } from '../../../shared/settings';
+import { resource, Resource, ResourceStatus } from '../../../shared/resource';
+import { SystemStatus } from '../../../shared/system_status';
+import { pullSystemSettings, pushSystemSettings, startSystem } from './thunk';
 
 /** ------------------------------------------------------------------------- */
 
 interface SystemState {
-  status: RunnerStatus;
-  settings: {
-    data?: SettingsData;
-    loading: boolean;
-    saving: boolean;
-    error?: string;
-  };
+  status: SystemStatus;
+  settings: Resource<Settings>;
 }
 
 const initialState: SystemState = {
   status: { type: "idle" },
-  settings: {
-    data: undefined,
-    loading: false,
-    saving: false,
-    error: undefined
-  },
+  settings: resource(DEFAULT_SETTINGS),
 }
-
-/** ------------------------------------------------------------------------- */
-
-const { invoke, handle, remove } = window.api;
-
-export const pushSystemSettings = createAsyncThunk(
-  'system/pushSettings',
-  async (data: SettingsData | undefined): Promise<APIResponse<string>> => {
-    if (data == null) {
-       return { good: false, reason: "Cannot save empty settings." };
-    }
-
-    return await invoke.setSettings(data);
-  },
-  {
-    condition(_, { getState }) {
-      const { system } = getState() as RootState;
-      if (system.settings.loading || system.settings.saving) return false;
-    }
-  }
-);
-
-export const pullSystemSettings = createAsyncThunk(
-  'system/pullSettings',
-  async (): Promise<APIResponse<Maybe<SettingsData>>> => {
-    return await invoke.getSettings();
-  },
-  {
-    condition(_, { getState }) {
-      const { system } = getState() as RootState;
-      if (system.settings.loading || system.settings.saving) return false;
-      if(system.status.type === "loading" || system.status.type === "running") return false;
-    }
-  }
-);
-
-export const startSystem = createAsyncThunk(
-  'system/start',
-  async (_, { getState }) => {
-    const { system } = getState() as RootState;
-    return await invoke.runProgram(system.settings.data);
-  },
-  {
-    condition(_, { getState }) {
-      const { system } = getState() as RootState;
-      if (system.settings.loading || system.settings.saving) {
-        return false;
-      }
-    },
-  }
-);
 
 /** ------------------------------------------------------------------------- */
 
@@ -82,47 +23,46 @@ export const SystemSlice = createSlice({
   name: 'system',
   initialState,
   reducers: {
-    setStatus: (state, action: PayloadAction<RunnerStatus>) => {
+    setStatus: (state, action: PayloadAction<SystemStatus>) => {
       state.status = action.payload;
     },
+    setSystemTarget: (state, action: PayloadAction<Settings["advanced"]["target"]>) => {
+      state.settings.data.advanced.target = action.payload;
+    },
+    setSystemYear: (state, action: PayloadAction<Maybe<number>>) => {
+      state.settings.data.context.year = action.payload ?? undefined;
+    },
+    setSystemQuarter: (state, action: PayloadAction<Maybe<number>>) => {
+      state.settings.data.context.quarter = action.payload ?? undefined;
+    }
   },
   extraReducers(builder) {
     builder
       .addCase(pushSystemSettings.pending, (state) => {
-        state.settings.saving = true;
-        state.settings.error = undefined;
+        state.settings.status = ResourceStatus.SAVING;
       })
-      .addCase(pushSystemSettings.fulfilled, (state, { payload }) => {
-        state.settings.saving = false;
-        if (!payload.good) {
-          state.settings.error = payload.reason ?? "Unknown error.";
-        }
+      .addCase(pushSystemSettings.fulfilled, (state) => {
+        state.settings.status = ResourceStatus.PRESENT;
       })
-      .addCase(pushSystemSettings.rejected, (state, { error }) => {
-        state.settings.saving = false;
-        state.settings.error = error.message ?? "Unknown error.";
+      .addCase(pushSystemSettings.rejected, (state) => {
+        state.settings.status = ResourceStatus.PRESENT;
       })
       .addCase(pullSystemSettings.pending, (state) => {
-        state.settings.loading = true;
-        state.settings.error = undefined;
+        state.settings.status = ResourceStatus.LOADING;
       })
       .addCase(pullSystemSettings.fulfilled, (state, { payload }) => {
-        state.settings.loading = false;
-        if (!payload.good) {
-          state.settings.error = payload.reason ?? "Unknown error.";
-        } else {
-          state.settings.data = payload.data;
-        }
+        state.settings.status = ResourceStatus.PRESENT;
+        if (!payload.ok || payload.data == null) return;
+        state.settings.data = payload.data;
       })
-      .addCase(pullSystemSettings.rejected, (state, { error }) => {
-        state.settings.loading = false;
-        state.settings.error = error.message ?? "Unknown error.";
+      .addCase(pullSystemSettings.rejected, (state) => {
+        state.settings.status = ResourceStatus.PRESENT;
       })
       .addCase(startSystem.pending, (state) => {
         state.status = { type: "loading", message: "Connecting..." };
       })
       .addCase(startSystem.fulfilled, (state, { payload }) => {
-        if (payload.good) {
+        if (payload.ok) {
           state.status = { type: "loading", message: "Connected!" };
         } else {
           state.status = { type: "error", message: payload.reason };
@@ -136,10 +76,11 @@ export const SystemSlice = createSlice({
 
 /** ------------------------------------------------------------------------- */
 
-export const { setStatus } = SystemSlice.actions
+export const { setStatus, setSystemTarget, setSystemQuarter, setSystemYear } = SystemSlice.actions
 
 export const getSystemStatus = (state: RootState) => state.system.status;
 export const getSystemSettings = (state: RootState) => state.system.settings;
+export const getContextSettings = (state: RootState) => state.system.settings.data.context;
 
 export const isSystemLoading = (state: RootState) => {
   return state.system.status.type === "loading";

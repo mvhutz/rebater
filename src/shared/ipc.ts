@@ -3,8 +3,10 @@ import { createInterprocess } from "interprocess";
 import path from "path";
 import { existsSync } from "fs";
 import fs from 'fs/promises';
-import { type RunnerStatus } from "../system/Runner";
-import Settings, { type SettingsData } from "./settings";
+import { bad, good, Reply } from "./reply";
+import { Settings, SettingsSchema } from "./settings";
+import z from "zod/v4";
+import { SystemStatus } from "./system_status";
 
 /** ------------------------------------------------------------------------- */
 
@@ -25,33 +27,41 @@ const IPC = createInterprocess({
     async openDir(_, filepath: string) {
       shell.showItemInFolder(filepath);
     },
-    async getSettings(): Promise<APIResponse<SettingsData | undefined>> {
+    async getSettings(): Promise<Reply<Maybe<Settings>>> {
       const file = path.join(app.getPath("userData"), "settings.json");
       if (!existsSync(file)) {
-        return { good: true, data: undefined };
+        return good(undefined);
       }
 
       const stat = await fs.lstat(file);
       if (!stat.isFile()) {
-        return { good: false, reason: "File not found in settings location." };
+        return bad("File not found in settings location.");
       }
 
       const raw = await fs.readFile(file, 'utf-8');
       const json = JSON.parse(raw);
-      const settings = Settings.parse(json);
-      return { good: true, data: settings.data };
+      const parsed = SettingsSchema.safeParse(json);
+      if (!parsed.success) {
+        return bad(z.prettifyError(parsed.error));
+      } else {
+        return good(parsed.data);
+      }
     },
-    async setSettings(_, settings: SettingsData): Promise<APIResponse<string>> {
+    async setSettings(_, settings: Settings): Promise<Reply<string>> {
       const file = path.join(app.getPath("userData"), "settings.json");
       await fs.writeFile(file, JSON.stringify(settings));
-      return { good: true, data: file };
+      return good(file);
     },
-    async runProgram(event, settings_data?: SettingsData): Promise<APIResponse<undefined>> {
-      return { good: true, data: undefined };
+    async runProgram(_, settings?: Settings): Promise<Reply<undefined>> {
+      void [settings];
+
+      return good(undefined);
     }
   },
   renderer: {
-    async runnerUpdate(event, runner_status: RunnerStatus) { }
+    async runnerUpdate(_, runner_status: SystemStatus) {
+      void [runner_status];
+    }
   }
 });
 

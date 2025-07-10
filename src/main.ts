@@ -3,6 +3,7 @@ import path from 'path';
 import started from 'electron-squirrel-startup';
 import IPC from './shared/ipc';
 import { Worker } from 'worker_threads';
+import { bad, good } from './shared/reply';
 
 /** ------------------------------------------------------------------------- */
 
@@ -41,11 +42,11 @@ const createWindow = async () => {
 
   ipcMain.handle.runProgram(async (_, { data }) => {
     if (data == null) {
-      return { good: false, reason: "Cannot give empty settings." };
+      return bad("Cannot give empty settings.");
     }
 
     worker.postMessage(data);
-    return { good: true, data: undefined };
+    return good(undefined);
   });
 
   // and load the index.html of the app.

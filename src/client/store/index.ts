@@ -1,17 +1,20 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { pullSystemSettings, setStatus, SystemSlice } from './slices/system';
+import { setStatus, SystemSlice } from './slices/system';
+import { UISlice } from './slices/ui';
+import { pullSystemSettings } from './slices/thunk';
 
 /** ------------------------------------------------------------------------- */
 
 export const Store = configureStore({
   reducer: {
     system: SystemSlice.reducer,
+    ui: UISlice.reducer
   }
 });
 
 /** ------------------------------------------------------------------------- */
 
-const { handle, invoke } = window.api;
+const { handle } = window.api;
 
 // Beginning data fetches.
 Store.dispatch(pullSystemSettings());

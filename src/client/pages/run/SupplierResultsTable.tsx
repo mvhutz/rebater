@@ -1,6 +1,11 @@
-import { Accordion, AccordionDetails, AccordionSummary, Avatar, Card, ListItemContent, Sheet, Stack, Table, Typography } from '@mui/joy';
+import Accordion from '@mui/joy/Accordion';
+import AccordionDetails from '@mui/joy/AccordionDetails';
+import AccordionSummary from '@mui/joy/AccordionSummary';
+import Avatar from '@mui/joy/Avatar';
+import ListItemContent from '@mui/joy/ListItemContent';
+import Table from '@mui/joy/Table';
+import Typography from '@mui/joy/Typography';
 import SpeedIcon from '@mui/icons-material/Speed';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import React from 'react';
 
 /** ------------------------------------------------------------------------- */

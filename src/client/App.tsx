@@ -3,6 +3,7 @@ import SettingsPane from './pages/settings/SettingsPane';
 import RunPane from './pages/run/RunPane';
 import Stack from '@mui/joy/Stack';
 import Divider from '@mui/joy/Divider';
+import AlertPopup from './AlertPopup';
 
 /** ------------------------------------------------------------------------- */
 
@@ -16,6 +17,7 @@ function App() {
       <RunPane/>
       <Divider />
       <SettingsPane />
+      <AlertPopup />
     </Stack>
   );
 }

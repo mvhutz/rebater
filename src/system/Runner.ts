@@ -2,34 +2,9 @@ import { Transformer } from "./Transformer";
 import { State } from "./information/State";
 import * as XLSX from "xlsx";
 import { getPartition, getRebateHash, getRebateHashFuzzy, parseRebateFile, Rebate } from "./util";
-import { mkdir, writeFile } from "fs/promises";
+import { mkdir, writeFile, glob } from "fs/promises";
 import path from "path";
-
-interface IdleStatus {
-  type: "idle";
-}
-
-interface DoneStatus {
-  type: "done";
-  results: RunResults;
-}
-
-interface ErrorStatus {
-  type: "error";
-  message?: string;
-}
-
-interface LoadingStatus {
-  type: "loading";
-  message?: string;
-}
-
-interface RunningStatus {
-  type: "running";
-  progress: number;
-}
-
-export type RunnerStatus = IdleStatus | RunningStatus | DoneStatus | ErrorStatus | LoadingStatus;
+import { SystemStatus } from "../shared/system_status";
 
 /** ------------------------------------------------------------------------- */
 
@@ -37,19 +12,19 @@ interface RunnerOptions {
   quiet?: boolean;
   test?: boolean;
   combine?: boolean;
-  onStatus?: (status: RunnerStatus) => void;
+  onStatus?: (status: SystemStatus) => void;
 }
 
 export class Runner {
-  private onStatus?: (status: RunnerStatus) => void;
+  private onStatus?: (status: SystemStatus) => void;
 
   constructor(options?: RunnerOptions) {
     this.onStatus = options?.onStatus;
   }
 
   public async pushRebates(state: State) {
-    const { strategy } = state.getSettings();
-    const rebate_files = await strategy.getRebatePaths(state.getTime());
+    const rebate_glob = state.getSettings().getRebatePathGlob();
+    const rebate_files = await Array.fromAsync(glob(rebate_glob));
 
     const rebates = new Array<Rebate>();
     for (const rebate_file of rebate_files) {
@@ -61,7 +36,7 @@ export class Runner {
     XLSX.utils.book_append_sheet(book, sheet, "Rebates");
     const buffer = XLSX.write(book, { type: "buffer" });
     
-    const file = state.getSettings().strategy.getOutputFile(state.getTime(), "xlsx");
+    const file = state.getSettings().getOutputFile("xlsx");
     await mkdir(path.dirname(file), { recursive: true });
     await writeFile(file, buffer);
   }
@@ -87,12 +62,14 @@ export class Runner {
   }
 
   async compareAllRebates(state: State): Promise<DiscrepencyResult[]> {
-    const { strategy } = state.getSettings();
+    const settings = state.getSettings();
 
-    const actual_files = await strategy.getRebatePaths(state.getTime());
+    const actual_glob = settings.getRebatePathGlob();
+    const actual_files = await Array.fromAsync(glob(actual_glob));
     const actual = (await Promise.all(actual_files.map(parseRebateFile))).flat();
     
-    const expected_files = await strategy.getTruthPaths(state.getTime());
+    const expected_glob = settings.getTruthPathGlob();
+    const expected_files = await Array.fromAsync(glob(expected_glob));
     const expected = (await Promise.all(expected_files.map(parseRebateFile))).flat();
   
     const results = new Array<DiscrepencyResult>();
@@ -110,7 +87,8 @@ export class Runner {
   }
 
   public async run(state: State) {
-    const transformer_files = await state.getSettings().strategy.listTransformerPaths();
+    const transformer_glob = state.getSettings().getTransformerPathGlob();
+    const transformer_files = await Array.fromAsync(glob(transformer_glob));
 
     const results: RunResults = {
       config: [],

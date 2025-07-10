@@ -1,132 +1,19 @@
 import React from 'react';
-import { SettingsData } from '../../../shared/settings';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { getSystemSettings, isSystemActive, pullSystemSettings, pushSystemSettings, startSystem } from '../../store/slices/system';
-import { Accordion, AccordionDetails, AccordionGroup, AccordionSummary, Button, Chip, FormControl, FormHelperText, FormLabel, IconButton, Input, ListDivider, ListItemContent, Sheet, Stack, ToggleButtonGroup, Typography } from '@mui/joy';
+import { isSystemActive } from '../../store/slices/system';
+import AccordionGroup from '@mui/joy/AccordionGroup';
+import Button from '@mui/joy/Button';
+import IconButton from '@mui/joy/IconButton';
+import ListDivider from '@mui/joy/ListDivider';
+import Stack from '@mui/joy/Stack';
+import Sheet from '@mui/joy/Sheet';
 import { SxProps } from '@mui/joy/styles/types';
-import SettingsRounded from '@mui/icons-material/SettingsRounded';
 import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded';
-import FormatPaintRounded from '@mui/icons-material/FormatPaintRounded';
-import MemoryRoundedIcon from '@mui/icons-material/MemoryRounded';
-import FolderSpecialIcon from '@mui/icons-material/FolderSpecial';
-import FlashOnRoundedIcon from '@mui/icons-material/FlashOnRounded';
-import BrushRoundedIcon from '@mui/icons-material/BrushRounded';
-
-/** ------------------------------------------------------------------------- */
-
-interface StrategyProps {
-  onStrategy?: (strategy?: SettingsData["strategy"]) => void;
-  strategy?: SettingsData["strategy"];
-}
-
-/** ------------------------------------------------------------------------- */
-
-function BasicStrategyForm(props: StrategyProps) {
-  const { invoke } = window.api;
-  const { onStrategy, strategy } = props;
-
-  const [directory, setDirectory] = React.useState<string | null>(null);
-  React.useEffect(() => {
-    if (strategy != null && strategy.type === "basic") {
-      setDirectory(strategy.directory);
-    }
-  }, [strategy]);
-
-  React.useEffect(() => {
-    if (directory != null) {
-      onStrategy?.({ type: "basic", directory });
-    }
-  }, [directory, onStrategy]);
-
-  const handleDirectory = React.useCallback(async () => {
-    const [directory] = await invoke.chooseDir();
-    if (directory == null) {
-      alert("No directory chosen!");
-      return;
-    }
-
-    setDirectory(directory);
-  }, [invoke]);
-
-  const handleOpenDirectory = React.useCallback(async () => {
-    if (directory == null) return;
-
-    await invoke.openDir(directory);
-  }, [directory]);
-
-  const folder = directory?.split("/")?.at(-1);
-
-  return (
-    <FormControl>
-      <FormLabel>Data Directory</FormLabel>
-      <Stack direction="row" spacing={1}>
-        <Input value={directory ?? "No folder selected..."} fullWidth/>
-        <IconButton onClick={handleDirectory} variant="soft" color="primary"><FolderSpecialIcon/></IconButton>
-      </Stack>
-    </FormControl>
-  );
-}
-
-/** ------------------------------------------------------------------------- */
-
-function StrategyForm(props: StrategyProps) {
-  const { strategy, onStrategy } = props;
-  const [type, setType] = React.useState<string>("none");
-
-  React.useEffect(() => {
-    if (strategy != null) {
-      setType(strategy.type);
-    }
-  }, [strategy]);
-
-  return <>
-    <FormControl>
-      <FormLabel>Strategy</FormLabel>
-      <ToggleButtonGroup size='sm' value={type} onChange={(_, v) => setType(v ?? "none")}>
-        <Button value="none">None</Button>
-        <Button value="basic">Basic</Button>
-      </ToggleButtonGroup>
-      {type === "none" && <FormHelperText>No strategy is set. You must choose one from above.</FormHelperText>}
-      {type === "basic" && <FormHelperText>All data will be taken from one directory.</FormHelperText>}
-    </FormControl>
-
-    {type === "basic" && <BasicStrategyForm onStrategy={onStrategy} strategy={strategy} />}
-  </>;
-}
-
-/** ------------------------------------------------------------------------- */
-
-function ContextSettings() {
-  return (
-    <Accordion>
-      <AccordionSummary variant="soft">
-        <BrushRoundedIcon />
-        <ListItemContent>
-          <Typography level="title-lg">Context</Typography>
-        </ListItemContent>
-      </AccordionSummary>
-      <AccordionDetails>
-      </AccordionDetails>
-    </Accordion>
-  );
-}
-
-/** ------------------------------------------------------------------------- */
-
-function TransformerSettings() {
-  return (
-    <Accordion>
-      <AccordionSummary variant="soft">
-        <FlashOnRoundedIcon />
-        <ListItemContent>
-          <Typography level="title-lg">Transformers</Typography>
-        </ListItemContent>
-      </AccordionSummary>
-      <AccordionDetails>
-      </AccordionDetails>
-    </Accordion>
-  );
-}
+import ContextSettings from './ContextSettings';
+import TransformerSettings from './TransformerSettings';
+import AdvancedSettings from './AdvancedSettings';
+import { SaveRounded } from '@mui/icons-material';
+import { pushSystemSettings, startSystem } from '../../../client/store/slices/thunk';
 
 /** ------------------------------------------------------------------------- */
 
@@ -140,53 +27,6 @@ const SETTINGS_SX: SxProps = {
   boxSizing: "border-box"
 }
 
-function GeneralSettings() {
-  const trueSettings = useAppSelector(getSystemSettings);
-  const dispatch = useAppDispatch();
-  const [newSettings, setNewSettings] = React.useState<Maybe<SettingsData>>();
-  const [strategy, setStrategy] = React.useState<Maybe<SettingsData["strategy"]>>();
-
-  React.useEffect(() => {
-    setNewSettings(trueSettings.data);
-  }, [trueSettings.data]);
-
-  React.useEffect(() => {
-    if (strategy == null) return;
-    setNewSettings(s => ({ ...s, strategy }));
-  }, [strategy]);
-
-  React.useEffect(() => {
-    setStrategy(newSettings?.strategy);
-  }, [newSettings?.strategy]);
-
-  const refreshSettings = React.useCallback(() => {
-    dispatch(pullSystemSettings());
-  }, []);
-
-  const saveSettings = React.useCallback(() => {
-    dispatch(pushSystemSettings(newSettings));
-  }, [newSettings]);
-
-  return (
-    <Accordion>
-      <AccordionSummary variant="soft">
-        <SettingsRounded />
-        <ListItemContent>
-          <Typography level="title-lg">Advanced</Typography>
-        </ListItemContent>
-      </AccordionSummary>
-      <AccordionDetails>
-        <Stack spacing={2} pt={1}>
-        <StrategyForm strategy={newSettings?.strategy} onStrategy={setStrategy}/>
-        </Stack>
-      </AccordionDetails>
-    </Accordion>
-  );
-}
-
-/** ------------------------------------------------------------------------- */
-
-
 function SettingsPane() {
   const dispatch = useAppDispatch();
   const active = useAppSelector(isSystemActive);
@@ -195,16 +35,23 @@ function SettingsPane() {
     dispatch(startSystem());
   }, [dispatch]);
 
+  const handleSave = React.useCallback(() => {
+    dispatch(pushSystemSettings());
+  }, [dispatch]);
+
   return (
     <Sheet sx={SETTINGS_SX} variant="outlined" color="neutral">
       <Stack direction="column" overflow="scroll" height="100vh">
         <AccordionGroup variant="plain" transition="0.2s" size='lg'>
           <ContextSettings />
           <TransformerSettings />
-          <GeneralSettings />
+          <AdvancedSettings />
         </AccordionGroup>
         <ListDivider/>
-        <Button onClick={handleRun} startDecorator={<PlayArrowRounded/>} sx={{ borderRadius: 0 }} variant="solid" size='lg' loading={active} loadingIndicator="Running...">Start</Button>
+        <Stack padding={1} direction="row" spacing={1}>
+          <Button onClick={handleRun} fullWidth startDecorator={<PlayArrowRounded/>} variant="solid" size='sm' loading={active} loadingIndicator="Running...">Start</Button>
+          <IconButton onClick={handleSave} variant="outlined" size='sm'><SaveRounded/></IconButton>
+        </Stack>
       </Stack>
     </Sheet >
   );

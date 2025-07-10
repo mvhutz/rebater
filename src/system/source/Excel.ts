@@ -2,7 +2,6 @@ import { z } from "zod/v4";
 import * as XLSX from "xlsx";
 import assert from "assert";
 import { State } from "../information/State";
-import fs from "fs/promises";
 import BaseSource from "./base";
 
 /** ------------------------------------------------------------------------- */
@@ -19,7 +18,7 @@ type Schema = z.infer<ReturnType<typeof getSchema>>;
 
 function getSourceFileGlob(source: Schema, state: State) {
   const { group } = source;
-  return state.getSettings().strategy.getSourcePathGlob(group, state.getTime(), ".xlsx");
+  return state.getSettings().getSourcePathGlob(group, ".xlsx");
 }
 
 function run(source: Schema, state: State): Table[] {

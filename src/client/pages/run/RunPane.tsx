@@ -1,5 +1,4 @@
 import React from 'react';
-import DiscrepancyTable from './DiscrepancyTable';
 import SupplierResultsTable from './SupplierResultsTable';
 import CircularProgress from '@mui/joy/CircularProgress';
 import Stack from '@mui/joy/Stack';
@@ -9,11 +8,11 @@ import NightsStayRoundedIcon from '@mui/icons-material/NightsStayRounded';
 import DoneRoundedIcon from '@mui/icons-material/DoneRounded';
 import PriorityHighRoundedIcon from '@mui/icons-material/PriorityHighRounded';
 import { getSystemProgress, getSystemStatus, getSystemStatusName, isSystemLoading } from '../../store/slices/system';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { RunnerStatus } from 'src/system/Runner';
-import { SvgIconOwnProps } from '@mui/material';
-import { AccordionGroup } from '@mui/joy';
+import { useAppSelector } from '../../store/hooks';
+import { type SvgIconOwnProps } from '@mui/material';
+import AccordionGroup from '@mui/joy/AccordionGroup';
 import ErrorCard from './ErrorCard';
+import { SystemStatus } from '../../../shared/system_status';
 
 /** ------------------------------------------------------------------------- */
 
@@ -21,7 +20,7 @@ const INNER_TEXT_ICON_SX: SvgIconOwnProps["sx"] = {
   fontSize: 100
 }
 
-function InnerText({ status }: { status: RunnerStatus }) {
+function InnerText({ status }: { status: SystemStatus }) {
   switch (status.type) {
     case "done":    return <DoneRoundedIcon sx={INNER_TEXT_ICON_SX} />;
     case "idle":    return <NightsStayRoundedIcon sx={INNER_TEXT_ICON_SX} />;
@@ -35,13 +34,10 @@ function InnerText({ status }: { status: RunnerStatus }) {
 
 function RunPane() {
   const status = useAppSelector(getSystemStatus);
-  const dispatch = useAppDispatch();
-
   const messageText = useAppSelector(getSystemStatusName);
   const progress = useAppSelector(getSystemProgress);
   const loading = useAppSelector(isSystemLoading);
 
-  const running = status.type === "running";
   const results = status.type === "done" ? status.results : null;
 
   return (

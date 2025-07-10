@@ -8,7 +8,7 @@ const ReferenceSchema = z.array(z.record(z.string(), z.string()));
 
 export abstract class Reference {
   public abstract save(): Promise<void>;
-  public abstract ask(property: string, matches: string, take: string, group?: string): string | undefined;
+  public abstract ask(property: string, matches: string, take: string, group?: string): Maybe<string>;
   public abstract append(row: Record<string, string>): void;
 }
 
@@ -27,7 +27,7 @@ export class BasicReference extends Reference {
     this.data.push(row);
   }
 
-  public ask(property: string, matches: string, take: string, group: string): string | undefined {
+  public ask(property: string, matches: string, take: string, group: string): Maybe<string> {
     const record = this.data.find(record => record[property] === matches && record.group === group);
     if (record == null) return undefined;
     return record[take];
