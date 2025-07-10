@@ -10,7 +10,6 @@ import { SystemStatus } from "../shared/system_status";
 
 interface RunnerOptions {
   quiet?: boolean;
-  test?: boolean;
   combine?: boolean;
   onStatus?: (status: SystemStatus) => void;
 }
@@ -92,7 +91,7 @@ export class Runner {
 
     const results: RunResults = {
       config: [],
-      discrepency: [],
+      discrepency: undefined,
     }
 
     const transformers = new Array<Transformer>();
@@ -117,8 +116,10 @@ export class Runner {
     this.onStatus?.({ type: "loading", message: "Saving rebates..." });
     await state.saveDestinationFiles();
 
-    this.onStatus?.({ type: "loading", message: "Scoring accuracy..." });
-    results.discrepency = await this.compareAllRebates(state);
+    if (state.getSettings().doTesting()) {
+      this.onStatus?.({ type: "loading", message: "Scoring accuracy..." });
+      results.discrepency = await this.compareAllRebates(state);
+    }
 
     this.onStatus?.({ type: "loading", message: "Compiling rebates..." });
     await this.pushRebates(state);

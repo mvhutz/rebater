@@ -15,11 +15,15 @@ interface TargetInterface {
   getOutputFile(extension: string): string;
 }
 
+interface AdvancedInterface extends TargetInterface {
+  doTesting(): boolean;
+}
+
 interface ContextInterface {
   getTime(): Time;
 }
 
-export interface SettingsInterface extends TargetInterface, ContextInterface {
+export interface SettingsInterface extends TargetInterface, AdvancedInterface {
 }
 
 /** ------------------------------------------------------------------------- */
@@ -83,6 +87,17 @@ function makeBasicTarget(strategy: Settings["advanced"]["target"], time: Time): 
   });
 }
 
+function makeAdvancedInterface(settings: Settings["advanced"], time: Time): Reply<AdvancedInterface> {
+  const target_response = makeBasicTarget(settings.target, time);
+  if (!target_response.ok) return target_response;
+
+  const { data: target } = target_response;
+  return good({
+    ...target,
+    doTesting: () => settings.doTesting ?? false,
+  })
+}
+
 function makeContextInterface(context: Settings["context"]): Reply<ContextInterface> {
   const { year, quarter } = context;
 
@@ -106,9 +121,9 @@ export function makeSettingsInterface(settings: Settings): Reply<SettingsInterfa
   if (!context_response.ok) return context_response;
 
   const { data: context } = context_response;
-  const target_response = makeBasicTarget(settings.advanced.target, context.getTime());
-  if (!target_response.ok) return target_response;
+  const advanced_response = makeAdvancedInterface(settings.advanced, context.getTime());
+  if (!advanced_response.ok) return advanced_response;
 
-  const { data: target } = target_response;
-  return good({ ...target, ...context });
+  const { data: advanced } = advanced_response;
+  return good({ ...advanced, ...context });
 }

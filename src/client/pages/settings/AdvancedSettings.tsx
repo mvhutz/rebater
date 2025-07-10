@@ -4,8 +4,6 @@ import Stack from '@mui/joy/Stack';
 import Input from '@mui/joy/Input';
 import IconButton from '@mui/joy/IconButton';
 import FolderSpecialRounded from '@mui/icons-material/FolderSpecialRounded';
-import ToggleButtonGroup from '@mui/joy/ToggleButtonGroup';
-import Button from '@mui/joy/Button';
 import FormHelperText from '@mui/joy/FormHelperText';
 import SettingsRounded from '@mui/icons-material/SettingsRounded';
 import Accordion from '@mui/joy/Accordion';
@@ -15,7 +13,8 @@ import Typography from '@mui/joy/Typography';
 import AccordionDetails from '@mui/joy/AccordionDetails';
 import React from 'react';
 import { useAppDispatch, useAppSelector } from '../../../client/store/hooks';
-import { getSystemSettings, setSystemTarget } from '../../../client/store/slices/system';
+import { getSystemSettings, getTestSettings, setSystemTarget, setSystemTesting } from '../../../client/store/slices/system';
+import { Switch } from '@mui/joy';
 
 /** ------------------------------------------------------------------------- */
 
@@ -40,9 +39,9 @@ function BasicTargetSettings() {
     <FormControl>
       <FormLabel>Data Directory</FormLabel>
       <Stack direction="row" spacing={1}>
-        <Input value={directory ?? "No folder selected..."} fullWidth />
-        <IconButton onClick={handleDirectory} variant="soft" color="primary"><FolderSpecialRounded/></IconButton>
+        <Input variant="outlined" value={directory ?? "No folder selected..."} fullWidth endDecorator={<IconButton onClick={handleDirectory}><FolderSpecialRounded /></IconButton>} />
       </Stack>
+      <FormHelperText>Data will be taken from this directory.</FormHelperText>
     </FormControl>
   );
 }
@@ -51,33 +50,32 @@ function BasicTargetSettings() {
 
 function TargetSettings() {
   const { data: { advanced: { target } } } = useAppSelector(getSystemSettings);
-  const dispatch = useAppDispatch();
+  // const dispatch = useAppDispatch();
   const { type } = target;
 
-  const handleType = React.useCallback((_: unknown, value: Maybe<typeof target["type"]>) => {
-    switch (value) {
-      case "basic":
-        dispatch(setSystemTarget({ type: "basic" }));
-        break;
-    }
-  }, [dispatch]);
+  // const handleType = React.useCallback((_: unknown, value: Maybe<typeof target["type"]>) => {
+  //   switch (value) {
+  //     case "basic":
+  //       dispatch(setSystemTarget({ type: "basic" }));
+  //       break;
+  //   }
+  // }, [dispatch]);
 
-  return <>
-    <FormControl>
-      <FormLabel>Strategy</FormLabel>
-      <ToggleButtonGroup size='sm' value={type} onChange={handleType}>
-        <Button value="basic">Basic</Button>
-      </ToggleButtonGroup>
-      {type === "basic" && <FormHelperText>All data will be taken from one directory.</FormHelperText>}
-    </FormControl>
-
+  return <Stack spacing={2}>
     {type === "basic" && <BasicTargetSettings />}
-  </>;
+  </Stack>;
 }
 
 /** ------------------------------------------------------------------------- */
 
 function AdvancedSettings() {
+  const doTesting = useAppSelector(getTestSettings);
+  const dispatch = useAppDispatch();
+
+  const handleTesting = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(setSystemTesting(event.target.checked));
+  }, [dispatch]);
+
   return (
     <Accordion>
       <AccordionSummary variant="soft">
@@ -87,8 +85,17 @@ function AdvancedSettings() {
         </ListItemContent>
       </AccordionSummary>
       <AccordionDetails>
-        <Stack spacing={2} pt={1}>
+        <Stack spacing={4} pt={1}>
           <TargetSettings />
+          <Stack spacing={2}>
+            <FormControl>
+              <Stack direction="row" alignItems="center" justifyContent="space-between">
+                <FormLabel>Run Discrepancy Report</FormLabel>
+                <Switch checked={doTesting ?? false} onChange={handleTesting} />
+              </Stack>
+              <FormHelperText>If selected, the system will scrutinize its output against all rebate files in the testing folder and note any differences.</FormHelperText>
+            </FormControl>
+          </Stack>
         </Stack>
       </AccordionDetails>
     </Accordion>

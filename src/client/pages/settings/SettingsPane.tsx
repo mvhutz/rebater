@@ -42,11 +42,14 @@ function SettingsPane() {
   return (
     <Sheet sx={SETTINGS_SX} variant="outlined" color="neutral">
       <Stack direction="column" overflow="scroll" height="100vh">
-        <AccordionGroup variant="plain" transition="0.2s" size='lg'>
-          <ContextSettings />
-          <TransformerSettings />
-          <AdvancedSettings />
-        </AccordionGroup>
+        <Stack>
+          <AccordionGroup variant="plain" transition="0.2s" size='lg'>
+            <ContextSettings />
+            <TransformerSettings />
+            <AdvancedSettings />
+          </AccordionGroup>
+        </Stack>
+        <Sheet variant='soft' sx={{ flex: 1 }}/>
         <ListDivider/>
         <Stack padding={1} direction="row" spacing={1}>
           <Button onClick={handleRun} fullWidth startDecorator={<PlayArrowRounded/>} variant="solid" size='sm' loading={active} loadingIndicator="Running...">Start</Button>

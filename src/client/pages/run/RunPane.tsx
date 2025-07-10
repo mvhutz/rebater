@@ -13,6 +13,7 @@ import { type SvgIconOwnProps } from '@mui/material';
 import AccordionGroup from '@mui/joy/AccordionGroup';
 import ErrorCard from './ErrorCard';
 import { SystemStatus } from '../../../shared/system_status';
+import DiscrepancyTable from './DiscrepancyTable';
 
 /** ------------------------------------------------------------------------- */
 
@@ -52,9 +53,9 @@ function RunPane() {
             <Typography level="body-lg" color="neutral">{messageText}</Typography>
           </Stack>
         </Stack>
-        <AccordionGroup variant="plain" transition="0.2s" size='lg' disableDivider>
+        <AccordionGroup variant="plain" transition="0.2s" size='lg' disableDivider sx={{ gap: 2 }}>
           { results && <SupplierResultsTable data={results}/> }
-          {/* { results && <DiscrepancyTable data={results}/> } */}
+          { (results?.discrepency != null) && <DiscrepancyTable data={results.discrepency}/> }
           { status.type === "error" && <ErrorCard message={status.message}/> }
         </AccordionGroup>
       </Stack>

@@ -27,9 +27,7 @@ const BasicTargetSchema = z.object({
 
 const AdvancedSettingsSchema = z.object({
   target: z.discriminatedUnion("type", [BasicTargetSchema]),
-  test: z.object({
-    directory: z.string().optional()
-  })
+  doTesting: z.boolean().optional(),
 });
 
 export const SettingsSchema = z.object({
@@ -50,6 +48,5 @@ export const DEFAULT_SETTINGS: Settings = {
   },
   advanced: {
     target: { type: "basic" },
-    test: {}
   }
 }

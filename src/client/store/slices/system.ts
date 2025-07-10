@@ -34,7 +34,10 @@ export const SystemSlice = createSlice({
     },
     setSystemQuarter: (state, action: PayloadAction<Maybe<number>>) => {
       state.settings.data.context.quarter = action.payload ?? undefined;
-    }
+    },
+    setSystemTesting: (state, action: PayloadAction<boolean>) => {
+      state.settings.data.advanced.doTesting = action.payload;
+    },
   },
   extraReducers(builder) {
     builder
@@ -76,11 +79,12 @@ export const SystemSlice = createSlice({
 
 /** ------------------------------------------------------------------------- */
 
-export const { setStatus, setSystemTarget, setSystemQuarter, setSystemYear } = SystemSlice.actions
+export const { setStatus, setSystemTarget, setSystemQuarter, setSystemYear, setSystemTesting } = SystemSlice.actions
 
 export const getSystemStatus = (state: RootState) => state.system.status;
 export const getSystemSettings = (state: RootState) => state.system.settings;
 export const getContextSettings = (state: RootState) => state.system.settings.data.context;
+export const getTestSettings = (state: RootState) => state.system.settings.data.advanced.doTesting;
 
 export const isSystemLoading = (state: RootState) => {
   return state.system.status.type === "loading";

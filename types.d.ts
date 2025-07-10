@@ -26,7 +26,7 @@ interface DiscrepencyResult {
 
 interface RunResults {
   config: TransformerResult[];
-  discrepency: DiscrepencyResult[];
+  discrepency: Maybe<DiscrepencyResult[]>;
 }
 
 type Maybe<T> = T | undefined | null;
