@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { setStatus, SystemSlice } from './slices/system';
 import { UISlice } from './slices/ui';
-import { pullSystemSettings } from './slices/thunk';
+import { pullSystemSettings, pullTransformers } from './slices/thunk';
 
 /** ------------------------------------------------------------------------- */
 
@@ -17,7 +17,12 @@ export const Store = configureStore({
 const { handle } = window.api;
 
 // Beginning data fetches.
-Store.dispatch(pullSystemSettings());
+async function load() {
+  await Store.dispatch(pullSystemSettings());
+  await Store.dispatch(pullTransformers());
+}
+
+load();
 
 // Handle system responses.
 handle.runnerUpdate(async (_, { data }) => {

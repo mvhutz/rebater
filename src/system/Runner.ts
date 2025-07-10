@@ -86,29 +86,21 @@ export class Runner {
   }
 
   public async run(state: State) {
-    const transformer_glob = state.getSettings().getTransformerPathGlob();
-    const transformer_files = await Array.fromAsync(glob(transformer_glob));
-
     const results: RunResults = {
       config: [],
       discrepency: undefined,
     }
 
-    const transformers = new Array<Transformer>();
-
     this.onStatus?.({ type: "loading", message: "Reading transformers..." });
-    for (const transformer_file of transformer_files) {
-      transformers.push(await Transformer.fromFile(transformer_file));
-    }
+    const transformers = await Transformer.pullAll(state.getSettings());
 
     this.onStatus?.({ type: "loading", message: "Loading sources..." });
     for (const transformer of transformers) {
       await state.loadSourceFilesQueries(...transformer.getSourcesGlobs(state));
     }
 
-    for (let i = 0; i < transformers.length; i++) {
-      const transformer = transformers[i];
-      this.onStatus?.({ type: "running", progress: i / transformer_files.length });
+    for (const [i, transformer] of transformers.entries()) {
+      this.onStatus?.({ type: "running", progress: i / transformers.length });
 
       results.config.push(await transformer.run(state));
     }

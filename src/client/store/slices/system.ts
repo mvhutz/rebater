@@ -3,18 +3,22 @@ import { type RootState } from '..'
 import { DEFAULT_SETTINGS, Settings } from '../../../shared/settings';
 import { resource, Resource, ResourceStatus } from '../../../shared/resource';
 import { SystemStatus } from '../../../shared/system_status';
-import { pullSystemSettings, pushSystemSettings, startSystem } from './thunk';
+import { pullSystemSettings, pullTransformers, pushSystemSettings, startSystem } from './thunk';
+import { bad, Reply } from '../../../shared/reply';
+import { TransformerData } from '../../../system/Transformer';
 
 /** ------------------------------------------------------------------------- */
 
 interface SystemState {
   status: SystemStatus;
   settings: Resource<Settings>;
+  transformers: Reply<TransformerData[]>;
 }
 
 const initialState: SystemState = {
   status: { type: "idle" },
   settings: resource(DEFAULT_SETTINGS),
+  transformers: bad("Loading transformers...")
 }
 
 /** ------------------------------------------------------------------------- */
@@ -38,6 +42,12 @@ export const SystemSlice = createSlice({
     setSystemTesting: (state, action: PayloadAction<boolean>) => {
       state.settings.data.advanced.doTesting = action.payload;
     },
+    setTransformersNames: (state, action: PayloadAction<Maybe<string[]>>) => {
+      state.settings.data.transformers.names.include = action.payload ?? undefined;
+    },
+    setTransformersTags: (state, action: PayloadAction<Maybe<string[]>>) => {
+      state.settings.data.transformers.tags.include = action.payload ?? undefined;
+    }
   },
   extraReducers(builder) {
     builder
@@ -74,17 +84,28 @@ export const SystemSlice = createSlice({
       .addCase(startSystem.rejected, (state, { error }) => {
         state.status = { type: "error", message: error.message ?? "Unknown error!" };
       })
+      .addCase(pullTransformers.pending, state => {
+        state.transformers = bad("Loading transformers...");
+      })
+      .addCase(pullTransformers.fulfilled, (state, { payload }) => {
+        state.transformers = payload;
+      })
   },
 });
 
 /** ------------------------------------------------------------------------- */
 
-export const { setStatus, setSystemTarget, setSystemQuarter, setSystemYear, setSystemTesting } = SystemSlice.actions
+export const {
+  setStatus, setSystemTarget, setSystemQuarter, setSystemYear, setSystemTesting,
+  setTransformersNames, setTransformersTags
+} = SystemSlice.actions
 
 export const getSystemStatus = (state: RootState) => state.system.status;
 export const getSystemSettings = (state: RootState) => state.system.settings;
 export const getContextSettings = (state: RootState) => state.system.settings.data.context;
 export const getTestSettings = (state: RootState) => state.system.settings.data.advanced.doTesting;
+export const getTransformers = (state: RootState) => state.system.transformers;
+export const getTransformersSettings = (state: RootState) => state.system.settings.data.transformers;
 
 export const isSystemLoading = (state: RootState) => {
   return state.system.status.type === "loading";

@@ -13,7 +13,7 @@ const TransformersSchema = z.object({
   tags: z.object({
     include: z.array(z.string()).optional()
   }),
-  transformers: z.object({
+  names: z.object({
     include: z.array(z.string()).optional()
   })
 });
@@ -44,7 +44,7 @@ export const DEFAULT_SETTINGS: Settings = {
   context: {},
   transformers: {
     tags: {},
-    transformers: {}
+    names: {}
   },
   advanced: {
     target: { type: "basic" },

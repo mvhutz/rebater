@@ -13,7 +13,7 @@ import ContextSettings from './ContextSettings';
 import TransformerSettings from './TransformerSettings';
 import AdvancedSettings from './AdvancedSettings';
 import { SaveRounded } from '@mui/icons-material';
-import { pushSystemSettings, startSystem } from '../../../client/store/slices/thunk';
+import { pullTransformers, pushSystemSettings, startSystem } from '../../../client/store/slices/thunk';
 
 /** ------------------------------------------------------------------------- */
 
@@ -35,21 +35,24 @@ function SettingsPane() {
     dispatch(startSystem());
   }, [dispatch]);
 
-  const handleSave = React.useCallback(() => {
-    dispatch(pushSystemSettings());
+  const handleSave = React.useCallback(async () => {
+    await dispatch(pushSystemSettings());
+    await dispatch(pullTransformers());
   }, [dispatch]);
 
   return (
     <Sheet sx={SETTINGS_SX} variant="outlined" color="neutral">
-      <Stack direction="column" overflow="scroll" height="100vh">
-        <Stack>
+      <Stack direction="column" height="100vh">
+        <Stack flex={1} flexShrink={1} overflow="scroll">
+          <Stack>
           <AccordionGroup variant="plain" transition="0.2s" size='lg'>
             <ContextSettings />
             <TransformerSettings />
             <AdvancedSettings />
           </AccordionGroup>
+          </Stack>
+          <Sheet variant='soft' sx={{ flex: 1 }}/>
         </Stack>
-        <Sheet variant='soft' sx={{ flex: 1 }}/>
         <ListDivider/>
         <Stack padding={1} direction="row" spacing={1}>
           <Button onClick={handleRun} fullWidth startDecorator={<PlayArrowRounded/>} variant="solid" size='sm' loading={active} loadingIndicator="Running...">Start</Button>

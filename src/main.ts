@@ -33,6 +33,7 @@ const createWindow = async () => {
   ipcMain.handle.getSettings();
   ipcMain.handle.setSettings();
   ipcMain.handle.openDir();
+  ipcMain.handle.getTransformers();
 
   // Talking with system.
   const worker = new Worker(path.join(__dirname, 'worker.js'));

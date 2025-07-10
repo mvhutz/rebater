@@ -39,7 +39,9 @@ function BasicTargetSettings() {
     <FormControl>
       <FormLabel>Data Directory</FormLabel>
       <Stack direction="row" spacing={1}>
-        <Input variant="outlined" value={directory ?? "No folder selected..."} fullWidth endDecorator={<IconButton onClick={handleDirectory}><FolderSpecialRounded /></IconButton>} />
+        <Input variant="outlined" sx={{ pr: 0.5 }}  value={directory ?? "No folder selected..."} fullWidth endDecorator={<Stack spacing={0.5} direction="row">
+          <IconButton onClick={handleDirectory}><FolderSpecialRounded fontSize="small" /></IconButton>
+        </Stack>} />
       </Stack>
       <FormHelperText>Data will be taken from this directory.</FormHelperText>
     </FormControl>
@@ -50,16 +52,7 @@ function BasicTargetSettings() {
 
 function TargetSettings() {
   const { data: { advanced: { target } } } = useAppSelector(getSystemSettings);
-  // const dispatch = useAppDispatch();
   const { type } = target;
-
-  // const handleType = React.useCallback((_: unknown, value: Maybe<typeof target["type"]>) => {
-  //   switch (value) {
-  //     case "basic":
-  //       dispatch(setSystemTarget({ type: "basic" }));
-  //       break;
-  //   }
-  // }, [dispatch]);
 
   return <Stack spacing={2}>
     {type === "basic" && <BasicTargetSettings />}
