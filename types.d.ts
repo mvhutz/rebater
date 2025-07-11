@@ -1,3 +1,5 @@
+declare module "*.md";
+
 interface Time {
   quarter: 1 | 2 | 3 | 4;
   year: number;

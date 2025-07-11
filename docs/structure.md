@@ -5,9 +5,9 @@ All data for Rebator is stored within the protected `data` folder, with in the r
 ```txt
 data
 ├── sources
-│   ├── Format/Supplier
-│   │   ├── 1992
-│   │   │   ├── Q2
+│   ├── [Format/Supplier]
+│   │   ├── [Year]
+│   │   │   ├── [Quarter]
 │   │   │   │   ├── Report.xlsx
 │   :   :   :   :
 ├── transformers
@@ -17,9 +17,10 @@ data
 │   ├── Table.csv
 │   :
 ├── rebates
-│   ├── 0000
-│   │   ├── Supplier.csv
-│   :   :
+│   ├── [Year]
+│   │   ├── [Quarter]
+│   │   │   ├── Supplier.csv
+│   :   :   :
 └── OUTPUT.xlsx
 ```
 

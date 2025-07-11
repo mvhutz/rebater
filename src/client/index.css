@@ -6,3 +6,13 @@ body {
   padding: 2rem; */
   margin: 0;
 }
+
+table, tr, td, th {
+  border-collapse: collapse;
+  border-width: thin;
+  border-style: solid;
+}
+
+table {
+  width: 100%;
+}

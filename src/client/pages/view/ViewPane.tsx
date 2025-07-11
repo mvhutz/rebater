@@ -14,8 +14,10 @@ import Tab, { tabClasses } from '@mui/joy/Tab';
 import TabList from '@mui/joy/TabList';
 import Tabs from '@mui/joy/Tabs';
 import { SxProps } from '@mui/joy/styles/types';
-import { getCurrentTab, getVisible, pushMessage, RunTabs, setCurrentTab } from '../../store/slices/ui';
+import { getVisible, pushMessage } from '../../store/slices/ui';
 import SystemTab from './tabs/system/SystemTab';
+import DocumentationTab from './tabs/documentation/DocumentationTab';
+import { Route, Routes, useLocation, useNavigate } from 'react-router';
 
 /** ------------------------------------------------------------------------- */
 
@@ -57,30 +59,29 @@ const TAB_LIST_SX: SxProps = {
 function ViewPane() {
   const status = useAppSelector(getSystemStatus);
   const { tabs: show_tabs } = useAppSelector(getVisible);
-
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
-  const tab = useAppSelector(getCurrentTab);
+  const location = useLocation();
   const handleTab = React.useCallback((_: unknown, tab: Maybe<string | number>) => {
-    const item = RunTabs.find(t => t === tab);
-    if (item == null) {
+    if (typeof tab !== "string") {
       dispatch(pushMessage({ type: "error", text: `Invalid tab '${tab}'.` }));
     } else {
-      dispatch(setCurrentTab(item));
+      navigate(tab);
     }
-  }, [dispatch]);
+  }, [dispatch, navigate]);
 
   return (
     <Stack direction="column" component="main" flex={1} overflow="scroll" height="100vh">
-      <Tabs size="sm" value={tab} onChange={handleTab}>
+      <Tabs size="sm" value={location.pathname} onChange={handleTab}>
         {show_tabs && <TabList color="neutral" variant="soft" sx={TAB_LIST_SX} sticky="top">
-          <Tab value="system" indicatorPlacement="top">
+          <Tab value="/system" indicatorPlacement="top">
             <ListItemDecorator>
               <SystemIcon status={status} />
             </ListItemDecorator>
             System
           </Tab>
-          <Tab value="documentation" indicatorPlacement="top">
+          <Tab value="/documentation" indicatorPlacement="top">
             <ListItemDecorator>
               <BookmarkRoundedIcon />
             </ListItemDecorator>
@@ -88,7 +89,10 @@ function ViewPane() {
           </Tab>
         </TabList>
         }
-        {tab === "system" && <SystemTab />}
+        <Routes>
+          <Route index path="/system" element={<SystemTab />}/>
+          <Route path="/documentation/:doc?" element={<DocumentationTab />}/>
+        </Routes>
       </Tabs>
     </Stack>
   );

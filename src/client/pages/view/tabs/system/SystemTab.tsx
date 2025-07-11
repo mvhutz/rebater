@@ -66,12 +66,11 @@ function SystemTab() {
       <Stack padding={1}>
         <Stack direction="row" justifyContent="center" alignItems="center" position="relative">
           {/* <Typography level="title-md" pt={0.5} color="neutral"><code>Status</code></Typography> */}
-          <Typography level="body-lg" pt={0.5} color="neutral">{messageText}</Typography>
+          <Typography level="body-lg" pt={0.5} color="neutral"><i>System:</i> {messageText}</Typography>
           <Dropdown>
-            <MenuButton sx={{ position: "absolute", right: 0, top: 0 }}
-              slots={{ root: IconButton }}
-              slotProps={{ "root": { variant: 'plain', color: 'neutral' } }}
-            ><MoreVertRoundedIcon /></MenuButton>
+            <MenuButton sx={{ position: "absolute", right: 0, top: 0 }} slots={{ root: IconButton }} slotProps={{ "root": { variant: 'plain', color: 'neutral' } }}>
+              <MoreVertRoundedIcon />
+            </MenuButton>
             <Menu size='sm' placement="bottom-end">
               <MenuItem onClick={handleToggleTabs}>{show_tabs ? "Hide" : "Show"} Tabs</MenuItem>
               <MenuItem onClick={handleToggleSettings}>{show_settings ? "Hide" : "Show"} Settings</MenuItem>

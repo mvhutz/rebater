@@ -18,7 +18,6 @@ interface UIState {
     tabs: boolean;
     settings: boolean;
   },
-  tab: RunTab;
 }
 
 const initialState: UIState = {
@@ -26,8 +25,7 @@ const initialState: UIState = {
   show: {
     tabs: true,
     settings: true,
-  },
-  tab: "system"
+  }
 }
 
 /** ------------------------------------------------------------------------- */
@@ -47,9 +45,6 @@ export const UISlice = createSlice({
     },
     toggleSettings(state) {
       state.show.settings = !state.show.settings;
-    },
-    setCurrentTab(state, action: PayloadAction<RunTab>) {
-      state.tab = action.payload;
     }
   },
   extraReducers(builder) {
@@ -69,8 +64,7 @@ export const UISlice = createSlice({
 
 /** ------------------------------------------------------------------------- */
 
-export const { popMessage, pushMessage, toggleTabs, toggleSettings, setCurrentTab } = UISlice.actions
+export const { popMessage, pushMessage, toggleTabs, toggleSettings } = UISlice.actions
 
 export const getLatestMessage = (state: RootState) => state.ui.messages.at(-1);
 export const getVisible = (state: RootState) => state.ui.show;
-export const getCurrentTab = (state: RootState) => state.ui.tab;
