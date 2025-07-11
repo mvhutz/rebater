@@ -92,7 +92,7 @@ export class Runner {
     }
 
     this.onStatus?.({ type: "loading", message: "Reading transformers..." });
-    const transformers = await Transformer.pullAll(state.getSettings());
+    const transformers = await Transformer.pullAll(state.getSettings(), true);
 
     this.onStatus?.({ type: "loading", message: "Loading sources..." });
     for (const transformer of transformers) {

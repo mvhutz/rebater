@@ -1,6 +1,7 @@
 import { Settings } from "./settings";
 import path from "path";
 import { bad, good, Reply } from "./reply";
+import { TransformerData } from "../system/Transformer";
 
 /** ------------------------------------------------------------------------- */
 
@@ -23,7 +24,11 @@ interface ContextInterface {
   getTime(): Time;
 }
 
-export interface SettingsInterface extends TargetInterface, AdvancedInterface {
+interface TransformersInterface {
+  willRun(transformer: TransformerData): boolean;
+}
+
+export interface SettingsInterface extends TargetInterface, AdvancedInterface, TransformersInterface {
 }
 
 /** ------------------------------------------------------------------------- */
@@ -116,14 +121,38 @@ function makeContextInterface(context: Settings["context"]): Reply<ContextInterf
   });
 }
 
+function makeTransformerInterface(settings: Settings["transformers"]): Reply<TransformersInterface> {
+  return good({
+    willRun(transformer) {
+      console.log(transformer.name, transformer.tags);
+      const { names: { include: names = [] }, tags: { include: tags = [] } } = settings;
+      if (names.length > 0 && !names.includes(transformer.name)) {
+        return false;
+      }
+      
+      for (const required_tag of tags) {
+        if (!transformer.tags.includes(required_tag)) {
+          return false;
+        }
+      }
+
+      return true;
+    },
+  });
+}
+
 export function makeSettingsInterface(settings: Settings): Reply<SettingsInterface> {
   const context_response = makeContextInterface(settings.context);
   if (!context_response.ok) return context_response;
-
   const { data: context } = context_response;
+
   const advanced_response = makeAdvancedInterface(settings.advanced, context.getTime());
   if (!advanced_response.ok) return advanced_response;
-
   const { data: advanced } = advanced_response;
-  return good({ ...advanced, ...context });
+
+  const transformers_response = makeTransformerInterface(settings.transformers);
+  if (!transformers_response.ok) return transformers_response;
+  const { data: transformers } = transformers_response;
+
+  return good({ ...advanced, ...context, ...transformers });
 }

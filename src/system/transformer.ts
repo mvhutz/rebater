@@ -52,13 +52,16 @@ export class Transformer {
     }
   }
 
-  public static async pullAll(settings: SettingsInterface) {
+  public static async pullAll(settings: SettingsInterface, filter = false) {
     const transformer_glob = settings.getTransformerPathGlob();
     const transformer_files = await Array.fromAsync(glob(transformer_glob));
 
     const transformers = new Array<Transformer>();
     for (const transformer_file of transformer_files) {
-      transformers.push(await Transformer.fromFile(transformer_file));
+      const transformer = await Transformer.fromFile(transformer_file);
+      if (filter && !settings.willRun(transformer.data)) continue;
+
+      transformers.push(transformer);
     }
 
     return transformers;
