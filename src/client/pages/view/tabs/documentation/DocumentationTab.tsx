@@ -10,7 +10,7 @@ import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
 import { getVisible, toggleSettings, toggleTabs } from '../../../../store/slices/ui';
 import Markdown, { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Option, Select } from '@mui/joy';
+import { Option, Select, Sheet } from '@mui/joy';
 import { Link, useNavigate, useParams } from 'react-router';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import Documents from './Documents';
@@ -69,9 +69,9 @@ function DocumentationTab() {
           </Dropdown>
         </Stack>
       </Stack>
-      <Stack sx={{ p: 5 }}>
+      <Sheet sx={{ p: 5 }}>
         <Markdown components={MARKDOWN_COMPONENTS} remarkPlugins={[remarkGfm]} children={text} />
-      </Stack>
+      </Sheet>
     </Stack>
   );
 }
