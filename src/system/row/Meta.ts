@@ -7,7 +7,7 @@ const NAME = "meta";
 /** ------------------------------------------------------------------------- */
 
 export function getQuarterLastDay(state: State): string {
-  const time = state.getTime();
+  const time = state.getSettings().getTime();
 
   return moment()
     .year(time.year)
@@ -17,7 +17,7 @@ export function getQuarterLastDay(state: State): string {
 }
 
 export function getQuarterNumber(state: State): string {
-  return state.getTime().quarter.toString();
+  return state.getSettings().getTime().quarter.toString();
 }
 
 const META_FUNCTIONS = [

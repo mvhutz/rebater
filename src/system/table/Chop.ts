@@ -19,7 +19,6 @@ async function run(transformation: Schema, table: Table) {
 
   const index = table.data.findIndex(row => is.includes(row.data[column].trim()));
   if (index === -1) {
-    // console.log(`Chop not found for ${table.path}`);
     if (otherwise === "take") {
       return table;
     } else {

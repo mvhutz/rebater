@@ -79,3 +79,29 @@ export function getPartition<O extends object, K extends keyof O>(objects: O[], 
 
   return buckets;
 }
+
+/** ------------------------------------------------------------------------- */
+
+// function getUnitCubicCurve(x: number, angle: number) {
+//   return (angle - 2) * (x ** 3) + (-2 * angle + 3) * (x ** 2) + angle * x;
+// }
+
+// function getCubicCurve(x: number, angle: number, start: [number, number], end: [number, number]) {
+//   const [a, b] = start;
+//   const [c, d] = end;
+
+//   return (d - b) * getUnitCubicCurve((x - a) / (c - a), angle * (c - a) / (d - b)) + b
+// }
+
+// export function useFancyAnimation(value: number, delay: number, handler: (value: number) => void) {
+//   const previous = usePrevious(value);
+
+//   React.useEffect(() => {
+//     let timer = delay;
+//     const token = setInterval(() => {
+//       if (timer < delay) return clearInterval(token);
+//       timer -= 100;
+      
+//     }, 100);
+//   }, [value, delay]);
+// }

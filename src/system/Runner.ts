@@ -1,54 +1,48 @@
 import { Transformer } from "./Transformer";
-import { State } from "./information/State";
+import { BasicState, State } from "./information/State";
 import * as XLSX from "xlsx";
 import { getPartition, getRebateHash, getRebateHashFuzzy, parseRebateFile, Rebate } from "./util";
-import { writeFile } from "fs/promises";
-
-interface IdleStatus {
-  type: "idle";
-}
-
-interface DoneStatus {
-  type: "done";
-  results: RunResults;
-}
-
-interface ErrorStatus {
-  type: "error";
-  message?: string;
-}
-
-interface LoadingStatus {
-  type: "loading";
-  message?: string;
-}
-
-interface RunningStatus {
-  type: "running";
-  progress: number;
-}
-
-export type RunnerStatus = IdleStatus | RunningStatus | DoneStatus | ErrorStatus | LoadingStatus;
+import { mkdir, writeFile, glob } from "fs/promises";
+import path from "path";
+import { SystemStatus } from "../shared/system_status";
+import { SettingsInterface } from "src/shared/settings_interface";
 
 /** ------------------------------------------------------------------------- */
 
 interface RunnerOptions {
   quiet?: boolean;
-  test?: boolean;
   combine?: boolean;
-  onStatus?: (status: RunnerStatus) => void;
+  onStatus?: (status: SystemStatus) => void;
+  onQuestion?: (question: string) => Promise<Maybe<string>>
 }
 
 export class Runner {
-  private onStatus?: (status: RunnerStatus) => void;
+  private onStatus?: (status: SystemStatus) => void;
+  private onQuestion?: (question: string) => Promise<Maybe<string>>;
+  private status: SystemStatus;
 
   constructor(options?: RunnerOptions) {
     this.onStatus = options?.onStatus;
+    this.onQuestion = options?.onQuestion;
+    this.status = { type: "idle" };
+  }
+
+  public updateStatus(status: SystemStatus) {
+    this.status = status;
+    this.onStatus?.(this.status);
+  }
+
+  private async handleQuestion(question: string): Promise<Maybe<string>> {
+    const previous_status = this.status;
+    this.updateStatus({ type: "asking", question });
+    const answer = await this.onQuestion?.(question);
+    this.updateStatus(previous_status);
+    return answer;
   }
 
   public async pushRebates(state: State) {
-    const { strategy } = state.getSettings();
-    const rebate_files = await strategy.getRebatePaths(state.getTime());
+    const rebate_glob = state.getSettings().getRebatePathGlob();
+    const rebate_files = await Array.fromAsync(glob(rebate_glob));
 
     const rebates = new Array<Rebate>();
     for (const rebate_file of rebate_files) {
@@ -60,7 +54,8 @@ export class Runner {
     XLSX.utils.book_append_sheet(book, sheet, "Rebates");
     const buffer = XLSX.write(book, { type: "buffer" });
     
-    const file = state.getSettings().strategy.getOutputFile();
+    const file = state.getSettings().getOutputFile("xlsx");
+    await mkdir(path.dirname(file), { recursive: true });
     await writeFile(file, buffer);
   }
 
@@ -85,12 +80,14 @@ export class Runner {
   }
 
   async compareAllRebates(state: State): Promise<DiscrepencyResult[]> {
-    const { strategy } = state.getSettings();
+    const settings = state.getSettings();
 
-    const actual_files = await strategy.getRebatePaths(state.getTime());
+    const actual_glob = settings.getRebatePathGlob();
+    const actual_files = await Array.fromAsync(glob(actual_glob));
     const actual = (await Promise.all(actual_files.map(parseRebateFile))).flat();
     
-    const expected_files = await strategy.getTruthPaths(state.getTime());
+    const expected_glob = settings.getTruthPathGlob();
+    const expected_files = await Array.fromAsync(glob(expected_glob));
     const expected = (await Promise.all(expected_files.map(parseRebateFile))).flat();
   
     const results = new Array<DiscrepencyResult>();
@@ -107,42 +104,38 @@ export class Runner {
     return results;
   }
 
-  public async run(state: State) {
-    const transformer_files = await state.getSettings().strategy.listTransformerPaths();
-
+  public async run(isettings: SettingsInterface) {
+    const state = new BasicState(isettings, question => this.handleQuestion(question));
     const results: RunResults = {
       config: [],
-      discrepency: [],
+      discrepency: undefined,
     }
 
-    const transformers = new Array<Transformer>();
+    this.updateStatus({ type: "loading", message: "Reading transformers..." });
+    const transformers = await Transformer.pullAll(state.getSettings(), true);
 
-    this.onStatus?.({ type: "loading", message: "Reading transformers..." });
-    for (const transformer_file of transformer_files) {
-      transformers.push(await Transformer.fromFile(transformer_file));
-    }
-
-    this.onStatus?.({ type: "loading", message: "Loading sources..." });
+    this.updateStatus({ type: "loading", message: "Loading sources..." });
     for (const transformer of transformers) {
       await state.loadSourceFilesQueries(...transformer.getSourcesGlobs(state));
     }
 
-    for (let i = 0; i < transformers.length; i++) {
-      const transformer = transformers[i];
-      this.onStatus?.({ type: "running", progress: i / transformer_files.length });
+    for (const [i, transformer] of transformers.entries()) {
+      this.updateStatus({ type: "running", progress: i / transformers.length });
 
       results.config.push(await transformer.run(state));
     }
 
-    this.onStatus?.({ type: "loading", message: "Saving rebates..." });
+    this.updateStatus({ type: "loading", message: "Saving rebates..." });
     await state.saveDestinationFiles();
 
-    this.onStatus?.({ type: "loading", message: "Scoring accuracy..." });
-    results.discrepency = await this.compareAllRebates(state);
+    if (state.getSettings().doTesting()) {
+      this.updateStatus({ type: "loading", message: "Scoring accuracy..." });
+      results.discrepency = await this.compareAllRebates(state);
+    }
 
-    this.onStatus?.({ type: "loading", message: "Compiling rebates..." });
+    this.updateStatus({ type: "loading", message: "Compiling rebates..." });
     await this.pushRebates(state);
     
-    this.onStatus?.({ type: "done", results: results });
+    this.updateStatus({ type: "done", results: results });
   }
 }

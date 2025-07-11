@@ -1,4 +1,4 @@
-import { readFile } from "fs/promises";
+import { glob, readFile } from "fs/promises";
 import path from "path";
 import { z } from "zod/v4";
 import TableTransformation from "./table";
@@ -7,6 +7,7 @@ import { Source } from "./source";
 import { State } from "./information/State";
 import { Destination } from "./destination";
 import assert from "assert";
+import { SettingsInterface } from "../shared/settings_interface";
 
 /** ------------------------------------------------------------------------- */
 
@@ -49,6 +50,21 @@ export class Transformer {
       assert.ok(error instanceof z.ZodError);
       throw Error(`Invalid schema for ${filepath}: ${z.prettifyError(error)}`)
     }
+  }
+
+  public static async pullAll(settings: SettingsInterface, filter = false) {
+    const transformer_glob = settings.getTransformerPathGlob();
+    const transformer_files = await Array.fromAsync(glob(transformer_glob));
+
+    const transformers = new Array<Transformer>();
+    for (const transformer_file of transformer_files) {
+      const transformer = await Transformer.fromFile(transformer_file);
+      if (filter && !settings.willRun(transformer.data)) continue;
+
+      transformers.push(transformer);
+    }
+
+    return transformers;
   }
 
   public getSourcesGlobs(state: State): string[] {

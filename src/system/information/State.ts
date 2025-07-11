@@ -1,69 +1,60 @@
 import { BasicCounter, Counter } from "./Counter";
 import { BasicReference, Reference } from "./Reference";
-import { Handlers } from "./Handlers";
-import Settings from "../../shared/settings";
-import { TransformerData } from "../Transformer";
 import fs from "fs/promises";
 import assert from "assert";
 import path from "path";
 import { glob } from "fs/promises";
+import { SettingsInterface } from "../../shared/settings_interface";
+import mutexify from 'mutexify/promise';
 
 /** ------------------------------------------------------------------------- */
 
 export abstract class State {
-  public abstract setTime(time: Time): void;
-  public abstract getTime(): Time;
-
   public abstract getCounter(name: string): Counter;
   public abstract getReference(name: string): Promise<Reference>;
-  public abstract getSettings(): Settings;
-  public abstract get handlers(): Handlers;
+  public abstract getSettings(): SettingsInterface;
 
   public abstract loadSourceFilesQueries(...filepaths: string[]): Promise<void>;
   public abstract pullSourceFileGlob(filepath: string): Buffer[];
 
   public abstract appendDestinationFile(filepath: string, data: Buffer): void;
   public abstract saveDestinationFiles(): Promise<void>;
+  public abstract requestAsk(): Promise<() => void>;
+  public abstract ask(question: string): Promise<Maybe<string>>;
 }
 
 export class BasicState extends State {
   public static readonly INITIAL_COUNTER_VALUE = 0;
 
-  private time: Time;
-
   private counters: Map<string, BasicCounter>;
   private references: Map<string, BasicReference>;
 
-  private settings: Settings;
-  public handlers: Handlers;
+  private settings_interface: SettingsInterface;
 
   private source_files: Map<string, Buffer>;
   private source_file_queries: Map<string, string[]>;
   private destination_files: Map<string, Buffer>;
+  public ask: (question: string) => Promise<Maybe<string>>;
+  private lock = mutexify();
 
-  constructor(time: Time, settings: Settings, handlers: Handlers = {}) {
+  constructor(settings: SettingsInterface, onAsk: (question: string) => Promise<Maybe<string>>) {
     super();
 
-    this.time = time;
-    this.settings = settings;
-    this.handlers = handlers;
+    this.settings_interface = settings;
     this.counters = new Map();
     this.references = new Map();
     this.source_files = new Map();
     this.source_file_queries = new Map();
     this.destination_files = new Map();
+    this.ask = onAsk;
   }
 
-  public getSettings(): Settings {
-    return this.settings;
+  public async requestAsk(): Promise<() => void> {
+    return await this.lock();
   }
 
-  public setTime(time: Time): void {
-    this.time = time;
-  }
-
-  public getTime(): Time {
-    return this.time;
+  public getSettings(): SettingsInterface {
+    return this.settings_interface;
   }
 
   public getCounter(name: string): BasicCounter {
@@ -79,7 +70,7 @@ export class BasicState extends State {
     const counter = this.references.get(name);
     if (counter != null) return counter;
 
-    const filepath = this.getSettings().strategy.getReferencePath(name);
+    const filepath = this.getSettings().getReferencePath(name);
     const new_reference = await BasicReference.load(filepath);
     this.references.set(name, new_reference);
     return new_reference;

@@ -3,10 +3,8 @@ import path from 'path';
 import started from 'electron-squirrel-startup';
 import IPC from './shared/ipc';
 import { Worker } from 'worker_threads';
-import Settings from './shared/settings';
-import { BasicState } from './system/information/State';
-import { Runner } from './system/Runner';
-// import { processor } from './system/Processor.js';
+import { bad, good } from './shared/reply';
+import { WorkerRequest } from './shared/worker_message';
 
 /** ------------------------------------------------------------------------- */
 
@@ -35,16 +33,27 @@ const createWindow = async () => {
   ipcMain.handle.getPing();
   ipcMain.handle.getSettings();
   ipcMain.handle.setSettings();
+  ipcMain.handle.openDir();
+  ipcMain.handle.getTransformers();
 
-  const rootPath = app.isPackaged ? app.getAppPath() : __dirname;
-  const worker = new Worker(path.join(rootPath, 'worker.js'));
+  // Talking with system.
+  const worker = new Worker(path.join(__dirname, 'worker.js'));
+  worker.on("message", message => {
+    ipcMain.invoke.runnerUpdate(mainWindow, message);
+  });
+
+  ipcMain.handle.answerQuestion(async (_, { data }) => {
+    worker.postMessage({ type: "answer", answer: data } as WorkerRequest);
+    return good(undefined);
+  });
 
   ipcMain.handle.runProgram(async (_, { data }) => {
-    worker.on("message", message => {
-      ipcMain.invoke.runnerUpdate(mainWindow, message)
-    });
+    if (data == null) {
+      return bad("Cannot give empty settings.");
+    }
 
-    worker.postMessage(data);
+    worker.postMessage({ type: "start", settings: data } as WorkerRequest);
+    return good(undefined);
   });
 
   // and load the index.html of the app.

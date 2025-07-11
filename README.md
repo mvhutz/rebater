@@ -4,7 +4,7 @@ A desktop application to automate Fuse Alliance's Rebate process for its supplie
 
 ## Design
 
-Rebator runs a set of [transformers](./docs/transformer/index.md) on a [directory of reports](./docs/structure.md) from the suppliers, and turns into a resulting rebate table.
+Rebator runs a set of [transformers](./docs/index.md) on a [directory of reports](./docs/structure.md) from the suppliers, and turns into a resulting rebate table.
 
 ## Installation
 
@@ -23,4 +23,4 @@ To run the program, run the command `npm start` where you cloned the repository.
 
 - [How do I configure Rebator?](./docs/shema.md)
 - [What is the file structure for Rebator?](./docs/structure.md)
-- [What is a transformer?](./docs/transformer/index.md)
+- [What is a transformer?](./docs/transformer.md)

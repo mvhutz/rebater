@@ -17,7 +17,7 @@ async function run(transformation: Schema, table: Table): Promise<Table> {
   const { columns, matches } = transformation;
   const indices = new Set(columns.map(getTrueIndex));
 
-  let previous: string[] | undefined;
+  let previous: Maybe<string[]>;
   const rows = new Array<Row>();
 
   for (const row of table.data) {

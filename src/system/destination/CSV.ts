@@ -16,7 +16,7 @@ function getSchema() {
 type Schema = z.infer<ReturnType<typeof getSchema>>;
 
 function getDestinationFile(destination: Schema, state: State): string {
-  return state.getSettings().strategy.getDestinationPath(destination.name, state.getTime());
+  return state.getSettings().getDestinationPath(destination.name);
 }
 
 function run(destination: Schema, table: Table, state: State): void {

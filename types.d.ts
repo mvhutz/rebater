@@ -1,3 +1,5 @@
+declare module "*.md";
+
 interface Time {
   quarter: 1 | 2 | 3 | 4;
   year: number;
@@ -26,19 +28,7 @@ interface DiscrepencyResult {
 
 interface RunResults {
   config: TransformerResult[];
-  discrepency: DiscrepencyResult[];
+  discrepency: Maybe<DiscrepencyResult[]>;
 }
 
-interface BadAPIResonse {
-  good: false;
-  reason: string;
-  message?: string;
-}
-
-interface GoodAPIResonse<T> {
-  good: true;
-  data: T;
-  message?: string;
-}
-
-type APIResponse<T> = BadAPIResonse | GoodAPIResonse<T>;
+type Maybe<T> = T | undefined | null;

@@ -20,20 +20,20 @@ async function run(transformation: Transformation, value: string, _row: Row, sta
   const { table, match, take, group } = transformation;
   const reference = await state.getReference(transformation.table);
 
-  const release = await state.handlers.onRequestAsk?.();
+  const release = await state.requestAsk();
 
   const result = reference.ask(match, value, take, group);
   if (result != null) {
-    release?.();
+    release();
     return result;
   }
   
-  const answer = await state.handlers.onAsk?.(`For '${group}', the '${take}' of '${value}' is?`);
-
+  const answer = await state.ask(`For '${group}', the '${take}' of '${value}' is?`);
   assert.ok(answer != null, `Table '${table}' has no item '${value}' for '${match}'.`);
+  
   reference.append({ [match]: value, [take]: answer, group: group });
 
-  release?.();
+  release();
   return answer;
 }
 

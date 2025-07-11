@@ -35,7 +35,7 @@ function run(datum: string, attributes: Attributes, state: State) {
   }
 
   if (year === "assume") {
-    date.year(state.getTime().year);
+    date.year(state.getSettings().getTime().year);
   }
 
   assert.ok(date.isValid(), `Date ${datum} could not be parsed.`);
