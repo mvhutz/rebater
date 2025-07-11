@@ -14,6 +14,7 @@ import TransformerSettings from './TransformerSettings';
 import AdvancedSettings from './AdvancedSettings';
 import { SaveRounded } from '@mui/icons-material';
 import { pullTransformers, pushSystemSettings, startSystem } from '../../../client/store/slices/thunk';
+import { getVisible } from '../../../client/store/slices/ui';
 
 /** ------------------------------------------------------------------------- */
 
@@ -30,6 +31,7 @@ const SETTINGS_SX: SxProps = {
 function SettingsPane() {
   const dispatch = useAppDispatch();
   const active = useAppSelector(isSystemActive);
+  const { settings: show } = useAppSelector(getVisible);
 
   const handleRun = React.useCallback(() => {
     dispatch(startSystem());
@@ -39,6 +41,8 @@ function SettingsPane() {
     await dispatch(pushSystemSettings());
     await dispatch(pullTransformers());
   }, [dispatch]);
+
+  if (!show) return null;
 
   return (
     <Sheet sx={SETTINGS_SX} variant="outlined" color="neutral">

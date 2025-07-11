@@ -4,17 +4,30 @@ import { pushSystemSettings } from './thunk';
 
 /** ------------------------------------------------------------------------- */
 
+export const RunTabs = ["system", "documentation"] as const;
+export type RunTab = typeof RunTabs[number];
+
 interface Message {
   type: "error" | "info";
   text: string;
 }
 
-interface SystemState {
+interface UIState {
   messages: Message[];
+  show: {
+    tabs: boolean;
+    settings: boolean;
+  },
+  tab: RunTab;
 }
 
-const initialState: SystemState = {
-  messages: []
+const initialState: UIState = {
+  messages: [],
+  show: {
+    tabs: true,
+    settings: true,
+  },
+  tab: "system"
 }
 
 /** ------------------------------------------------------------------------- */
@@ -28,6 +41,15 @@ export const UISlice = createSlice({
     },
     pushMessage(state, action: PayloadAction<Message>) {
       state.messages.push(action.payload);
+    },
+    toggleTabs(state) {
+      state.show.tabs = !state.show.tabs;
+    },
+    toggleSettings(state) {
+      state.show.settings = !state.show.settings;
+    },
+    setCurrentTab(state, action: PayloadAction<RunTab>) {
+      state.tab = action.payload;
     }
   },
   extraReducers(builder) {
@@ -47,6 +69,8 @@ export const UISlice = createSlice({
 
 /** ------------------------------------------------------------------------- */
 
-export const { popMessage, pushMessage } = UISlice.actions
+export const { popMessage, pushMessage, toggleTabs, toggleSettings, setCurrentTab } = UISlice.actions
 
 export const getLatestMessage = (state: RootState) => state.ui.messages.at(-1);
+export const getVisible = (state: RootState) => state.ui.show;
+export const getCurrentTab = (state: RootState) => state.ui.tab;
