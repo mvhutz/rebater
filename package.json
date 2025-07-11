@@ -36,6 +36,7 @@
     "@types/mutexify": "^1.2.4",
     "@types/node": "^24.0.10",
     "@types/papaparse": "^5.3.16",
+    "@types/path-browserify": "^1.0.3",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@typescript-eslint/eslint-plugin": "^5.62.0",

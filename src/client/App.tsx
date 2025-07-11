@@ -5,10 +5,15 @@ import Stack from '@mui/joy/Stack';
 import Divider from '@mui/joy/Divider';
 import AlertPopup from './AlertPopup';
 import InputModal from './InputModal';
+import { useLocation } from 'react-router';
 
 /** ------------------------------------------------------------------------- */
 
 function App() {
+  const location = useLocation();
+
+  console.log(location.pathname);
+  
   React.useEffect(() => {
     document.title = "Rebater — Fuse Alliance Rebate Processor";
   });

@@ -21,7 +21,7 @@ A transformer is split into five phases: (1) pulling from sources, (2) preproces
 
 ### Pulling from Sources
 
-First, the transformer searches for source files (Excel, PDF, *et cetera*), reads the rows of data in those files into a 2D matrix of strings. (Read about [the file structure](../structure.md) for more.)
+First, the transformer searches for source files (Excel, PDF, *et cetera*), reads the rows of data in those files into a 2D matrix of strings. (Read about [the file structure](./structure.md) for more.)
 
 For example, for [this Excel sheet](./example.xlsx), it would be read into a matrix of data like below:
 
@@ -60,7 +60,7 @@ This is much more suitable for data extraction.
 
 Now, the data is in a row-by-row format, with the data we desire clearly presented. Now, we must extract the relevant content. Specifically:
 
-1. The transformer reads each table, row by row, and selects a specific set of properties to save. (These are specified within [its schema](../shema.md).)
+1. The transformer reads each table, row by row, and selects a specific set of properties to save. (These are specified within [its schema](./schema.md).)
 2. For each property, the transformers runs a set of defined transformations (much like how we preprocessed the data in the previous step). The intent is to produce a single value from that row, for that property.
 3. Once all proerties are found (for a given row), they are then combined into a new, resulting row.
 4. Finally, once all resulting rows are found, they are combined into a final table.

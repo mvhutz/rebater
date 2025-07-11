@@ -10,17 +10,18 @@ import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
 import { getVisible, toggleSettings, toggleTabs } from '../../../../store/slices/ui';
 import Markdown, { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Option, Select, Sheet } from '@mui/joy';
+import { Option, Select } from '@mui/joy';
 import { Link, useNavigate, useParams } from 'react-router';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import Documents from './Documents';
+import path from 'path-browserify';
 
 /** ------------------------------------------------------------------------- */
 
 const MARKDOWN_COMPONENTS: Components = {
-  link({node, href }) {
+  a({node, href, ...rest }) {
     void [node];
-    return <Link to={href ?? "/"} />
+    return <Link to={path.join("/documentation", href ?? "")} {...rest} />
   }
 };
 
@@ -52,7 +53,7 @@ function DocumentationTab() {
           <Stack>
             <Select value={doc} onChange={handleChangeTab} renderValue={e => <><i>Reading:</i>&nbsp;{e?.label}</>}variant="plain" indicator={<ExpandMoreRoundedIcon fontSize="small"/>}>
               {Documents.map(d => (
-                <Option value={d.id}>{d.name}</Option>
+                <Option value={d.id} key={d.id}>{d.name}</Option>
               ))}
             </Select>
           </Stack>
@@ -68,9 +69,9 @@ function DocumentationTab() {
           </Dropdown>
         </Stack>
       </Stack>
-      <Sheet sx={{ p: 5, flex: 1 }}>
+      <Stack sx={{ p: 5 }}>
         <Markdown components={MARKDOWN_COMPONENTS} remarkPlugins={[remarkGfm]} children={text} />
-      </Sheet>
+      </Stack>
     </Stack>
   );
 }

@@ -17,7 +17,7 @@ import { SxProps } from '@mui/joy/styles/types';
 import { getVisible, pushMessage } from '../../store/slices/ui';
 import SystemTab from './tabs/system/SystemTab';
 import DocumentationTab from './tabs/documentation/DocumentationTab';
-import { Route, Routes, useLocation, useNavigate } from 'react-router';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router';
 
 /** ------------------------------------------------------------------------- */
 
@@ -30,10 +30,6 @@ function SystemIcon({ status }: { status: SystemStatus }) {
     case "error": return <PriorityHighRoundedIcon />;
   }
 }
-
-/** ------------------------------------------------------------------------- */
-
-
 
 /** ------------------------------------------------------------------------- */
 
@@ -71,9 +67,12 @@ function ViewPane() {
     }
   }, [dispatch, navigate]);
 
+  const segments = location.pathname.split('/').filter(Boolean);
+  const toplevel = segments.length > 0 ? '/' + segments[0] : '/';
+
   return (
-    <Stack direction="column" component="main" flex={1} overflow="scroll" height="100vh">
-      <Tabs size="sm" value={location.pathname} onChange={handleTab}>
+    <Stack direction="column" component="main" overflow="scroll" height="100vh" flex={1}>
+      <Tabs size="sm" value={toplevel} onChange={handleTab} sx={{ flex: 1 }}>
         {show_tabs && <TabList color="neutral" variant="soft" sx={TAB_LIST_SX} sticky="top">
           <Tab value="/system" indicatorPlacement="top">
             <ListItemDecorator>
@@ -90,8 +89,9 @@ function ViewPane() {
         </TabList>
         }
         <Routes>
-          <Route index path="/system" element={<SystemTab />}/>
+          <Route path="/system" element={<SystemTab />}/>
           <Route path="/documentation/:doc?" element={<DocumentationTab />}/>
+          <Route path="/" element={<Navigate to="/system" replace />} />
         </Routes>
       </Tabs>
     </Stack>
