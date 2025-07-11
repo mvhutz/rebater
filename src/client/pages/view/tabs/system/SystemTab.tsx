@@ -3,6 +3,7 @@ import SupplierResultsTable from './SupplierResultsTable';
 import CircularProgress from '@mui/joy/CircularProgress';
 import Stack from '@mui/joy/Stack';
 import Typography from '@mui/joy/Typography';
+import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
 import NightsStayRoundedIcon from '@mui/icons-material/NightsStayRounded';
 import DoneRoundedIcon from '@mui/icons-material/DoneRounded';
 import PriorityHighRoundedIcon from '@mui/icons-material/PriorityHighRounded';
@@ -29,6 +30,7 @@ function InnerText({ status }: { status: SystemStatus }) {
     case "done": return <DoneRoundedIcon sx={INNER_TEXT_ICON_SX} />;
     case "idle": return <NightsStayRoundedIcon sx={INNER_TEXT_ICON_SX} />;
     case "loading": return <HourglassEmptyRoundedIcon sx={INNER_TEXT_ICON_SX} />;
+    case "asking": return <QuestionMarkRoundedIcon sx={INNER_TEXT_ICON_SX} />;
     case "running": return `${(Math.round(100 * status.progress))}%`;
     case "error": return <PriorityHighRoundedIcon sx={INNER_TEXT_ICON_SX} />;
   }

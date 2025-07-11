@@ -115,22 +115,24 @@ export const isSystemActive = (state: RootState) => {
   return state.system.status.type === "running" || state.system.status.type === "loading";
 }
 
-export const getSystemStatusName = (state: RootState) => {
+export const getSystemStatusName = (state: RootState): string => {
   switch (state.system.status.type) {
     case "done": return "Done!";
     case "idle": return "Idle";
     case "loading": return state.system.status.message ?? "Loading...";
     case "running": return "Running transformers...";
     case "error": return "Error encountered!";
+    case "asking": return "Input required!"
   }
 }
 
-export const getSystemProgress = (state: RootState) => {
+export const getSystemProgress = (state: RootState): number => {
   switch (state.system.status.type) {
     case "done": return 0;
     case "idle": return 0;
     case "loading": return 0;
     case "running": return 100 * state.system.status.progress;
     case "error": return 0;
+    case "asking": return 0;
   }
 }

@@ -4,6 +4,7 @@ import started from 'electron-squirrel-startup';
 import IPC from './shared/ipc';
 import { Worker } from 'worker_threads';
 import { bad, good } from './shared/reply';
+import { WorkerRequest } from './shared/worker_message';
 
 /** ------------------------------------------------------------------------- */
 
@@ -41,12 +42,17 @@ const createWindow = async () => {
     ipcMain.invoke.runnerUpdate(mainWindow, message);
   });
 
+  ipcMain.handle.answerQuestion(async (_, { data }) => {
+    worker.postMessage({ type: "answer", answer: data } as WorkerRequest);
+    return good(undefined);
+  });
+
   ipcMain.handle.runProgram(async (_, { data }) => {
     if (data == null) {
       return bad("Cannot give empty settings.");
     }
 
-    worker.postMessage(data);
+    worker.postMessage({ type: "start", settings: data } as WorkerRequest);
     return good(undefined);
   });
 

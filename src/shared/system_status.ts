@@ -22,4 +22,9 @@ interface RunningStatus {
   progress: number;
 }
 
-export type SystemStatus = IdleStatus | RunningStatus | DoneStatus | ErrorStatus | LoadingStatus;
+interface AskStatus {
+  type: "asking";
+  question: string;
+}
+
+export type SystemStatus = IdleStatus | RunningStatus | DoneStatus | ErrorStatus | LoadingStatus | AskStatus;

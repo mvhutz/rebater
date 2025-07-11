@@ -53,7 +53,6 @@ const IPC = createInterprocess({
   main: {
     async getPing() {
       const message = "PONG!";
-      console.log("PING!");
       return message;
     },
     async chooseDir() {
@@ -73,8 +72,13 @@ const IPC = createInterprocess({
       await fs.writeFile(file, JSON.stringify(settings));
       return good(file);
     },
-    async runProgram(_, settings?: Settings): Promise<Reply<undefined>> {
+    async runProgram(_, settings?: Settings): Promise<Reply> {
       void [settings];
+
+      return good(undefined);
+    },
+    async answerQuestion(_, answer: Maybe<string>): Promise<Reply> {
+      void [answer];
 
       return good(undefined);
     }

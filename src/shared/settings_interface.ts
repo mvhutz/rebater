@@ -124,7 +124,6 @@ function makeContextInterface(context: Settings["context"]): Reply<ContextInterf
 function makeTransformerInterface(settings: Settings["transformers"]): Reply<TransformersInterface> {
   return good({
     willRun(transformer) {
-      console.log(transformer.name, transformer.tags);
       const { names: { include: names = [] }, tags: { include: tags = [] } } = settings;
       if (names.length > 0 && !names.includes(transformer.name)) {
         return false;

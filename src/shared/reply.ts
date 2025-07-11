@@ -15,7 +15,7 @@ interface GoodReply<T> {
 }
 
 export function good<T>(data: T, message?: string): GoodReply<T> {
-  return { ok: true, data, message };
+  return { ok: true, data: data, message };
 }
 
-export type Reply<T> = BadReply | GoodReply<T>;
+export type Reply<T = undefined> = BadReply | GoodReply<T>;

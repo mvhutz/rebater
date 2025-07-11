@@ -13,7 +13,6 @@ import InfoOutlineIcon from '@mui/icons-material/InfoOutline';
 
 function AlertPopup() {
   const message = useAppSelector(getLatestMessage);
-  console.log(message);
   const [open, setOpen] = React.useState<boolean>(false);
   const dispatch = useDispatch();
 

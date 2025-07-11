@@ -22,8 +22,6 @@ function ContextSettings() {
   const { year, quarter } = useAppSelector(getContextSettings);
   const dispatch = useAppDispatch();
 
-  console.log(year, quarter)
-
   const handleYear = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number(event.target.value);
 

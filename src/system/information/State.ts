@@ -1,11 +1,11 @@
 import { BasicCounter, Counter } from "./Counter";
 import { BasicReference, Reference } from "./Reference";
-import { Handlers } from "./Handlers";
 import fs from "fs/promises";
 import assert from "assert";
 import path from "path";
 import { glob } from "fs/promises";
 import { SettingsInterface } from "../../shared/settings_interface";
+import mutexify from 'mutexify/promise';
 
 /** ------------------------------------------------------------------------- */
 
@@ -13,13 +13,14 @@ export abstract class State {
   public abstract getCounter(name: string): Counter;
   public abstract getReference(name: string): Promise<Reference>;
   public abstract getSettings(): SettingsInterface;
-  public abstract get handlers(): Handlers;
 
   public abstract loadSourceFilesQueries(...filepaths: string[]): Promise<void>;
   public abstract pullSourceFileGlob(filepath: string): Buffer[];
 
   public abstract appendDestinationFile(filepath: string, data: Buffer): void;
   public abstract saveDestinationFiles(): Promise<void>;
+  public abstract requestAsk(): Promise<() => void>;
+  public abstract ask(question: string): Promise<Maybe<string>>;
 }
 
 export class BasicState extends State {
@@ -29,22 +30,27 @@ export class BasicState extends State {
   private references: Map<string, BasicReference>;
 
   private settings_interface: SettingsInterface;
-  public handlers: Handlers;
 
   private source_files: Map<string, Buffer>;
   private source_file_queries: Map<string, string[]>;
   private destination_files: Map<string, Buffer>;
+  public ask: (question: string) => Promise<Maybe<string>>;
+  private lock = mutexify();
 
-  constructor(settings: SettingsInterface, handlers: Handlers = {}) {
+  constructor(settings: SettingsInterface, onAsk: (question: string) => Promise<Maybe<string>>) {
     super();
 
     this.settings_interface = settings;
-    this.handlers = handlers;
     this.counters = new Map();
     this.references = new Map();
     this.source_files = new Map();
     this.source_file_queries = new Map();
     this.destination_files = new Map();
+    this.ask = onAsk;
+  }
+
+  public async requestAsk(): Promise<() => void> {
+    return await this.lock();
   }
 
   public getSettings(): SettingsInterface {

@@ -1,10 +1,11 @@
 import { Transformer } from "./Transformer";
-import { State } from "./information/State";
+import { BasicState, State } from "./information/State";
 import * as XLSX from "xlsx";
 import { getPartition, getRebateHash, getRebateHashFuzzy, parseRebateFile, Rebate } from "./util";
 import { mkdir, writeFile, glob } from "fs/promises";
 import path from "path";
 import { SystemStatus } from "../shared/system_status";
+import { SettingsInterface } from "src/shared/settings_interface";
 
 /** ------------------------------------------------------------------------- */
 
@@ -12,13 +13,31 @@ interface RunnerOptions {
   quiet?: boolean;
   combine?: boolean;
   onStatus?: (status: SystemStatus) => void;
+  onQuestion?: (question: string) => Promise<Maybe<string>>
 }
 
 export class Runner {
   private onStatus?: (status: SystemStatus) => void;
+  private onQuestion?: (question: string) => Promise<Maybe<string>>;
+  private status: SystemStatus;
 
   constructor(options?: RunnerOptions) {
     this.onStatus = options?.onStatus;
+    this.onQuestion = options?.onQuestion;
+    this.status = { type: "idle" };
+  }
+
+  public updateStatus(status: SystemStatus) {
+    this.status = status;
+    this.onStatus?.(this.status);
+  }
+
+  private async handleQuestion(question: string): Promise<Maybe<string>> {
+    const previous_status = this.status;
+    this.updateStatus({ type: "asking", question });
+    const answer = await this.onQuestion?.(question);
+    this.updateStatus(previous_status);
+    return answer;
   }
 
   public async pushRebates(state: State) {
@@ -85,37 +104,38 @@ export class Runner {
     return results;
   }
 
-  public async run(state: State) {
+  public async run(isettings: SettingsInterface) {
+    const state = new BasicState(isettings, question => this.handleQuestion(question));
     const results: RunResults = {
       config: [],
       discrepency: undefined,
     }
 
-    this.onStatus?.({ type: "loading", message: "Reading transformers..." });
+    this.updateStatus({ type: "loading", message: "Reading transformers..." });
     const transformers = await Transformer.pullAll(state.getSettings(), true);
 
-    this.onStatus?.({ type: "loading", message: "Loading sources..." });
+    this.updateStatus({ type: "loading", message: "Loading sources..." });
     for (const transformer of transformers) {
       await state.loadSourceFilesQueries(...transformer.getSourcesGlobs(state));
     }
 
     for (const [i, transformer] of transformers.entries()) {
-      this.onStatus?.({ type: "running", progress: i / transformers.length });
+      this.updateStatus({ type: "running", progress: i / transformers.length });
 
       results.config.push(await transformer.run(state));
     }
 
-    this.onStatus?.({ type: "loading", message: "Saving rebates..." });
+    this.updateStatus({ type: "loading", message: "Saving rebates..." });
     await state.saveDestinationFiles();
 
     if (state.getSettings().doTesting()) {
-      this.onStatus?.({ type: "loading", message: "Scoring accuracy..." });
+      this.updateStatus({ type: "loading", message: "Scoring accuracy..." });
       results.discrepency = await this.compareAllRebates(state);
     }
 
-    this.onStatus?.({ type: "loading", message: "Compiling rebates..." });
+    this.updateStatus({ type: "loading", message: "Compiling rebates..." });
     await this.pushRebates(state);
     
-    this.onStatus?.({ type: "done", results: results });
+    this.updateStatus({ type: "done", results: results });
   }
 }

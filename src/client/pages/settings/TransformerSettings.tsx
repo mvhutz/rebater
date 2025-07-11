@@ -30,7 +30,6 @@ function TransformerSettings() {
   if (transformers_reply.ok) {
     const { data: transformers } = transformers_reply;
     const all_tags = new Set(transformers.map(t => t.tags).flat());
-    console.log(all_tags);
     chip = <Chip variant="outlined" color="primary">{transformers.length}</Chip>
 
     inner = (
