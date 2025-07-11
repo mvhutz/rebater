@@ -1,5 +1,5 @@
 import React from 'react';
-import SupplierResultsTable from '../run/SupplierResultsTable';
+import SupplierResultsTable from './SupplierResultsTable';
 import CircularProgress from '@mui/joy/CircularProgress';
 import Stack from '@mui/joy/Stack';
 import Typography from '@mui/joy/Typography';
@@ -10,9 +10,9 @@ import { getSystemProgress, getSystemStatus, getSystemStatusName, isSystemLoadin
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { type SvgIconOwnProps } from '@mui/material';
 import AccordionGroup from '@mui/joy/AccordionGroup';
-import ErrorCard from '../run/ErrorCard';
+import ErrorCard from './ErrorCard';
 import { SystemStatus } from '../../../../../shared/system_status';
-import DiscrepancyTable from '../run/DiscrepancyTable';
+import DiscrepancyTable from './DiscrepancyTable';
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded';
 import { Dropdown, IconButton, Menu, MenuButton, MenuItem } from '@mui/joy';
 import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
@@ -36,7 +36,7 @@ function InnerText({ status }: { status: SystemStatus }) {
 
 /** ------------------------------------------------------------------------- */
 
-function RunTab() {
+function SystemTab() {
   const status = useAppSelector(getSystemStatus);
   const messageText = useAppSelector(getSystemStatusName);
   const progress = useAppSelector(getSystemProgress);
@@ -59,7 +59,8 @@ function RunTab() {
     <Stack padding={0}>
       <Stack padding={1}>
         <Stack direction="row" justifyContent="center" alignItems="center" position="relative">
-          <Typography level="title-md" pt={0.5} color="neutral"><code>Status</code></Typography>
+          {/* <Typography level="title-md" pt={0.5} color="neutral"><code>Status</code></Typography> */}
+          <Typography level="body-lg" pt={0.5} color="neutral">{messageText}</Typography>
           <Dropdown>
             <MenuButton sx={{ position: "absolute", right: 0, top: 0 }}
               slots={{ root: IconButton }}
@@ -73,12 +74,11 @@ function RunTab() {
         </Stack>
       </Stack>
       <Stack padding={2}>
-        <Stack direction="column" gap={2} flexGrow={1} height="85vh" alignItems="center" position="relative">
+        <Stack direction="column" gap={2} flexGrow={1} height="70vh" alignItems="center" position="relative">
           <Stack alignItems="center" flex={1} justifyContent="center" gap={3}>
             <CircularProgress color="primary" variant="soft" value={progress} determinate={!loading} size="lg" sx={{ '--CircularProgress-size': '200px' }}>
               <InnerText status={status} />
             </CircularProgress>
-            <Typography level="body-lg" color="neutral">{messageText}</Typography>
           </Stack>
         </Stack>
         <AccordionGroup variant="plain" transition="0.2s" size='lg' disableDivider sx={{ gap: 2 }}>
@@ -93,4 +93,4 @@ function RunTab() {
 
 /** ------------------------------------------------------------------------- */
 
-export default React.memo(RunTab);
+export default React.memo(SystemTab);

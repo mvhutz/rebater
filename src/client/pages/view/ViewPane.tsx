@@ -12,7 +12,7 @@ import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded
 import { ListItemDecorator, Tab, tabClasses, TabList, Tabs } from '@mui/joy';
 import { SxProps } from '@mui/joy/styles/types';
 import { getCurrentTab, getVisible, pushMessage, RunTabs, setCurrentTab } from '../../store/slices/ui';
-import RunTab from './tabs/run/RunTab';
+import SystemTab from './tabs/system/SystemTab';
 
 /** ------------------------------------------------------------------------- */
 
@@ -56,7 +56,7 @@ function ViewPane() {
   const { tabs: show_tabs } = useAppSelector(getVisible);
 
   const dispatch = useAppDispatch();
-  
+
   const tab = useAppSelector(getCurrentTab);
   const handleTab = React.useCallback((_: unknown, tab: Maybe<string | number>) => {
     const item = RunTabs.find(t => t === tab);
@@ -69,25 +69,24 @@ function ViewPane() {
 
   return (
     <Stack direction="column" component="main" flex={1} overflow="scroll" height="100vh">
-      { show_tabs &&
-        <Tabs size="sm" value={tab} onChange={handleTab}>
-          <TabList color="neutral" variant="soft" sx={TAB_LIST_SX} sticky="top">
-            <Tab value="system" indicatorPlacement="top">
-              <ListItemDecorator>
-                <SystemIcon status={status} />
-              </ListItemDecorator>
-              System
-            </Tab>
-            <Tab value="documentation" indicatorPlacement="top">
-              <ListItemDecorator>
-                <BookmarkRoundedIcon />
-              </ListItemDecorator>
-              Documentation
-            </Tab>
-          </TabList>
-          {tab === "system" && <RunTab /> }
-        </Tabs>
-      }
+      <Tabs size="sm" value={tab} onChange={handleTab}>
+        {show_tabs && <TabList color="neutral" variant="soft" sx={TAB_LIST_SX} sticky="top">
+          <Tab value="system" indicatorPlacement="top">
+            <ListItemDecorator>
+              <SystemIcon status={status} />
+            </ListItemDecorator>
+            System
+          </Tab>
+          <Tab value="documentation" indicatorPlacement="top">
+            <ListItemDecorator>
+              <BookmarkRoundedIcon />
+            </ListItemDecorator>
+            Documentation
+          </Tab>
+        </TabList>
+        }
+        {tab === "system" && <SystemTab />}
+      </Tabs>
     </Stack>
   );
 }
