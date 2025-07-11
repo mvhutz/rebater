@@ -7,7 +7,13 @@ import AccordionDetails from '@mui/joy/AccordionDetails';
 import React from 'react';
 import { useAppDispatch, useAppSelector } from '../../../client/store/hooks';
 import { getTransformers, getTransformersSettings, setTransformersNames, setTransformersTags } from '../../../client/store/slices/system';
-import { Chip, FormControl, Option, Select, Stack, FormLabel, Box } from '@mui/joy';
+import Chip from '@mui/joy/Chip';
+import FormControl from '@mui/joy/FormControl';
+import Option from '@mui/joy/Option';
+import Select from '@mui/joy/Select';
+import Stack from '@mui/joy/Stack';
+import FormLabel from '@mui/joy/FormLabel';
+import Box from '@mui/joy/Box';
 
 /** ------------------------------------------------------------------------- */
 

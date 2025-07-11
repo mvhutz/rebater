@@ -6,7 +6,9 @@ import ListItemContent from '@mui/joy/ListItemContent';
 import Typography from '@mui/joy/Typography';
 import BiotechIcon from '@mui/icons-material/Biotech';
 import React from 'react';
-import { AccordionGroup, Chip, Sheet } from '@mui/joy';
+import AccordionGroup from '@mui/joy/AccordionGroup';
+import Chip from '@mui/joy/Chip';
+import Sheet from '@mui/joy/Sheet';
 
 /** ------------------------------------------------------------------------- */
 

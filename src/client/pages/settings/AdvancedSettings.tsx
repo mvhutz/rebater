@@ -14,7 +14,7 @@ import AccordionDetails from '@mui/joy/AccordionDetails';
 import React from 'react';
 import { useAppDispatch, useAppSelector } from '../../../client/store/hooks';
 import { getSystemSettings, getTestSettings, setSystemTarget, setSystemTesting } from '../../../client/store/slices/system';
-import { Switch } from '@mui/joy';
+import Switch from '@mui/joy/Switch';
 
 /** ------------------------------------------------------------------------- */
 

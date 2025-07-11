@@ -7,14 +7,17 @@
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
-    "make": "electron-forge make",
+    "mac": "electron-forge make --platform darwin",
+    "win": "electron-forge make --platform win32",
+    "linux": "electron-forge make --platform linux",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx ."
   },
   "keywords": [],
   "author": {
-    "name": "Max",
-    "email": "git@maximhutz.me"
+    "name": "M. V. Hutz",
+    "email": "git@maximhutz.me",
+    "description": "A rebate processor for Fuse Alliance."
   },
   "license": "MIT",
   "devDependencies": {

@@ -15,7 +15,11 @@ import ErrorCard from './ErrorCard';
 import { SystemStatus } from '../../../../../shared/system_status';
 import DiscrepancyTable from './DiscrepancyTable';
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded';
-import { Dropdown, IconButton, Menu, MenuButton, MenuItem } from '@mui/joy';
+import Dropdown from '@mui/joy/Dropdown';
+import IconButton from '@mui/joy/IconButton';
+import Menu from '@mui/joy/Menu';
+import MenuButton from '@mui/joy/MenuButton';
+import MenuItem from '@mui/joy/MenuItem';
 import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
 import { getVisible, toggleSettings, toggleTabs } from '../../../../store/slices/ui';
 

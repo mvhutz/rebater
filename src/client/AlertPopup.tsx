@@ -6,8 +6,8 @@ import { useAppSelector } from './store/hooks';
 import { getLatestMessage, popMessage } from './store/slices/ui';
 import { useDispatch } from 'react-redux';
 import ErrorIcon from '@mui/icons-material/Error';
-import { Typography } from '@mui/material';
 import InfoOutlineIcon from '@mui/icons-material/InfoOutline';
+import Typography from '@mui/joy/Typography';
 
 /** ------------------------------------------------------------------------- */
 
