@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { rewire } from "../util";
 
 const NAME = "header";
 
@@ -23,7 +24,7 @@ async function run(transformation: Schema, table: Table) {
     data: r.data.filter((_, i) => i !== index)
   }));
 
-  return { ...table, data: rows };
+  return rewire({ ...table, data: rows });
 }
 
 /** ------------------------------------------------------------------------- */

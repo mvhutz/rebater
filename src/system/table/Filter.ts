@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import RowTransformation from "../row";
 import { State } from "../information/State";
+import { rewire } from "../util";
 
 const NAME = "filter";
 
@@ -22,7 +23,7 @@ async function run(transformation: Schema, table: Table, state: State): Promise<
     if (value === "true") rows.push(row);
   }
 
-  return { ...table, data: rows };
+  return rewire({ ...table, data: rows });
 }
 
 /** ------------------------------------------------------------------------- */

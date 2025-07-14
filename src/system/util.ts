@@ -31,13 +31,29 @@ const RebateSchema = z.strictObject({
   supplierId: z.coerce.string(),
   memberId: z.coerce.string(),
   distributorName: z.coerce.string(),
-  purchaseAmount: z.coerce.string(),
-  rebateAmount: z.coerce.string(),
+  purchaseAmount: z.coerce.number(),
+  rebateAmount: z.coerce.number(),
   invoiceId: z.coerce.string(),
   invoiceDate: z.coerce.string(),
 });
 
 export type Rebate = z.infer<typeof RebateSchema>;
+
+export function getRebateHash(rebate: Rebate): string {
+  const { transactionDate, supplierId, memberId, distributorName, purchaseAmount, rebateAmount, invoiceId, invoiceDate } = rebate;
+  return `${transactionDate},${supplierId},${memberId},${distributorName},${purchaseAmount},${rebateAmount},${invoiceId},${invoiceDate}`;
+}
+
+export function areRebatesEqual(a: Rebate, b: Rebate) {
+  return a.invoiceId === b.invoiceId
+    && Math.abs(a.purchaseAmount - b.purchaseAmount) <= 0.02
+    && Math.abs(a.rebateAmount - b.rebateAmount) <= 0.02
+    && a.invoiceDate === b.invoiceDate
+    && a.transactionDate === b.transactionDate
+    && a.supplierId === b.supplierId
+    && a.memberId === b.memberId
+    && a.distributorName === b.distributorName;
+}
 
 export async function parseRebateFile(path: string): Promise<Rebate[]> {
   try {
@@ -48,22 +64,6 @@ export async function parseRebateFile(path: string): Promise<Rebate[]> {
     assert.ok(error instanceof z.ZodError);
     throw new Error(`Error processing '${path}': ${z.prettifyError(error)}`)
   }
-}
-
-export function getRebateHash(rebate: Rebate): string {
-  const { transactionDate, supplierId, memberId, distributorName, purchaseAmount, rebateAmount, invoiceId, invoiceDate } = rebate;
-  return `${transactionDate},${supplierId},${memberId},${distributorName},${purchaseAmount},${rebateAmount},${invoiceId},${invoiceDate}`;
-}
-
-export function getRebateHashFuzzy(rebate: Rebate): string[] {
-  const { transactionDate, supplierId, memberId, distributorName, purchaseAmount, rebateAmount, invoiceId, invoiceDate } = rebate;
-  const underRebateAmount = (Number(rebateAmount) - 0.01).toFixed(2);
-  const overRebateAmount = (Number(rebateAmount) + 0.01).toFixed(2);
-  return [
-    `${transactionDate},${supplierId},${memberId},${distributorName},${purchaseAmount},${underRebateAmount},${invoiceId},${invoiceDate}`,
-    `${transactionDate},${supplierId},${memberId},${distributorName},${purchaseAmount},${rebateAmount},${invoiceId},${invoiceDate}`,
-    `${transactionDate},${supplierId},${memberId},${distributorName},${purchaseAmount},${overRebateAmount},${invoiceId},${invoiceDate}`
-  ];
 }
 
 export function getPartition<O extends object, K extends keyof O>(objects: O[], key: K): Map<O[K], O[]> {
@@ -78,6 +78,63 @@ export function getPartition<O extends object, K extends keyof O>(objects: O[], 
   }
 
   return buckets;
+}
+
+export class RebateSet {
+  private buckets: Record<string, Rebate[]>;
+
+  constructor(rebates: Rebate[]) {
+    this.buckets = {};
+
+    for (const rebate of rebates) {
+      this.give(rebate);
+    }
+  }
+
+  public values() {
+    return Object.values(this.buckets).flat();
+  }
+
+  public find(rebate: Rebate): Maybe<[string, number]> {
+    const bucket = this.buckets[rebate.invoiceId];
+    if (bucket == null) return null;
+
+    for (let i = 0; i < bucket.length; i++) {
+      if (areRebatesEqual(bucket[i], rebate)) {
+        return [rebate.invoiceId, i];
+      }
+    }
+
+    return null;
+  }
+
+  public has(rebate: Rebate) {
+    return this.find(rebate) != null;
+  }
+
+  public give(rebate: Rebate) {
+    (this.buckets[rebate.invoiceId] ??= []).push(rebate);
+  }
+
+  public take(rebate: Rebate) {
+    const place = this.find(rebate);
+    if (place == null) return false;
+
+    this.buckets[place[0]].splice(place[1], 1);
+    return true;
+  }
+}
+
+export function rewire(table: Table) {
+  table.data.forEach(r => { r.table = table; });
+  return table;
+}
+
+export function makeTable(rows: string[][], path = "") {
+  const table: Table = { data: [], path };
+  table.data = rows.map(r => ({ data: r, table }));
+
+  return table;
 }
 
 /** ------------------------------------------------------------------------- */

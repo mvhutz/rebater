@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { ExcelIndex, ExcelIndexSchema, getTrueIndex } from "../util";
+import { ExcelIndex, ExcelIndexSchema, getTrueIndex, rewire } from "../util";
 import assert from "assert";
 
 const NAME = "coalesce";
@@ -50,7 +50,7 @@ async function run(transformation: Schema, table: Table): Promise<Table> {
   }
 
   const combined = [...matched.values()].map(combineRows.bind(null, combine));
-  return { ...table, data: combined };
+  return rewire({ ...table, data: combined });
 }
 
 /** ------------------------------------------------------------------------- */

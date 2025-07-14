@@ -3,6 +3,7 @@ import * as XLSX from "xlsx";
 import assert from "assert";
 import { State } from "../information/State";
 import BaseSource from "./base";
+import { makeTable } from "../util";
 
 /** ------------------------------------------------------------------------- */
 
@@ -55,11 +56,7 @@ function run(source: Schema, state: State): Table[] {
 
       const parsed = z.array(z.array(z.coerce.string())).parse(unclean);
 
-      const table = {
-        path: file.path,
-        data: parsed.map(data => ({ data, get table() { return table; } }))
-      };
-
+      const table = makeTable(parsed, file.path);
       results.push(table);
     }
   }

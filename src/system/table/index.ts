@@ -9,6 +9,7 @@ import Coalesce from "./Coalesce";
 import Debug from "./Debug";
 import Percolate from "./Percolate";
 import { State } from "../information/State";
+import Set from "./Set";
 
 /** ------------------------------------------------------------------------- */
 
@@ -20,7 +21,8 @@ const REGISTERED = [
   Header,
   Coalesce,
   Debug,
-  Percolate
+  Percolate,
+  Set
 ] as const;
 
 export const TableTransformationSchema = z.discriminatedUnion("type", [

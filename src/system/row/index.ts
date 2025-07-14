@@ -14,6 +14,8 @@ import Add from "./Add";
 import Equals from "./Equals";
 import Concat from "./Concat";
 import { State } from "../information/State";
+import Divide from "./Divide";
+import Sum from "./Sum";
 
 const REGISTERED = [
   Coerce,
@@ -28,7 +30,9 @@ const REGISTERED = [
   Meta,
   Add,
   Equals,
-  Concat
+  Concat,
+  Divide,
+  Sum
 ] as const;
 
 export const _Schema = z.discriminatedUnion("type", [
