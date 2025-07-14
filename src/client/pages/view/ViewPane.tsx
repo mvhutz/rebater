@@ -71,7 +71,7 @@ function ViewPane() {
   const toplevel = segments.length > 0 ? '/' + segments[0] : '/';
 
   return (
-    <Stack direction="column" component="main" overflow="scroll" height="100vh" flex={1}>
+    <Stack direction="column" component="main" overflow="auto" height="100vh" flex={1}>
       <Tabs size="sm" value={toplevel} onChange={handleTab} sx={{ flex: 1 }}>
         {show_tabs && <TabList color="neutral" variant="soft" sx={TAB_LIST_SX} sticky="top">
           <Tab value="/system" indicatorPlacement="top">
