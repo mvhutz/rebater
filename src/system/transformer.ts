@@ -79,7 +79,10 @@ export class Transformer {
     
     const recombined: Table = {
       path: this.path,
-      data: [{ data: properties.map(p => p.name) }]
+      data: [{
+        data: properties.map(p => p.name),
+        get table() { return recombined }
+      }]
     }
 
     const rows = preprocessed_data.map(table => table.data).flat(1);
@@ -91,7 +94,7 @@ export class Transformer {
         result.push(output);
       }
 
-      recombined.data.push({ data: result });
+      recombined.data.push({ data: result, table: recombined });
     }
 
     const [postprocessed_data] = await TableTransformation.runMany(postprocess, [recombined], state);

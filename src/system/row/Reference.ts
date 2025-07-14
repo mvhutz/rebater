@@ -6,6 +6,10 @@ const NAME = "reference";
 
 /** ------------------------------------------------------------------------- */
 
+function getQuestionFormat(group: string, take: string, value: string) {
+  return `For **\`${group}\`**, what is the **\`${take}\`** of this?\n\n "\`${value}\`"`
+}
+
 const schema = z.strictObject({
   type: z.literal("reference"),
   table: z.string(),
@@ -28,7 +32,7 @@ async function run(transformation: Transformation, value: string, _row: Row, sta
     return result;
   }
   
-  const answer = await state.ask(`For '${group}', the '${take}' of '${value}' is?`);
+  const answer = await state.ask(getQuestionFormat(group, take, value));
   assert.ok(answer != null, `Table '${table}' has no item '${value}' for '${match}'.`);
   
   reference.append({ [match]: value, [take]: answer, group: group });

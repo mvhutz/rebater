@@ -22,13 +22,13 @@ function getSourceFileGlob(source: Schema, state: State) {
 }
 
 function run(source: Schema, state: State): Table[] {
-  const { group, sheets } = source;
+  const { sheets } = source;
   
   const files = state.pullSourceFileGlob(getSourceFileGlob(source, state));
   const results = new Array<Table>();
 
   for (const file of files) {
-    const workbook = XLSX.read(file, { type: "buffer" });
+    const workbook = XLSX.read(file.raw, { type: "buffer" });
 
     const sheetsToTake = new Set<string>();
     if (sheets == null) {
@@ -54,10 +54,13 @@ function run(source: Schema, state: State): Table[] {
       });
 
       const parsed = z.array(z.array(z.coerce.string())).parse(unclean);
-      results.push({
-        path: "",
-        data: parsed.map(data => ({ group, data }))
-      });
+
+      const table = {
+        path: file.path,
+        data: parsed.map(data => ({ data, get table() { return table; } }))
+      };
+
+      results.push(table);
     }
   }
 

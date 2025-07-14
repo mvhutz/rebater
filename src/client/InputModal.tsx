@@ -10,6 +10,7 @@ import Input from '@mui/joy/Input';
 import Modal from '@mui/joy/Modal';
 import ModalDialog from '@mui/joy/ModalDialog';
 import Stack from '@mui/joy/Stack';
+import Markdown from 'react-markdown';
 
 /** ------------------------------------------------------------------------- */
 
@@ -35,7 +36,11 @@ function InputModal() {
     <Modal open={open} onClose={handleClose}>
         <ModalDialog>
           <DialogTitle>Rebator needs your help!</DialogTitle>
-          <DialogContent>{question}</DialogContent>
+          <DialogContent>
+            <Markdown>
+              {question}
+            </Markdown>
+            </DialogContent>
           <form onSubmit={handleForm}>
             <Stack spacing={2}>
               <FormControl>

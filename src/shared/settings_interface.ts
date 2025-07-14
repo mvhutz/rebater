@@ -11,6 +11,7 @@ interface TargetInterface {
   getTruthPathGlob(): string;
   getDestinationPath(name: string): string;
   getSourcePathGlob(group: string, extension?: string): string;
+  getSourcePath(): string;
   getTransformerPathGlob(): string;
   getTransformerPath(name: string): string;
   getOutputFile(extension: string): string;
@@ -28,7 +29,7 @@ interface TransformersInterface {
   willRun(transformer: TransformerData): boolean;
 }
 
-export interface SettingsInterface extends TargetInterface, AdvancedInterface, TransformersInterface {
+export interface SettingsInterface extends ContextInterface, AdvancedInterface, TransformersInterface {
 }
 
 /** ------------------------------------------------------------------------- */
@@ -57,6 +58,10 @@ function makeBasicTarget(strategy: Settings["advanced"]["target"], time: Time): 
       time.year.toString(),
       `Q${time.quarter.toString()}`,
       `**/*${extension}`
+    ),
+    getSourcePath: () => path.join(
+      directory,
+      "sources",
     ),
      getRebatePathGlob: () => path.join(
       directory,

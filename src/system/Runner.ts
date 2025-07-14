@@ -125,8 +125,9 @@ export class Runner {
       results.config.push(await transformer.run(state));
     }
 
-    this.updateStatus({ type: "loading", message: "Saving rebates..." });
+    this.updateStatus({ type: "loading", message: "Saving data..." });
     await state.saveDestinationFiles();
+    await state.saveReferences();
 
     if (state.getSettings().doTesting()) {
       this.updateStatus({ type: "loading", message: "Scoring accuracy..." });
