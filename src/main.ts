@@ -56,6 +56,17 @@ const createWindow = async () => {
     return good(undefined);
   });
 
+  mainWindow.on("close", () => {
+    ipcMain.remove.answerQuestion();
+    ipcMain.remove.chooseDir();
+    ipcMain.remove.getPing();
+    ipcMain.remove.getSettings();
+    ipcMain.remove.getTransformers();
+    ipcMain.remove.openDir();
+    ipcMain.remove.runProgram();
+    ipcMain.remove.setSettings();
+  });
+
   // and load the index.html of the app.
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
