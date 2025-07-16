@@ -11,11 +11,21 @@ const attributes = z.strictObject({
   type: z.literal("coerce"),
   as: z.literal(NAME),
   year: z.union([z.literal("assume")]).optional(),
-  parse: z.string().optional(),
+  parse: z.union([z.string(), z.array(z.string())]).optional(),
   format: z.string().default("M/D/YYYY")
 });
 
 type Attributes = z.infer<typeof attributes>;
+
+const COMMON_DATES = [
+  "M/D/YYYY",
+  "M/D/YY",
+  "MM.DD.YYYY",
+  "M.D.YYYY",
+  "MM/DD/YYYY",
+  "YYYY-MM-DD",
+  "YY/MM/DD"
+];
 
 function run(datum: string, attributes: Attributes, state: State) {
   const { parse, year, format } = attributes;
@@ -28,10 +38,8 @@ function run(datum: string, attributes: Attributes, state: State) {
     date = moment(datum, parse);
   } else if (!isNaN(attemptInt)) {
     date = moment(Date.UTC(0, 0, attemptInt));
-  } else if (/\d{1,2}\/\d{1,2}\/\d{2,4}/.test(datum)) {
-    date = moment(datum, "MM/DD/YYYY");
   } else {
-    date = moment(datum);
+    date = moment(datum, COMMON_DATES);
   }
 
   if (year === "assume") {

@@ -12,22 +12,22 @@ const schema = z.strictObject({
 
 type Transformation = z.infer<typeof schema>;
 
-const CACHE = new Map<string, number>();
-
-function getHash(table: Table, index: number) {
-  return `${table.path}||||${index}`;
-}
+const CACHE = new WeakMap<Table, Map<number, number>>();
 
 async function run(transformation: Transformation, _value: string, row: Row): Promise<string> {
   const { column: _column } = transformation;
   const column = getTrueIndex(_column);
 
-  const hash = getHash(row.table, column);
-  const cached_sum = CACHE.get(hash);
+  let cached_table = CACHE.get(row.table);
+  if (cached_table == null) {
+    CACHE.set(row.table, cached_table = new Map());
+  }
+
+  const cached_sum = cached_table.get(column);
   if (cached_sum != null) return cached_sum.toString();
 
   const sum = row.table.data.reduce((s, b) => s + Number(b.data[column]), 0);
-  CACHE.set(hash, sum);
+  cached_table.set(column, sum);
 
   return sum.toString();
 }
