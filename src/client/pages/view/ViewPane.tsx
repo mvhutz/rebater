@@ -14,10 +14,9 @@ import Tab, { tabClasses } from '@mui/joy/Tab';
 import TabList from '@mui/joy/TabList';
 import Tabs from '@mui/joy/Tabs';
 import { SxProps } from '@mui/joy/styles/types';
-import { getVisible, pushMessage } from '../../store/slices/ui';
+import { getTab, getVisible, pushMessage, setTab } from '../../store/slices/ui';
 import SystemTab from './tabs/system/SystemTab';
 import DocumentationTab from './tabs/documentation/DocumentationTab';
-import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router';
 
 /** ------------------------------------------------------------------------- */
 
@@ -55,44 +54,42 @@ const TAB_LIST_SX: SxProps = {
 function ViewPane() {
   const status = useAppSelector(getSystemStatus);
   const { tabs: show_tabs } = useAppSelector(getVisible);
-  const navigate = useNavigate();
+  const tab = useAppSelector(getTab);
   const dispatch = useAppDispatch();
 
-  const location = useLocation();
   const handleTab = React.useCallback((_: unknown, tab: Maybe<string | number>) => {
-    if (typeof tab !== "string") {
-      dispatch(pushMessage({ type: "error", text: `Invalid tab '${tab}'.` }));
-    } else {
-      navigate(tab);
+    switch (tab) {
+      case "system":
+      case "documentation":
+        dispatch(setTab(tab));
+        break;
+      default:
+        dispatch(pushMessage({ type: "error", text: `Invalid tab '${tab}'.` }));
+        break;
     }
-  }, [dispatch, navigate]);
-
-  const segments = location.pathname.split('/').filter(Boolean);
-  const toplevel = segments.length > 0 ? '/' + segments[0] : '/';
+  }, [dispatch]);
 
   return (
     <Stack direction="column" component="main" overflow="auto" height="100vh" flex={1}>
-      <Tabs size="sm" value={toplevel} onChange={handleTab} sx={{ flex: 1 }}>
-        {show_tabs && <TabList color="neutral" variant="soft" sx={TAB_LIST_SX} sticky="top">
-          <Tab value="/system" indicatorPlacement="top">
-            <ListItemDecorator>
-              <SystemIcon status={status} />
-            </ListItemDecorator>
-            System
-          </Tab>
-          <Tab value="/documentation" indicatorPlacement="top">
-            <ListItemDecorator>
-              <BookmarkRoundedIcon />
-            </ListItemDecorator>
-            Documentation
-          </Tab>
-        </TabList>
+      <Tabs size="sm" value={tab} onChange={handleTab} sx={{ flex: 1 }}>
+        {show_tabs &&
+          <TabList color="neutral" variant="soft" sx={TAB_LIST_SX} sticky="top">
+            <Tab value="system" indicatorPlacement="top">
+              <ListItemDecorator>
+                <SystemIcon status={status} />
+              </ListItemDecorator>
+              System
+            </Tab>
+            <Tab value="documentation" indicatorPlacement="top">
+              <ListItemDecorator>
+                <BookmarkRoundedIcon />
+              </ListItemDecorator>
+              Documentation
+            </Tab>
+          </TabList>
         }
-        <Routes>
-          <Route path="/system" element={<SystemTab />}/>
-          <Route path="/documentation/:doc?" element={<DocumentationTab />}/>
-          <Route path="/" element={<Navigate to="/system" replace />} />
-        </Routes>
+        <DocumentationTab />
+        <SystemTab />
       </Tabs>
     </Stack>
   );

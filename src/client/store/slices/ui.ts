@@ -4,8 +4,7 @@ import { pushSystemSettings } from './thunk';
 
 /** ------------------------------------------------------------------------- */
 
-export const RunTabs = ["system", "documentation"] as const;
-export type RunTab = typeof RunTabs[number];
+export type Tab = "system" | "documentation";
 
 interface Message {
   type: "error" | "info";
@@ -18,6 +17,7 @@ interface UIState {
     tabs: boolean;
     settings: boolean;
   },
+  tab: Tab
 }
 
 const initialState: UIState = {
@@ -25,7 +25,8 @@ const initialState: UIState = {
   show: {
     tabs: true,
     settings: true,
-  }
+  },
+  tab: "system"
 }
 
 /** ------------------------------------------------------------------------- */
@@ -45,6 +46,9 @@ export const UISlice = createSlice({
     },
     toggleSettings(state) {
       state.show.settings = !state.show.settings;
+    },
+    setTab(state, action: PayloadAction<Tab>) {
+      state.tab = action.payload;
     }
   },
   extraReducers(builder) {
@@ -64,7 +68,9 @@ export const UISlice = createSlice({
 
 /** ------------------------------------------------------------------------- */
 
-export const { popMessage, pushMessage, toggleTabs, toggleSettings } = UISlice.actions
+export const { popMessage, pushMessage, toggleTabs, toggleSettings, setTab } = UISlice.actions
 
 export const getLatestMessage = (state: RootState) => state.ui.messages.at(-1);
 export const getVisible = (state: RootState) => state.ui.show;
+export const getTab = (state: RootState) => state.ui.tab;
+export const getDisplayTab = (name: Tab) => (state: RootState) => state.ui.tab === name ? "initial" : "none";
