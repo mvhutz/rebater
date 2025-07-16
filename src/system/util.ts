@@ -9,13 +9,7 @@ export const ExcelIndexSchema = z.union([z.number(), z.string().regex(/[A-Z]+/)]
 export type ExcelIndex = z.infer<typeof ExcelIndexSchema>;
 
 function getIndexFromExcel(letters: string): number {
-  let result = 0;
-
-  for (let p = 0; p < letters.length; p++) {
-      result = letters.charCodeAt(p) - 64 + result * 26;
-  }
-
-  return result - 1;
+  return letters.split("").reduce((s, c) => c.charCodeAt(0) - 64 + s * 26, 0) - 1;
 }
 
 export function getTrueIndex(index: ExcelIndex): number {

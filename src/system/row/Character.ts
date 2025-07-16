@@ -12,7 +12,7 @@ const schema = z.strictObject({
 
 type Transformation = z.infer<typeof schema>;
 
-async function run(transformation: Transformation, value: string): Promise<string> {
+async function run(transformation: Transformation, value = ""): Promise<string> {
   const { select, action } = transformation;
 
   const characters = value.split("");

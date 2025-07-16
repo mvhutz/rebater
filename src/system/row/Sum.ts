@@ -28,7 +28,6 @@ async function run(transformation: Transformation, _value: string, row: Row): Pr
 
   const sum = row.table.data.reduce((s, b) => s + Number(b.data[column]), 0);
   CACHE.set(hash, sum);
-  console.log(CACHE);
 
   return sum.toString();
 }

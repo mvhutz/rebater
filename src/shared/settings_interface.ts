@@ -10,7 +10,7 @@ interface TargetInterface {
   getRebatePathGlob(): string;
   getTruthPathGlob(): string;
   getDestinationPath(name: string): string;
-  getSourcePathGlob(group: string, extension?: string): string;
+  getSourcePathGlob(group: string, file?: string, extension?: string): string;
   getSourcePath(): string;
   getTransformerPathGlob(): string;
   getTransformerPath(name: string): string;
@@ -51,13 +51,13 @@ function makeBasicTarget(strategy: Settings["advanced"]["target"], time: Time): 
       `Q${time.quarter.toString()}`,
       `${name}.csv`
     ),
-    getSourcePathGlob: (group, extension = "") => path.join(
+    getSourcePathGlob: (group, file = "*", extension = "") => path.join(
       directory,
       "sources",
       group,
       time.year.toString(),
       `Q${time.quarter.toString()}`,
-      `**/*${extension}`
+      `**/${file}${extension}`
     ),
     getSourcePath: () => path.join(
       directory,

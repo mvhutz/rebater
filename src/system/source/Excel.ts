@@ -11,6 +11,7 @@ function getSchema() {
   return z.strictObject({
     type: z.literal("excel"),
     group: z.string(),
+    file: z.string().default("*"),
     sheets: z.array(z.string()).optional(),
   });
 }
@@ -18,8 +19,8 @@ function getSchema() {
 type Schema = z.infer<ReturnType<typeof getSchema>>;
 
 function getSourceFileGlob(source: Schema, state: State) {
-  const { group } = source;
-  return state.getSettings().getSourcePathGlob(group, ".xlsx");
+  const { group, file } = source;
+  return state.getSettings().getSourcePathGlob(group, file, ".xls*");
 }
 
 function run(source: Schema, state: State): Table[] {
