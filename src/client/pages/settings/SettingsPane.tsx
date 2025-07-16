@@ -33,8 +33,10 @@ function SettingsPane() {
   const active = useAppSelector(isSystemActive);
   const { settings: show } = useAppSelector(getVisible);
 
-  const handleRun = React.useCallback(() => {
-    dispatch(startSystem());
+  const handleRun = React.useCallback(async () => {
+    await dispatch(pushSystemSettings());
+    await dispatch(pullTransformers());
+    await dispatch(startSystem());
   }, [dispatch]);
 
   const handleSave = React.useCallback(async () => {

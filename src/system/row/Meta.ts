@@ -22,7 +22,6 @@ export function getQuarterNumber(state: State): string {
 }
 
 function getRowSource(row: Row) {
-  // return path.relative(state.getSettings().getSourcePath(), row.table.path);
   return path.basename(row.table.path);
 }
 
