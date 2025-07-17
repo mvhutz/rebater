@@ -10,7 +10,7 @@ function getSchema() {
   ]);
 }
 
-type Schema = z.infer<ReturnType<typeof getSchema>>;
+export type SourceSchema = z.infer<ReturnType<typeof getSchema>>;
 
 /** ------------------------------------------------------------------------- */
 
@@ -35,4 +35,4 @@ export const Source = {
       .map((source): Table[] => Source.run({ source, ...options }))
       .flat(1);
   },
-} satisfies SourceType<Schema>;
+} satisfies SourceType<SourceSchema>;

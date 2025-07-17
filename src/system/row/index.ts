@@ -38,7 +38,7 @@ function getSchema() {
   ]);
 }
 
-type Schema = z.infer<ReturnType<typeof getSchema>>;
+export type RowSchema = z.infer<ReturnType<typeof getSchema>>;
 
 /** ------------------------------------------------------------------------- */
 
@@ -75,4 +75,4 @@ export const RowTransformation = {
 
     return value;
   },
-} satisfies RowTransformationType<Schema>;
+} satisfies RowTransformationType<RowSchema>;

@@ -1,43 +1,114 @@
 import { glob, readFile } from "fs/promises";
-import path from "path";
 import { z } from "zod/v4";
-import { TableTransformation } from "./table";
-import { Source } from "./source";
+import { TableSchema, TableTransformation } from "./table";
+import { Source, SourceSchema } from "./source";
 import { State } from "./information/State";
-import { Destination } from "./destination";
+import { Destination, DestinationSchema } from "./destination";
 import assert from "assert";
 import { SettingsInterface } from "../shared/settings_interface";
 import { rewire } from "./util";
-import { RowTransformation } from "./row";
+import { RowSchema, RowTransformation } from "./row";
+import { makeNodeElementSchema, TextElementSchema } from "./xml";
 
 /** ------------------------------------------------------------------------- */
 
-const DataSchema = z.strictObject({
-  name: z.string(),
-  tags: z.array(z.string()).default([]),
-  sources: z.array(Source.getSchema()),
-  preprocess: z.array(TableTransformation.getSchema()).optional(),
-  properties: z.array(z.strictObject({
-    name: z.string(),
-    definition: z.array(RowTransformation.getSchema())
-  })),
-  postprocess: z.array(TableTransformation.getSchema()).optional(),
-  destination: Destination.getSchema(),
-});
+const TagListSchema = makeNodeElementSchema(
+  z.literal("tag"),
+  z.never(),
+  z.array(TextElementSchema).length(1)
+);
 
-export type TransformerData = z.infer<typeof DataSchema>;
+const SourceListSchema = makeNodeElementSchema(
+  z.literal("sources"),
+  z.never(),
+  z.array(Source.getSchema()).default([])
+);
+
+const PreprocessSchema = makeNodeElementSchema(
+  z.literal("preprocess"),
+  z.never(),
+  z.array(TableTransformation.getSchema()).default([])
+);
+
+const PropertySchema = makeNodeElementSchema(
+  z.literal("property"),
+  z.strictObject({
+    name: z.string()
+  }),
+  z.array(RowTransformation.getSchema()).default([])
+);
+
+const PostprocessSchema = makeNodeElementSchema(
+  z.literal("postprocess"),
+  z.never(),
+  z.array(TableTransformation.getSchema()).default([])
+);
+
+const DestinationListSchema = makeNodeElementSchema(
+  z.literal("destinations"),
+  z.never(),
+  z.array(Destination.getSchema()).default([])
+);
+
+const TopLevelSchema = z.discriminatedUnion("name", [
+  TagListSchema,
+  SourceListSchema,
+  PreprocessSchema,
+  PropertySchema,
+  PostprocessSchema,
+  DestinationListSchema
+])
+
+const TransformerSchema = makeNodeElementSchema(
+  z.literal("transformer"),
+  z.strictObject({
+    name: z.string()
+  }),
+  z.array(TopLevelSchema)
+);
+
+export type TransformerData = z.infer<typeof TransformerSchema>;
 
 /** ------------------------------------------------------------------------- */
 
 export class Transformer {
   public data: TransformerData;
-  public name: string;
   public path: string;
 
-  private constructor(data: TransformerData, name: string, path: string) {
+  public name: string;
+  public tags: string[];
+
+  private sources: SourceSchema[];
+  private preprocessors: TableSchema[];
+  private properties: Map<string, RowSchema[]>;
+  private postprocessors: TableSchema[];
+  private destinations: DestinationSchema[];
+
+
+  private constructor(data: TransformerData, path: string) {
     this.data = data;
-    this.name = name;
     this.path = path;
+
+    this.name = data.attributes.name;
+
+    this.sources = [];
+    this.preprocessors = [];
+    this.properties = new Map();
+    this.postprocessors = [];
+    this.destinations = [];
+
+    this.tags = [];
+
+    for (const child of data.children) {
+      switch (child.name) {
+        case "sources": this.sources.push(...child.children); break;
+        case "preprocess": this.preprocessors.push(...child.children); break;
+        case "property": this.properties.set(child.attributes.name, child.children); break;
+        case "postprocess": this.postprocessors.push(...child.children); break;
+        case "destinations": this.destinations.push(...child.children); break;
+        case "tag": this.tags.push(child.children[0].text); break;
+      }
+    }
   }
 
   public static async fromFile(filepath: string): Promise<Transformer> {
@@ -45,8 +116,7 @@ export class Transformer {
     const json = JSON.parse(raw);
 
     try {
-      const name = path.parse(filepath).name;
-      return new Transformer(DataSchema.parse(json), name, filepath);
+      return new Transformer(TransformerSchema.parse(json), filepath);
     } catch (error) {
       assert.ok(error instanceof z.ZodError);
       throw Error(`Invalid schema for ${filepath}: ${z.prettifyError(error)}`)
@@ -69,19 +139,18 @@ export class Transformer {
   }
 
   public getSourcesGlobs(state: State): string[] {
-    return this.data.sources.map(source => Source.getFileGlob({ source, state }));
+    return this.sources.map(source => Source.getFileGlob({ source, state }));
   }
 
   public async run(state: State): Promise<TransformerResult> {
     const start = performance.now();
-    const { preprocess = [], postprocess = [], sources, destination, properties } = this.data;
-    const source_data = Source.runMany(sources, { state });
-    const preprocessed_data = await TableTransformation.runMany(source_data, preprocess, { state });
+    const source_data = Source.runMany(this.sources, { state });
+    const preprocessed_data = await TableTransformation.runMany(source_data, this.preprocessors, { state });
     
     const recombined = rewire({
       path: this.path,
       data: [{
-        data: properties.map(p => p.name),
+        data: this.properties.keys().toArray(),
         table: preprocessed_data[0]
       }]
     });
@@ -90,7 +159,7 @@ export class Transformer {
     for (const row of rows) {
       const result = new Array<string>();
 
-      for (const { definition } of properties) {
+      for (const [, definition] of this.properties) {
         const output = await RowTransformation.runMany(definition, { row, state });
         result.push(output);
       }
@@ -98,8 +167,11 @@ export class Transformer {
       recombined.data.push({ data: result, table: recombined });
     }
 
-    const [postprocessed_data] = await TableTransformation.runMany([recombined], postprocess, { state });
-    Destination.run(postprocessed_data, { destination, state });
+    const [postprocessed_data] = await TableTransformation.runMany([recombined], this.postprocessors, { state });
+    
+    for (const destination of this.destinations) {
+      Destination.run(postprocessed_data, { destination, state });
+    }
 
     const end = performance.now();
     return { start, end, name: this.name };

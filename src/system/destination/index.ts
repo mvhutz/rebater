@@ -10,11 +10,11 @@ function getSchema() {
   ]);
 }
 
-type Schema = z.infer<ReturnType<typeof getSchema>>;
+export type DestinationSchema = z.infer<ReturnType<typeof getSchema>>;
 
 /** ------------------------------------------------------------------------- */
 
-export const Destination: DestinationType<Schema> = {
+export const Destination: DestinationType<DestinationSchema> = {
   name: "csv",
   getSchema,
 
