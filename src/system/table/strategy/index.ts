@@ -5,7 +5,6 @@ import { NodeElement } from "../../xml";
 /** ------------------------------------------------------------------------- */
 
 export interface Options {
-  row: Row;
   state: State;
 }
 
@@ -13,10 +12,10 @@ export interface RunOptions<E> extends Options {
   transformation: E;
 }
 
-export interface RowTransformation<E extends NodeElement> {
+export interface TableTransformation<E extends NodeElement> {
   name: E["name"];
   getSchema(): z.ZodType<E> & (z.ZodDiscriminatedUnion | z.ZodObject);
 
-  run(value: string, options: RunOptions<E>): Promise<string>;
-  runMany?: (transformations: E[], options: Options) => Promise<string>;
+  run(value: Table, options: RunOptions<E>): Promise<Table>;
+  runMany?: (tables: Table[], transformations: E[], options: Options) => Promise<Table[]>;
 }

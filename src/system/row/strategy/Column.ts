@@ -1,27 +1,25 @@
 import { z } from "zod/v4";
 import { RowTransformation as RowTransformationType } from ".";
-import { makeNodeElementSchema } from "../../../system/xml";
+import { makeNodeElementSchema, makeTextElementSchema } from "../../../system/xml";
 import { ExcelIndexSchema } from "../../../system/util";
 
 /** ------------------------------------------------------------------------- */
 
 const getSchema = () => makeNodeElementSchema(
   z.literal("column"),
-  z.strictObject({
-    index: ExcelIndexSchema,
-  }),
-  z.never()
+  z.never(),
+  z.array(makeTextElementSchema(ExcelIndexSchema))
 );
 
 type Schema = z.infer<ReturnType<typeof getSchema>>;
 
 /** ------------------------------------------------------------------------- */
 
-export const Add: RowTransformationType<Schema> = {
+export const Column: RowTransformationType<Schema> = {
   name: "column",
   getSchema,
 
-  async run(_, { row, transformation: { attributes: { index } } }) {
-    return row.data[index];
+  async run(_, { row, transformation: { children: [{ text }] } }) {
+    return row.data[text];
   }
 };

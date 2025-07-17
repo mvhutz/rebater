@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { RowTransformation as RowTransformationType } from ".";
-import { makeNodeElement, makeNodeElementSchema } from "../../../system/xml";
+import { makeNodeElement, makeNodeElementSchema, makeTextElement } from "../../../system/xml";
 import { Meta, META_TYPES } from "./Meta";
 
 /** ------------------------------------------------------------------------- */
@@ -34,7 +34,7 @@ export const Replace: RowTransformationType<Schema> = {
       truePut = await Meta.run("", {
         row,
         state,
-        transformation: makeNodeElement("meta", { value: put_meta })
+        transformation: makeNodeElement("meta", undefined, [makeTextElement(put_meta)])
       });
     }
 

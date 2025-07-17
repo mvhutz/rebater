@@ -1,7 +1,7 @@
 import { glob, readFile } from "fs/promises";
 import path from "path";
 import { z } from "zod/v4";
-import TableTransformation from "./table";
+import { TableTransformation } from "./table";
 import { Source } from "./source";
 import { State } from "./information/State";
 import { Destination } from "./destination";
@@ -16,12 +16,12 @@ const DataSchema = z.strictObject({
   name: z.string(),
   tags: z.array(z.string()).default([]),
   sources: z.array(Source.getSchema()),
-  preprocess: z.array(TableTransformation.Schema).optional(),
+  preprocess: z.array(TableTransformation.getSchema()).optional(),
   properties: z.array(z.strictObject({
     name: z.string(),
     definition: z.array(RowTransformation.getSchema())
   })),
-  postprocess: z.array(TableTransformation.Schema).optional(),
+  postprocess: z.array(TableTransformation.getSchema()).optional(),
   destination: Destination.getSchema(),
 });
 
@@ -76,7 +76,7 @@ export class Transformer {
     const start = performance.now();
     const { preprocess = [], postprocess = [], sources, destination, properties } = this.data;
     const source_data = Source.runMany(sources, { state });
-    const preprocessed_data = await TableTransformation.runMany(preprocess, source_data, state);
+    const preprocessed_data = await TableTransformation.runMany(source_data, preprocess, { state });
     
     const recombined = rewire({
       path: this.path,
@@ -98,7 +98,7 @@ export class Transformer {
       recombined.data.push({ data: result, table: recombined });
     }
 
-    const [postprocessed_data] = await TableTransformation.runMany(postprocess, [recombined], state);
+    const [postprocessed_data] = await TableTransformation.runMany([recombined], postprocess, { state });
     Destination.run(postprocessed_data, { destination, state });
 
     const end = performance.now();
