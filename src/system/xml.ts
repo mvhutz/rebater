@@ -1,6 +1,5 @@
 import { xml2js } from "xml-js";
 import { z } from "zod/v4";
-import { bad, good, Reply } from "src/shared/reply";
 import { JSONType } from "zod/dist/types/v4/core/util";
 
 /** ------------------------------------------------------------------------- */
@@ -77,10 +76,6 @@ const XML_OPTIONS: Parameters<typeof xml2js>[1] = {
   textKey: "text",
 }
 
-export function fromText(text: string): Reply<Element> {
-  const json = xml2js(text, XML_OPTIONS);
-  const { success, data, error } = ElementSchema.safeParse(json);
-  if (success) return good(data);
-
-  return bad(`Could not parse XML: ${z.prettifyError(error)}`);
+export function fromText(text: string) {
+  return xml2js(text, XML_OPTIONS);
 }

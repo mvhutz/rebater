@@ -11,7 +11,7 @@ function getSchema() {
     z.strictObject({
       name: z.string()
     }),
-    z.never()
+    z.undefined()
   );
 }
 

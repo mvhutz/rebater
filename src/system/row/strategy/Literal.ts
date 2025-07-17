@@ -6,7 +6,7 @@ import { makeNodeElementSchema, TextElementSchema } from "../../../system/xml";
 
 const getSchema = () => makeNodeElementSchema(
   z.literal("literal"),
-  z.never(),
+  z.undefined(),
   z.array(TextElementSchema).length(1)
 );
 

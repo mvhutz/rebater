@@ -7,7 +7,7 @@ import { RowTransformation } from "..";
 
 const getSchema = () => makeNodeElementSchema(
   z.literal("equals"),
-  z.never(),
+  z.undefined(),
   z.array(NodeElementSchema)
 );
 

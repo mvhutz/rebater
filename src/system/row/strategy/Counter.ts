@@ -6,8 +6,8 @@ import { makeNodeElementSchema } from "../../../system/xml";
 
 const getSchema = () => makeNodeElementSchema(
   z.literal("counter"),
-  z.never(),
-  z.never()
+  z.undefined(),
+  z.undefined()
 );
 
 type Schema = z.infer<ReturnType<typeof getSchema>>;

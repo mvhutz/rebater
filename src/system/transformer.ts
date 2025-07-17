@@ -1,4 +1,4 @@
-import { glob, readFile } from "fs/promises";
+import { glob, readFile, writeFile } from "fs/promises";
 import { z } from "zod/v4";
 import { TableSchema, TableTransformation } from "./table";
 import { Source, SourceSchema } from "./source";
@@ -8,30 +8,30 @@ import assert from "assert";
 import { SettingsInterface } from "../shared/settings_interface";
 import { rewire } from "./util";
 import { RowSchema, RowTransformation } from "./row";
-import { makeNodeElementSchema, TextElementSchema } from "./xml";
+import { fromText, makeNodeElementSchema, TextElementSchema } from "./xml";
 
 /** ------------------------------------------------------------------------- */
 
 const TagListSchema = makeNodeElementSchema(
   z.literal("tag"),
-  z.never(),
+  z.undefined(),
   z.array(TextElementSchema).length(1)
 );
 
 const SourceListSchema = makeNodeElementSchema(
   z.literal("sources"),
-  z.never(),
+  z.undefined(),
   z.array(Source.getSchema()).default([])
 );
 
 const PreprocessSchema = makeNodeElementSchema(
   z.literal("preprocess"),
-  z.never(),
+  z.undefined(),
   z.array(TableTransformation.getSchema()).default([])
 );
 
 const PropertySchema = makeNodeElementSchema(
-  z.literal("property"),
+  z.literal("row"),
   z.strictObject({
     name: z.string()
   }),
@@ -40,13 +40,13 @@ const PropertySchema = makeNodeElementSchema(
 
 const PostprocessSchema = makeNodeElementSchema(
   z.literal("postprocess"),
-  z.never(),
+  z.undefined(),
   z.array(TableTransformation.getSchema()).default([])
 );
 
 const DestinationListSchema = makeNodeElementSchema(
   z.literal("destinations"),
-  z.never(),
+  z.undefined(),
   z.array(Destination.getSchema()).default([])
 );
 
@@ -59,13 +59,17 @@ const TopLevelSchema = z.discriminatedUnion("name", [
   DestinationListSchema
 ])
 
-const TransformerSchema = makeNodeElementSchema(
-  z.literal("transformer"),
-  z.strictObject({
-    name: z.string()
-  }),
-  z.array(TopLevelSchema)
-);
+const TransformerSchema = z.strictObject({
+  children: z.tuple([
+    makeNodeElementSchema(
+      z.literal("transformer"),
+      z.strictObject({
+        name: z.string()
+      }),
+      z.array(TopLevelSchema)
+    )
+  ])
+});
 
 export type TransformerData = z.infer<typeof TransformerSchema>;
 
@@ -85,8 +89,9 @@ export class Transformer {
   private destinations: DestinationSchema[];
 
 
-  private constructor(data: TransformerData, path: string) {
-    this.data = data;
+  private constructor(_data: TransformerData, path: string) {
+    const { children: [data] } = _data;
+    this.data = _data;
     this.path = path;
 
     this.name = data.attributes.name;
@@ -103,7 +108,7 @@ export class Transformer {
       switch (child.name) {
         case "sources": this.sources.push(...child.children); break;
         case "preprocess": this.preprocessors.push(...child.children); break;
-        case "property": this.properties.set(child.attributes.name, child.children); break;
+        case "row": this.properties.set(child.attributes.name, child.children); break;
         case "postprocess": this.postprocessors.push(...child.children); break;
         case "destinations": this.destinations.push(...child.children); break;
         case "tag": this.tags.push(child.children[0].text); break;
@@ -113,7 +118,8 @@ export class Transformer {
 
   public static async fromFile(filepath: string): Promise<Transformer> {
     const raw = await readFile(filepath, 'utf-8');
-    const json = JSON.parse(raw);
+    const json = fromText(raw);
+    await writeFile(".json", JSON.stringify(json));
 
     try {
       return new Transformer(TransformerSchema.parse(json), filepath);
@@ -130,7 +136,7 @@ export class Transformer {
     const transformers = new Array<Transformer>();
     for (const transformer_file of transformer_files) {
       const transformer = await Transformer.fromFile(transformer_file);
-      if (filter && !settings.willRun(transformer.data)) continue;
+      if (filter && !settings.willRun(transformer)) continue;
 
       transformers.push(transformer);
     }

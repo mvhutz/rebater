@@ -10,7 +10,7 @@ const getSchema = () => makeNodeElementSchema(
   z.strictObject({
     name: z.string().default("DEBUG")
   }),
-  z.never()
+  z.undefined()
 )
 
 type Schema = z.infer<ReturnType<typeof getSchema>>;

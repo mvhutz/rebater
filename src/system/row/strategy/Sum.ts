@@ -49,7 +49,7 @@ const getSchema = () => makeNodeElementSchema(
   z.strictObject({
     column: ExcelIndexSchema,
   }),
-  z.never()
+  z.undefined()
 );
 
 type Schema = z.infer<ReturnType<typeof getSchema>>;

@@ -11,7 +11,7 @@ function getSchema() {
       select: z.string(),
       action: z.union([z.literal("keep"), z.literal("drop")]).default("keep")
     }),
-    z.never()
+    z.undefined()
   );
 }
 

@@ -7,7 +7,7 @@ import { RowTransformation } from "..";
 
 const getSchema = () => makeNodeElementSchema(
   z.literal("multiply"),
-  z.never(),
+  z.undefined(),
   z.array(NodeElementSchema)
 );
 
@@ -23,6 +23,6 @@ export const Multiply: RowTransformationType<Schema> = {
     const { transformation: { children } } = options;
     const extra = z.array(RowTransformation.getSchema()).parse(children);
     const extra_value = await RowTransformation.runMany(extra, options);
-    return (Number(value) / Number(extra_value)).toString();
+    return (Number(value) * Number(extra_value)).toString();
   }
 };

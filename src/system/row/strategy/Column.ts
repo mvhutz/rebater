@@ -7,7 +7,7 @@ import { ExcelIndexSchema } from "../../../system/util";
 
 const getSchema = () => makeNodeElementSchema(
   z.literal("column"),
-  z.never(),
+  z.undefined(),
   z.array(makeTextElementSchema(ExcelIndexSchema))
 );
 

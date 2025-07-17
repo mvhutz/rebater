@@ -14,7 +14,7 @@ const getSchema = () => makeNodeElementSchema(
     combine: z.string().default("[]")
       .transform(v => z.array(ExcelIndexSchema).parse(JSON.parse(v)))
   }),
-  z.never(),
+  z.undefined(),
 )
 
 type Schema = z.infer<ReturnType<typeof getSchema>>;

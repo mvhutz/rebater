@@ -13,7 +13,7 @@ const getSchema = () => makeNodeElementSchema(
     matches: z.string().default('[""]')
       .transform(v => z.array(z.string()).parse(JSON.parse(v)))
   }),
-  z.never(),
+  z.undefined(),
 )
 
 type Schema = z.infer<ReturnType<typeof getSchema>>;

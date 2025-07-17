@@ -3,7 +3,7 @@ import CoerceDate from "./CoerceDate";
 import CoerceNumber from "./CoerceNumber";
 import CoerceUSD from "./CoerceUSD";
 import { RowTransformation as RowTransformationType } from "..";
-import { makeNodeElementSchema } from "src/system/xml";
+import { makeNodeElementSchema } from "../../../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -16,7 +16,7 @@ const attributes = z.discriminatedUnion("as", [
 const getSchema = () => makeNodeElementSchema(
   z.literal("coerce"),
   attributes,
-  z.never()
+  z.undefined()
 )
 
 type Schema = z.infer<ReturnType<typeof getSchema>>;

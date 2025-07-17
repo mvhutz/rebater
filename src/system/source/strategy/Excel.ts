@@ -3,7 +3,7 @@ import * as XLSX from "xlsx";
 import assert from "assert";
 import { makeTable } from "../../util";
 import { Source } from ".";
-import { makeNodeElementSchema } from "src/system/xml";
+import { makeNodeElementSchema } from "../../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -14,7 +14,7 @@ const getSchema = () => makeNodeElementSchema(
     file: z.string().default("*"),
     sheets: z.string().default(""),
   }),
-  z.never()
+  z.undefined()
 )
 
 type Schema = z.infer<ReturnType<typeof getSchema>>;

@@ -1,7 +1,7 @@
 import { Settings } from "./settings";
 import path from "path";
 import { bad, good, Reply } from "./reply";
-import { TransformerData } from "../system/Transformer";
+import { Transformer } from "../system/Transformer";
 
 /** ------------------------------------------------------------------------- */
 
@@ -26,7 +26,7 @@ interface ContextInterface {
 }
 
 interface TransformersInterface {
-  willRun(transformer: TransformerData): boolean;
+  willRun(transformer: Transformer): boolean;
 }
 
 export interface SettingsInterface extends ContextInterface, AdvancedInterface, TransformersInterface {
@@ -80,7 +80,7 @@ function makeBasicTarget(strategy: Settings["advanced"]["target"], time: Time): 
     getTransformerPathGlob: () => path.join(
       directory,
       'transformers',
-      '**/*.json'
+      '**/*.xml'
     ),
     getTransformerPath: name => path.join(
       directory,

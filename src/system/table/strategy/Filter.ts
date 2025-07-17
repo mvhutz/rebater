@@ -8,7 +8,7 @@ import { rewire } from "../../util";
 
 const getSchema = () => makeNodeElementSchema(
   z.literal("filter"),
-  z.never(),
+  z.undefined(),
   z.array(NodeElementSchema)
 )
 

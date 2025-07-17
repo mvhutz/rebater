@@ -15,7 +15,7 @@ const getSchema = () => makeNodeElementSchema(
     put: z.string().default(""),
     put_meta: META_TYPES,
   }),
-  z.never()
+  z.undefined()
 );
 
 type Schema = z.infer<ReturnType<typeof getSchema>>;

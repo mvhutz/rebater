@@ -10,7 +10,7 @@ const getSchema = () => makeNodeElementSchema(
     top: z.coerce.number().optional(),
     bottom: z.coerce.number().optional(),
   }),
-  z.never()
+  z.undefined()
 )
 
 type Schema = z.infer<ReturnType<typeof getSchema>>;

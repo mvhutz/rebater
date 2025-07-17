@@ -11,7 +11,7 @@ const getSchema = () => makeNodeElementSchema(
     name: z.string(),
     action: z.union([z.literal("drop")]),
   }),
-  z.never(),
+  z.undefined(),
 )
 
 type Schema = z.infer<ReturnType<typeof getSchema>>;

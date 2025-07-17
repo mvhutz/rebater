@@ -31,7 +31,7 @@ function run(datum: string, attributes: Attributes, state: State) {
   const attemptInt = Number(datum);
   let date: Moment;
 
-  const parse_options = parse.split(",");
+  const parse_options = parse.split(",").filter(Boolean);
   if (parse_options.length > 0) {
     if (datum.length === 5) datum = "0" + datum;
     if (datum.length === 7) datum = "0" + datum;

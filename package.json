@@ -4,7 +4,6 @@
   "version": "1.0.0",
   "description": "A desktop application to automate Fuse Alliance's Rebate process for its distributors.",
   "main": ".vite/build/main.js",
-  "type": "module",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",

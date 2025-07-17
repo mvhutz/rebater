@@ -13,7 +13,7 @@ const getSchema = () => makeNodeElementSchema(
     take: z.string(),
     group: z.string(),
   }),
-  z.never()
+  z.undefined()
 );
 
 type Schema = z.infer<ReturnType<typeof getSchema>>;

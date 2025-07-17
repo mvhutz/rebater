@@ -15,7 +15,7 @@ const getSchema = () => makeNodeElementSchema(
       .transform(v => z.array(z.string()).parse(JSON.parse(v))),
     action: z.union([z.literal("drop"), z.literal("keep")]).default("keep"),
   }),
-  z.never(),
+  z.undefined(),
 )
 
 type Schema = z.infer<ReturnType<typeof getSchema>>;

@@ -10,7 +10,7 @@ function getIndexFromExcel(letters: string): number {
 }
 
 export const ExcelIndexSchema = z
-  .union([z.coerce.number(), z.string().regex(/[A-Z]+/)])
+  .union([z.coerce.number().int(), z.string().regex(/[A-Z]+/)])
   .transform(v => {
     if (typeof v === "number") return v;
     return getIndexFromExcel(v);
