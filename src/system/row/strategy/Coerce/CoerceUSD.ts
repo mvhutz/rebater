@@ -5,7 +5,6 @@ const NAME = "usd";
 /** ------------------------------------------------------------------------- */
 
 const attributes = z.strictObject({
-  type: z.literal("coerce"),
   as: z.literal(NAME),
   year: z.union([z.literal("assume")]).optional(),
   parse: z.string().optional(),

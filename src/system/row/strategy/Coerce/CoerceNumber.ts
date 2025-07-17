@@ -5,7 +5,6 @@ const NAME = "number";
 /** ------------------------------------------------------------------------- */
 
 const attributes = z.strictObject({
-  type: z.literal("coerce"),
   as: z.literal(NAME),
   otherwise: z.string().optional(),
 });

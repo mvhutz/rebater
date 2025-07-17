@@ -2,13 +2,13 @@ import { glob, readFile } from "fs/promises";
 import path from "path";
 import { z } from "zod/v4";
 import TableTransformation from "./table";
-import RowTransformation from "./row";
 import { Source } from "./source";
 import { State } from "./information/State";
 import { Destination } from "./destination";
 import assert from "assert";
 import { SettingsInterface } from "../shared/settings_interface";
 import { rewire } from "./util";
+import { RowTransformation } from "./row";
 
 /** ------------------------------------------------------------------------- */
 
@@ -19,7 +19,7 @@ const DataSchema = z.strictObject({
   preprocess: z.array(TableTransformation.Schema).optional(),
   properties: z.array(z.strictObject({
     name: z.string(),
-    definition: z.array(RowTransformation.Schema)
+    definition: z.array(RowTransformation.getSchema())
   })),
   postprocess: z.array(TableTransformation.Schema).optional(),
   destination: Destination.getSchema(),
@@ -91,7 +91,7 @@ export class Transformer {
       const result = new Array<string>();
 
       for (const { definition } of properties) {
-        const output = await RowTransformation.runMany(definition, row, state);
+        const output = await RowTransformation.runMany(definition, { row, state });
         result.push(output);
       }
 
@@ -99,7 +99,7 @@ export class Transformer {
     }
 
     const [postprocessed_data] = await TableTransformation.runMany(postprocess, [recombined], state);
-    Destination.run(destination, postprocessed_data, state);
+    Destination.run(postprocessed_data, { destination, state });
 
     const end = performance.now();
     return { start, end, name: this.name };

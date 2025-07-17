@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { State } from "../information/State";
-import { CSVDestination } from "../destination/CSV";
+import { CSVDestination } from "../destination/strategy/CSV";
 
 const NAME = "debug";
 

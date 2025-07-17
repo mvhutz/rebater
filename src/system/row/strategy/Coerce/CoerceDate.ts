@@ -1,17 +1,16 @@
 import moment, { Moment } from "moment";
 import assert from "assert";
 import { z } from "zod/v4";
-import { State } from "../../information/State";
+import { State } from "../../../information/State";
 
 const NAME = "date";
 
 /** ------------------------------------------------------------------------- */
 
 const attributes = z.strictObject({
-  type: z.literal("coerce"),
   as: z.literal(NAME),
   year: z.union([z.literal("assume")]).optional(),
-  parse: z.union([z.string(), z.array(z.string())]).optional(),
+  parse: z.string().optional(),
   format: z.string().default("M/D/YYYY")
 });
 
@@ -28,14 +27,15 @@ const COMMON_DATES = [
 ];
 
 function run(datum: string, attributes: Attributes, state: State) {
-  const { parse, year, format } = attributes;
+  const { parse = "", year, format } = attributes;
   const attemptInt = Number(datum);
   let date: Moment;
 
-  if (parse) {
+  const parse_options = parse.split(",");
+  if (parse_options.length > 0) {
     if (datum.length === 5) datum = "0" + datum;
     if (datum.length === 7) datum = "0" + datum;
-    date = moment(datum, parse);
+    date = moment(datum, parse_options);
   } else if (!isNaN(attemptInt)) {
     date = moment(Date.UTC(0, 0, attemptInt));
   } else {
