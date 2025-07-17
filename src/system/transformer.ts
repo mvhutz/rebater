@@ -69,13 +69,13 @@ export class Transformer {
   }
 
   public getSourcesGlobs(state: State): string[] {
-    return this.data.sources.map(s => Source.getSourceFileGlob(s, state));
+    return this.data.sources.map(source => Source.getFileGlob({ source, state }));
   }
 
   public async run(state: State): Promise<TransformerResult> {
     const start = performance.now();
     const { preprocess = [], postprocess = [], sources, destination, properties } = this.data;
-    const source_data = Source.runMany(sources, state);
+    const source_data = Source.runMany(sources, { state });
     const preprocessed_data = await TableTransformation.runMany(preprocess, source_data, state);
     
     const recombined = rewire({

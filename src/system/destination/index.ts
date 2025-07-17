@@ -1,12 +1,12 @@
 import { z } from "zod/v4";
-import { CSVDestination } from "./strategy/CSV";
+import { CSV } from "./strategy/CSV";
 import { Destination as DestinationType } from "./strategy";
 
 /** ------------------------------------------------------------------------- */
 
 function getSchema() {
   return z.discriminatedUnion("name", [
-    CSVDestination.getSchema()
+    CSV.getSchema()
   ]);
 }
 
@@ -20,13 +20,13 @@ export const Destination: DestinationType<Schema> = {
 
   run(table, { destination, state }) {
     switch (destination.name) {
-      case "csv": return CSVDestination.run(table, { destination, state });
+      case "csv": return CSV.run(table, { destination, state });
     }
   },
 
   getFile({ destination, state }) {
     switch (destination.name) {
-      case "csv": return CSVDestination.getFile({ destination, state });
+      case "csv": return CSV.getFile({ destination, state });
     }
   },
 }

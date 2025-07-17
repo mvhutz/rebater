@@ -19,7 +19,7 @@ type Schema = z.infer<ReturnType<typeof getSchema>>;
 
 /** ------------------------------------------------------------------------- */
 
-export const CSVDestination: Destination<Schema> = {
+export const CSV: Destination<Schema> = {
   name: "csv",
   getSchema,
 
@@ -31,7 +31,7 @@ export const CSVDestination: Destination<Schema> = {
     const data = table.data.map(row => row.data);
     const buffer = Buffer.from(unparse(data));
 
-    const file = CSVDestination.getFile({ destination, state });
+    const file = CSV.getFile({ destination, state });
     state.appendDestinationFile(file, buffer);
   },
 };
