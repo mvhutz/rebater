@@ -16,3 +16,7 @@ table, tr, td, th {
 table {
   width: 100%;
 }
+
+* {
+  scrollbar-width: none;
+}
