@@ -32,7 +32,9 @@ function _DocumentPage(props: DocumentPageProps) {
   const { document } = props;
 
   return (
-    <Markdown components={MARKDOWN_COMPONENTS} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSlug, rehypeAutolinkHeadings]} children={document.text} />
+    <Sheet sx={{maxWidth: 700, mx: "auto"}}>
+      <Markdown components={MARKDOWN_COMPONENTS} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSlug, rehypeAutolinkHeadings]} children={document.text} />
+    </Sheet>
   );
 }
 

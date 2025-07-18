@@ -1,22 +1,106 @@
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
-    Arial, sans-serif;
-  /* margin: auto;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    /* margin: auto;
   max-width: 38rem;
   padding: 2rem; */
-  margin: 0;
+    margin: 0;
 }
 
-table, tr, td, th {
-  border-collapse: collapse;
-  border-width: thin;
-  border-style: solid;
+h1 {
+    counter-reset: h2
+}
+
+h2 {
+    counter-reset: h3
+}
+
+h3 {
+    counter-reset: h4
+}
+
+h2:before {
+    counter-increment: h2;
+    content: counter(h2) ". "
+}
+
+h3:before {
+    counter-increment: h3;
+    content: counter(h2) "." counter(h3) ". "
+}
+
+h4:before {
+    counter-increment: h4;
+    content: counter(h2) "." counter(h3) "." counter(h4) ". "
+}
+
+h1 {
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+    font-size: 2rem;
+}
+
+h2 {
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+}
+
+h3 {
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+h4 {
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    font-variant: small-caps;
+}
+
+table,
+tr,
+td,
+th {
+    border-collapse: collapse;
+    border-width: thin;
+    border-style: solid;
+}
+
+td,
+th {
+    padding: 5px;
+}
+
+li:not(:first-child),
+a + ul {
+    padding-top: 0.5rem;
+}
+
+p {
+    hyphens: auto;
+    text-align: justify;
+}
+
+code {
+    color: green;
+}
+
+pre {
+    border: 1px solid green;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    overflow: scroll;
+}
+
+pre > code {
+    color: darkgreen;
 }
 
 table {
-  width: 100%;
+    width: 100%;
 }
 
 * {
-  scrollbar-width: none;
+    scrollbar-width: none;
 }

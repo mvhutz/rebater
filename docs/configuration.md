@@ -1,6 +1,6 @@
-# Transformer Configuration
+# Configuration
 
-- [Transformer Configuration](#transformer-configuration)
+- [Configuration](#configuration)
   - [General](#general)
     - [Name](#name)
     - [Tags](#tags)
