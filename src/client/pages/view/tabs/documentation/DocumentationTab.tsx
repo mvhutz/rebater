@@ -3,22 +3,41 @@ import Stack from '@mui/joy/Stack';
 import Markdown, { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Option, Select, Sheet } from '@mui/joy';
-import { Link, Route, Routes, useLocation, useNavigate } from 'react-router';
+import { Route, Routes, useLocation, useNavigate } from 'react-router';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import Documents from './Documents';
 import TabMenu from '../../TabMenu';
-import path from 'path-browserify';
 import { useAppSelector } from '../../../../../client/store/hooks';
 import { getDisplayTab } from '../../../../../client/store/slices/ui';
+import { HashLink } from 'react-router-hash-link';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import rehypeSlug from 'rehype-slug';
 
 /** ------------------------------------------------------------------------- */
 
 const MARKDOWN_COMPONENTS: Components = {
   a({ node, href, ...rest }) {
     void [node];
-    return <Link to={path.join("..", href ?? "/")} {...rest} />
+
+    return <HashLink scroll={e => e.scrollIntoView({ "behavior": "smooth", block: 'center'})} to={href ?? "/"} {...rest} />
   }
 };
+
+interface DocumentPageProps {
+  document: (typeof Documents)[number];
+}
+
+function _DocumentPage(props: DocumentPageProps) {
+  const { document } = props;
+
+  return (
+    <Markdown components={MARKDOWN_COMPONENTS} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSlug, rehypeAutolinkHeadings]} children={document.text} />
+  );
+}
+
+const DocumentPage = React.memo(_DocumentPage);
+
+/** ------------------------------------------------------------------------- */
 
 function DocumentationTab() {
   const location = useLocation();
@@ -38,10 +57,10 @@ function DocumentationTab() {
           ))}
         </Select>
       </TabMenu>
-      <Sheet sx={{ p: 5 }}>
+      <Sheet sx={{ p: 5, overflow: "scroll" }}>
         <Routes>
           {Documents.map(d => (
-            <Route index={d.name === "Welcome"} path={d.id} element={<Markdown components={MARKDOWN_COMPONENTS} remarkPlugins={[remarkGfm]} children={d.text} />}/>
+            <Route index={d.name === "Welcome"} path={d.id} element={<DocumentPage document={d} />}/>
           ))}
         </Routes>
 

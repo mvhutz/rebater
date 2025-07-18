@@ -1,5 +1,17 @@
 # Data Transformer
 
+- [Data Transformer](#data-transformer)
+  - [Definition](#definition)
+  - [Background](#background)
+  - [Design](#design)
+    - [Pulling from Sources](#pulling-from-sources)
+    - [Preprocessing Data](#preprocessing-data)
+    - [Extracting Data](#extracting-data)
+    - [Postprocessing Data](#postprocessing-data)
+    - [Destination](#destination)
+
+## Definition
+
 A **Transformer** is a process that turns a *specific* format of rebate reports into a FUSE-ready state.
 
 ## Background
