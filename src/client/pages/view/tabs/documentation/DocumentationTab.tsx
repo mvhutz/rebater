@@ -12,6 +12,7 @@ import { getDisplayTab } from '../../../../../client/store/slices/ui';
 import { HashLink } from 'react-router-hash-link';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeSlug from 'rehype-slug';
+import path from 'path-browserify';
 
 /** ------------------------------------------------------------------------- */
 
@@ -19,7 +20,7 @@ const MARKDOWN_COMPONENTS: Components = {
   a({ node, href, ...rest }) {
     void [node];
 
-    return <HashLink scroll={e => e.scrollIntoView({ "behavior": "smooth", block: 'center'})} to={href ?? "/"} {...rest} />
+    return <HashLink scroll={e => e.scrollIntoView({ "behavior": "smooth", block: 'center'})} to={href?.[0] === "#" ? href : path.join("..", href ?? "/")} {...rest} />
   }
 };
 

@@ -1,5 +1,13 @@
 # Tutorial
 
+- [Tutorial](#tutorial)
+  - [Quick Start](#quick-start)
+  - [Pages](#pages)
+    - [System Page](#system-page)
+      - [Performance Results Table](#performance-results-table)
+      - [Discrepancy Table](#discrepancy-table)
+  - [Visibility](#visibility)
+
 ## Quick Start
 
 To begin using **Rebator**, follow these steps below:
