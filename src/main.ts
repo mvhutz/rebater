@@ -25,6 +25,7 @@ const createWindow = async () => {
       sandbox: false,
       nodeIntegrationInWorker: true
     },
+    autoHideMenuBar: true,
     icon: './images/icon.png'
   });
 
