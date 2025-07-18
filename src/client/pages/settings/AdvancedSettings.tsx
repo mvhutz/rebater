@@ -86,7 +86,7 @@ function AdvancedSettings() {
                 <FormLabel>Run Discrepancy Report</FormLabel>
                 <Switch checked={doTesting ?? false} onChange={handleTesting} />
               </Stack>
-              <FormHelperText>If selected, the system will scrutinize its output against all rebate files in the testing folder and note any differences.</FormHelperText>
+              <FormHelperText>If selected, the system will scrutinize its output against all rebate files in the "truth" folder and note any differences.</FormHelperText>
             </FormControl>
           </Stack>
         </Stack>

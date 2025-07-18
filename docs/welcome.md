@@ -6,3 +6,4 @@ Hello! To view documentation about **Rebater**, click the dropdown on title of t
 
 - [How do I use Rebater?](./tutorial.md)
 - [What is a transformer?](./transformer.md)
+- [Configuration reference.](./configuration.md)
