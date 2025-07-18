@@ -1,14 +1,14 @@
 import z from "zod/v4";
-import { SettingsSchema } from "./settings";
+// import { SettingsSchema } from "./settings";
 
 /** ------------------------------------------------------------------------- */
 
-const StartWorkerRequestSchema = z.object({
-  type: z.literal("start"),
-  settings: SettingsSchema,
-});
+// const StartWorkerRequestSchema = z.object({
+//   type: z.literal("start"),
+//   settings: SettingsSchema,
+// });
 
-export type StartWorkerRequest = z.infer<typeof StartWorkerRequestSchema>;
+// export type StartWorkerRequest = z.infer<typeof StartWorkerRequestSchema>;
 
 const AnswerWorkerRequestSchema = z.object({
   type: z.literal("answer"),
@@ -18,7 +18,6 @@ const AnswerWorkerRequestSchema = z.object({
 export type AnswerWorkerRequest = z.infer<typeof AnswerWorkerRequestSchema>;
 
 export const WorkerRequestSchema = z.discriminatedUnion("type", [
-  StartWorkerRequestSchema,
   AnswerWorkerRequestSchema
 ]);
 

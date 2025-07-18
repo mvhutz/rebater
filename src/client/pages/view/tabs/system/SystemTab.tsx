@@ -7,8 +7,8 @@ import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
 import NightsStayRoundedIcon from '@mui/icons-material/NightsStayRounded';
 import DoneRoundedIcon from '@mui/icons-material/DoneRounded';
 import PriorityHighRoundedIcon from '@mui/icons-material/PriorityHighRounded';
-import { getSystemProgress, getSystemStatus, getSystemStatusName, isSystemLoading } from '../../../../store/slices/system';
-import { useAppSelector } from '../../../../store/hooks';
+import { getSystemProgress, getSystemStatus, getSystemStatusName, isSystemActive, isSystemLoading } from '../../../../store/slices/system';
+import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { type SvgIconOwnProps } from '@mui/material';
 import AccordionGroup from '@mui/joy/AccordionGroup';
 import ErrorCard from './ErrorCard';
@@ -17,6 +17,10 @@ import DiscrepancyTable from './DiscrepancyTable';
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded';
 import TabMenu from '../../TabMenu';
 import { getDisplayTab } from '../../../../../client/store/slices/ui';
+import { Button } from '@mui/joy';
+import { killSystem, pushSystemSettings, startSystem } from '../../../../../client/store/slices/thunk';
+import BlockRounded from '@mui/icons-material/BlockRounded';
+import { PlayArrowRounded } from '@mui/icons-material';
 
 /** ------------------------------------------------------------------------- */
 
@@ -46,6 +50,18 @@ function SystemTab() {
 
   const results = status.type === "done" ? status.results : null;
 
+  const dispatch = useAppDispatch();
+  const active = useAppSelector(isSystemActive);
+  
+  const handleRun = React.useCallback(async () => {
+    await dispatch(pushSystemSettings());
+    await dispatch(startSystem());
+  }, [dispatch]);
+
+  const handleCancel = React.useCallback(async () => {
+    await dispatch(killSystem());
+  }, [dispatch]);
+
   return (
     <Stack padding={0} display={display}>
       <TabMenu>
@@ -53,10 +69,14 @@ function SystemTab() {
       </TabMenu>
       <Stack padding={2}>
         <Stack direction="column" gap={2} flexGrow={1} height="70vh" alignItems="center" position="relative">
-          <Stack alignItems="center" flex={1} justifyContent="center" gap={3}>
+          <Stack alignItems="center" flex={1} justifyContent="center" spacing={6}>
             <CircularProgress color="primary" variant="soft" value={progress} determinate={!loading} size="lg" sx={{ '--CircularProgress-size': '200px' }}>
               <InnerText status={status} />
             </CircularProgress>
+            { active
+              ? <Button fullWidth size="lg" variant="outlined" color="neutral" onClick={handleCancel} sx={{ borderRadius: 100 }} startDecorator={<BlockRounded/>}>Cancel</Button>
+              : <Button fullWidth size="lg" onClick={handleRun} sx={{ borderRadius: 100 }} startDecorator={<PlayArrowRounded/>}>Start</Button>
+            }
           </Stack>
         </Stack>
         <AccordionGroup variant="plain" transition="0.2s" size='lg' disableDivider sx={{ gap: 2 }}>

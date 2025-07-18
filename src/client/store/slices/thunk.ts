@@ -3,7 +3,7 @@ import { Reply } from "../../../shared/reply";
 import { RootState } from "..";
 import { ResourceStatus } from "../../../shared/resource";
 import { Settings } from "../../../shared/settings";
-import { TransformerData } from "../../../system/Transformer";
+import { TransformerData } from "../../../system/transformer";
 
 /** ------------------------------------------------------------------------- */
 
@@ -49,6 +49,13 @@ export const startSystem = createAsyncThunk(
       const { system } = getState() as RootState;
       if (system.settings.status !== ResourceStatus.PRESENT) return false;
     },
+  }
+);
+
+export const killSystem = createAsyncThunk(
+  'system/kill',
+  async () => {
+    return await invoke.cancelProgram();
   }
 );
 

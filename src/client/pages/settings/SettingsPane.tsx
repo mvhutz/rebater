@@ -1,19 +1,16 @@
 import React from 'react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { isSystemActive } from '../../store/slices/system';
 import AccordionGroup from '@mui/joy/AccordionGroup';
 import Button from '@mui/joy/Button';
-import IconButton from '@mui/joy/IconButton';
 import ListDivider from '@mui/joy/ListDivider';
 import Stack from '@mui/joy/Stack';
 import Sheet from '@mui/joy/Sheet';
 import { SxProps } from '@mui/joy/styles/types';
-import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded';
 import ContextSettings from './ContextSettings';
 import TransformerSettings from './TransformerSettings';
 import AdvancedSettings from './AdvancedSettings';
 import { SaveRounded } from '@mui/icons-material';
-import { pullTransformers, pushSystemSettings, startSystem } from '../../../client/store/slices/thunk';
+import { pullTransformers, pushSystemSettings } from '../../../client/store/slices/thunk';
 import { getVisible } from '../../../client/store/slices/ui';
 
 /** ------------------------------------------------------------------------- */
@@ -30,14 +27,7 @@ const SETTINGS_SX: SxProps = {
 
 function SettingsPane() {
   const dispatch = useAppDispatch();
-  const active = useAppSelector(isSystemActive);
   const { settings: show } = useAppSelector(getVisible);
-
-  const handleRun = React.useCallback(async () => {
-    await dispatch(pushSystemSettings());
-    await dispatch(pullTransformers());
-    await dispatch(startSystem());
-  }, [dispatch]);
 
   const handleSave = React.useCallback(async () => {
     await dispatch(pushSystemSettings());
@@ -60,10 +50,9 @@ function SettingsPane() {
           <Sheet variant='soft' sx={{ flex: 1 }}/>
         </Stack>
         <ListDivider/>
-        <Stack padding={1} direction="row" spacing={1}>
-          <Button onClick={handleRun} fullWidth startDecorator={<PlayArrowRounded/>} variant="solid" size='sm' loading={active} loadingIndicator="Running...">Start</Button>
-          <IconButton onClick={handleSave} variant="outlined" size='sm'><SaveRounded/></IconButton>
-        </Stack>
+        <Sheet sx={{ p: 1 }}>
+          <Button onClick={handleSave} fullWidth variant="outlined" size='sm' color="neutral" startDecorator={<SaveRounded/>}>Save Settings</Button>
+        </Sheet>
       </Stack>
     </Sheet >
   );
