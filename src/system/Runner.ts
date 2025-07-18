@@ -1,7 +1,7 @@
 import { Transformer } from "./Transformer";
 import { BasicState, State } from "./information/State";
 import * as XLSX from "xlsx";
-import { getPartition, getRebateHash, getRebateHashFuzzy, parseRebateFile, Rebate } from "./util";
+import { getPartition, getRebateHash, parseRebateFile, Rebate, RebateSet } from "./util";
 import { mkdir, writeFile, glob } from "fs/promises";
 import path from "path";
 import { SystemStatus } from "../shared/system_status";
@@ -60,22 +60,15 @@ export class Runner {
   }
 
   compareRebates(actual: Rebate[], expected: Rebate[]): Omit<DiscrepencyResult, "name"> {
-    const actual_allowed_set = new Set();
-    for (const rebate of actual) {
-      getRebateHashFuzzy(rebate).forEach(s => actual_allowed_set.add(s));
-    }
-  
-    const expected_allowed_set = new Set();
-    for (const rebate of expected) {
-      getRebateHashFuzzy(rebate).forEach(s => expected_allowed_set.add(s));
-    }
-  
-    const actual_set = actual.map(getRebateHash);
-    const expected_set = expected.map(getRebateHash);
+    const actual_set = new RebateSet(actual);
+    const expected_set = new RebateSet(expected);
+
+    actual.forEach(r => expected_set.take(r));
+    expected.forEach(r => actual_set.take(r));
 
     return {
-      drop: actual_set.filter(r1 => !expected_allowed_set.has(r1)),
-      take: expected_set.filter(r2 => !actual_allowed_set.has(r2)),
+      drop: actual_set.values(),
+      take: expected_set.values(),
     }
   }
 
@@ -98,7 +91,7 @@ export class Runner {
     for (const [member_id, actual_partition_bucket] of actual_partitions) {
       const expected_partition_bucket = expected_partitions.get(member_id) ?? [];
       const { drop, take } = this.compareRebates(actual_partition_bucket, expected_partition_bucket);
-      results.push({ name: member_id, drop, take });
+      results.push({ name: member_id, drop: drop.map(getRebateHash), take: take.map(getRebateHash) });
     }
 
     return results;
@@ -125,8 +118,9 @@ export class Runner {
       results.config.push(await transformer.run(state));
     }
 
-    this.updateStatus({ type: "loading", message: "Saving rebates..." });
+    this.updateStatus({ type: "loading", message: "Saving data..." });
     await state.saveDestinationFiles();
+    await state.saveReferences();
 
     if (state.getSettings().doTesting()) {
       this.updateStatus({ type: "loading", message: "Scoring accuracy..." });

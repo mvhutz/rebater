@@ -7,7 +7,7 @@ import { bad, good, Reply } from "./reply";
 import { DEFAULT_SETTINGS, Settings, SettingsSchema } from "./settings";
 import z from "zod/v4";
 import { SystemStatus } from "./system_status";
-import { Transformer, TransformerData } from "../system/Transformer";
+import { Transformer, TransformerData } from "../system/transformer";
 import { makeSettingsInterface } from "./settings_interface";
 
 /** ------------------------------------------------------------------------- */
@@ -75,6 +75,9 @@ const IPC = createInterprocess({
     async runProgram(_, settings?: Settings): Promise<Reply> {
       void [settings];
 
+      return good(undefined);
+    },
+    async cancelProgram(): Promise<Reply> {
       return good(undefined);
     },
     async answerQuestion(_, answer: Maybe<string>): Promise<Reply> {

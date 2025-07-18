@@ -1,3 +1,0 @@
-# Processing Types
-
-WIP!

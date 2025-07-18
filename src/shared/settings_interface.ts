@@ -1,7 +1,7 @@
 import { Settings } from "./settings";
 import path from "path";
 import { bad, good, Reply } from "./reply";
-import { TransformerData } from "../system/Transformer";
+import { TransformerData } from "../system/transformer";
 
 /** ------------------------------------------------------------------------- */
 
@@ -10,7 +10,8 @@ interface TargetInterface {
   getRebatePathGlob(): string;
   getTruthPathGlob(): string;
   getDestinationPath(name: string): string;
-  getSourcePathGlob(group: string, extension?: string): string;
+  getSourcePathGlob(group: string, file?: string, extension?: string): string;
+  getSourcePath(): string;
   getTransformerPathGlob(): string;
   getTransformerPath(name: string): string;
   getOutputFile(extension: string): string;
@@ -28,7 +29,7 @@ interface TransformersInterface {
   willRun(transformer: TransformerData): boolean;
 }
 
-export interface SettingsInterface extends TargetInterface, AdvancedInterface, TransformersInterface {
+export interface SettingsInterface extends ContextInterface, AdvancedInterface, TransformersInterface {
 }
 
 /** ------------------------------------------------------------------------- */
@@ -50,13 +51,17 @@ function makeBasicTarget(strategy: Settings["advanced"]["target"], time: Time): 
       `Q${time.quarter.toString()}`,
       `${name}.csv`
     ),
-    getSourcePathGlob: (group, extension = "") => path.join(
+    getSourcePathGlob: (group, file = "*", extension = "") => path.join(
       directory,
       "sources",
       group,
       time.year.toString(),
       `Q${time.quarter.toString()}`,
-      `**/*${extension}`
+      `**/${file}${extension}`
+    ),
+    getSourcePath: () => path.join(
+      directory,
+      "sources",
     ),
      getRebatePathGlob: () => path.join(
       directory,

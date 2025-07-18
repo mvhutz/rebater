@@ -3,6 +3,7 @@ import * as XLSX from "xlsx";
 import assert from "assert";
 import { State } from "../information/State";
 import BaseSource from "./base";
+import { makeTable } from "../util";
 
 /** ------------------------------------------------------------------------- */
 
@@ -10,6 +11,7 @@ function getSchema() {
   return z.strictObject({
     type: z.literal("excel"),
     group: z.string(),
+    file: z.string().default("*"),
     sheets: z.array(z.string()).optional(),
   });
 }
@@ -17,18 +19,18 @@ function getSchema() {
 type Schema = z.infer<ReturnType<typeof getSchema>>;
 
 function getSourceFileGlob(source: Schema, state: State) {
-  const { group } = source;
-  return state.getSettings().getSourcePathGlob(group, ".xlsx");
+  const { group, file } = source;
+  return state.getSettings().getSourcePathGlob(group, file, ".xls*");
 }
 
 function run(source: Schema, state: State): Table[] {
-  const { group, sheets } = source;
+  const { sheets } = source;
   
   const files = state.pullSourceFileGlob(getSourceFileGlob(source, state));
   const results = new Array<Table>();
 
   for (const file of files) {
-    const workbook = XLSX.read(file, { type: "buffer" });
+    const workbook = XLSX.read(file.raw, { type: "buffer" });
 
     const sheetsToTake = new Set<string>();
     if (sheets == null) {
@@ -54,10 +56,9 @@ function run(source: Schema, state: State): Table[] {
       });
 
       const parsed = z.array(z.array(z.coerce.string())).parse(unclean);
-      results.push({
-        path: "",
-        data: parsed.map(data => ({ group, data }))
-      });
+
+      const table = makeTable(parsed, file.path);
+      results.push(table);
     }
   }
 

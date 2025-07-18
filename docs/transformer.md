@@ -1,5 +1,17 @@
 # Data Transformer
 
+- [Data Transformer](#data-transformer)
+  - [Definition](#definition)
+  - [Background](#background)
+  - [Design](#design)
+    - [Pulling from Sources](#pulling-from-sources)
+    - [Preprocessing Data](#preprocessing-data)
+    - [Extracting Data](#extracting-data)
+    - [Postprocessing Data](#postprocessing-data)
+    - [Destination](#destination)
+
+## Definition
+
 A **Transformer** is a process that turns a *specific* format of rebate reports into a FUSE-ready state.
 
 ## Background
@@ -23,7 +35,7 @@ A transformer is split into five phases: (1) pulling from sources, (2) preproces
 
 First, the transformer searches for source files (Excel, PDF, *et cetera*), reads the rows of data in those files into a 2D matrix of strings. (Read about [the file structure](./structure.md) for more.)
 
-For example, for [this Excel sheet](./example.xlsx), it would be read into a matrix of data like below:
+For example, for a Excel sheet, it could be read into a matrix of data like below:
 
 | A      | B          | C     | D   | E     | F      |
 | ------ | ---------- | ----- | --- | ----- | ------ |
@@ -36,11 +48,11 @@ For example, for [this Excel sheet](./example.xlsx), it would be read into a mat
 | 438.87 | 13.17      | 45943 |     |       |        |
 | 243.10 | 7.29       | 45944 |     |       |        |
 
-*[(Read more about different types of sources here.)](./sources.md)*
+*[(Read more about different types of sources here.)](./configuration.md#sources)*
 
 ### Preprocessing Data
 
-Next, the Rebator sends each table read from the source files through a set of preprocessing steps. These are run sequentially, one-by-one, for each table. These can include: trimming the top and bottom, removing certain columns or rows based on criteria, and much more. The point of this is to get the data into a format that we can extract information from. *[(Read more about different types of preprocessing transformations here.)](./preprocessing.md)*
+Next, the Rebator sends each table read from the source files through a set of preprocessing steps. These are run sequentially, one-by-one, for each table. These can include: trimming the top and bottom, removing certain columns or rows based on criteria, and much more. The point of this is to get the data into a format that we can extract information from. *[(Read more about different types of preprocessing transformations here.)](./configuration.md#prepost-processing)*
 
 In the example above, if we trim the top row of the table, we get the following table:
 
@@ -83,7 +95,7 @@ With this set of transformations, we run them all on each row of the table above
 | $438.87        | $13.17       | 10/13/2025  |
 | $243.10        | $7.29        | 10/14/2025  |
 
-*[(Read more about different types of extraction transformations here.)](./extraction.md)*
+*[(Read more about different types of extraction transformations here.)](./configuration.md#row-extraction)*
 
 ### Postprocessing Data
 
@@ -104,4 +116,4 @@ For our example, let's say we do not want to record rebates that do not reimbuse
 
 Finally, each transformer sends their final table into a certain file. This can can in the form of Excel, CSV, or more.
 
-*[(Read more about different types of destinations here.)](./destination.md)*
+*[(Read more about different types of destinations here.)](./configuration.md#destination)*

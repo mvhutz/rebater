@@ -1,7 +1,7 @@
 {
   "name": "rebater",
   "productName": "Rebater",
-  "version": "1.0.0",
+  "version": "0.1",
   "description": "A desktop application to automate Fuse Alliance's Rebate process for its distributors.",
   "main": ".vite/build/main.js",
   "scripts": {
@@ -34,7 +34,7 @@
     "@eslint/js": "^9.30.1",
     "@types/electron-squirrel-startup": "^1.0.2",
     "@types/mutexify": "^1.2.4",
-    "@types/node": "^24.0.10",
+    "@types/node": "^24.0.14",
     "@types/papaparse": "^5.3.16",
     "@types/path-browserify": "^1.0.3",
     "@types/react": "^19.1.8",
@@ -60,6 +60,8 @@
     "@mui/joy": "^5.0.0-beta.52",
     "@mui/material": "^7.2.0",
     "@reduxjs/toolkit": "^2.8.2",
+    "@types/react-router-hash-link": "^2.4.9",
+    "@types/xml-js": "^0.9.0",
     "@uidotdev/usehooks": "^2.4.1",
     "electron-squirrel-startup": "^1.0.1",
     "glob": "^11.0.3",
@@ -72,9 +74,13 @@
     "react-markdown": "^10.1.0",
     "react-redux": "^9.2.0",
     "react-router": "^7.6.3",
+    "react-router-hash-link": "^2.4.3",
+    "rehype-autolink-headings": "^7.1.0",
+    "rehype-slug": "^6.0.0",
     "remark-gfm": "^4.0.1",
     "use-count-up": "^3.0.1",
     "xlsx": "^0.18.5",
+    "xml-js": "^1.6.11",
     "zod": "^3.25.67"
   }
 }

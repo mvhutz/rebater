@@ -3,9 +3,9 @@ import { type RootState } from '..'
 import { DEFAULT_SETTINGS, Settings } from '../../../shared/settings';
 import { resource, Resource, ResourceStatus } from '../../../shared/resource';
 import { SystemStatus } from '../../../shared/system_status';
-import { pullSystemSettings, pullTransformers, pushSystemSettings, startSystem } from './thunk';
+import { killSystem, pullSystemSettings, pullTransformers, pushSystemSettings, startSystem } from './thunk';
 import { bad, Reply } from '../../../shared/reply';
-import { TransformerData } from '../../../system/Transformer';
+import { TransformerData } from '../../../system/transformer';
 
 /** ------------------------------------------------------------------------- */
 
@@ -82,6 +82,19 @@ export const SystemSlice = createSlice({
         }
       })
       .addCase(startSystem.rejected, (state, { error }) => {
+        state.status = { type: "error", message: error.message ?? "Unknown error!" };
+      })
+      .addCase(killSystem.pending, (state) => {
+        state.status = { type: "loading", message: "Shutting down..." };
+      })
+      .addCase(killSystem.fulfilled, (state, { payload }) => {
+        if (payload.ok) {
+          state.status = { type: "idle" };
+        } else {
+          state.status = { type: "error", message: payload.reason };
+        }
+      })
+      .addCase(killSystem.rejected, (state, { error }) => {
         state.status = { type: "error", message: error.message ?? "Unknown error!" };
       })
       .addCase(pullTransformers.pending, state => {

@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { ExcelIndexSchema, getTrueIndex } from "../util";
+import { ExcelIndexSchema, getTrueIndex, rewire } from "../util";
 
 const NAME = "select";
 
@@ -26,7 +26,7 @@ async function run(transformation: Schema, table: Table) {
     return (action === "keep") === (trueIs?.includes(datum) || (trueIsnt != null && !trueIsnt.includes(datum)));
   });
 
-  return { ...table, data: rows };
+  return rewire({ ...table, data: rows });
 }
 
 /** ------------------------------------------------------------------------- */

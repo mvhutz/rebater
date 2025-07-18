@@ -15,7 +15,7 @@ if (started) {
 
 const { ipcMain } = IPC;
 
-const createWindow = async () => {
+async function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 800,
@@ -25,6 +25,7 @@ const createWindow = async () => {
       sandbox: false,
       nodeIntegrationInWorker: true
     },
+    autoHideMenuBar: true,
     icon: './images/icon.png'
   });
 
@@ -37,23 +38,56 @@ const createWindow = async () => {
   ipcMain.handle.getTransformers();
 
   // Talking with system.
-  const worker = new Worker(path.join(__dirname, 'worker.js'));
-  worker.on("message", message => {
-    ipcMain.invoke.runnerUpdate(mainWindow, message);
-  });
+  let worker: Maybe<Worker>;
 
   ipcMain.handle.answerQuestion(async (_, { data }) => {
+    if (worker == null) return bad("System is not running!");
+
     worker.postMessage({ type: "answer", answer: data } as WorkerRequest);
     return good(undefined);
   });
 
+  ipcMain.handle.cancelProgram(async () => {
+    if (worker == null) return bad("System is not running!");
+
+    await worker.terminate();
+    worker = null;
+
+    return good(undefined);
+  });
+
   ipcMain.handle.runProgram(async (_, { data }) => {
-    if (data == null) {
+    if (worker != null) {
+      return bad("System is already running!");
+    } else if (data == null) {
       return bad("Cannot give empty settings.");
     }
 
-    worker.postMessage({ type: "start", settings: data } as WorkerRequest);
+    worker = new Worker(path.join(__dirname, 'worker.js'), {
+      workerData: data
+    });
+    
+    worker.on("message", message => {
+      if (message.type === "error" || message.type === "done") {
+        worker?.terminate();
+      }
+      ipcMain.invoke.runnerUpdate(mainWindow, message);
+    });
+
+    worker.on("exit", () => worker = null);
+
     return good(undefined);
+  });
+
+  mainWindow.on("close", () => {
+    ipcMain.remove.answerQuestion();
+    ipcMain.remove.chooseDir();
+    ipcMain.remove.getPing();
+    ipcMain.remove.getSettings();
+    ipcMain.remove.getTransformers();
+    ipcMain.remove.openDir();
+    ipcMain.remove.runProgram();
+    ipcMain.remove.setSettings();
   });
 
   // and load the index.html of the app.
@@ -61,11 +95,6 @@ const createWindow = async () => {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
     mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
-  }
-
-  // Open the DevTools.
-  if (!app.isPackaged) {
-    mainWindow.webContents.openDevTools();
   }
 };
 

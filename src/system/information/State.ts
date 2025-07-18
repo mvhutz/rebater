@@ -15,7 +15,7 @@ export abstract class State {
   public abstract getSettings(): SettingsInterface;
 
   public abstract loadSourceFilesQueries(...filepaths: string[]): Promise<void>;
-  public abstract pullSourceFileGlob(filepath: string): Buffer[];
+  public abstract pullSourceFileGlob(filepath: string): FileData[];
 
   public abstract appendDestinationFile(filepath: string, data: Buffer): void;
   public abstract saveDestinationFiles(): Promise<void>;
@@ -67,13 +67,19 @@ export class BasicState extends State {
   }
 
   public async getReference(name: string): Promise<BasicReference> {
-    const counter = this.references.get(name);
-    if (counter != null) return counter;
+    const reference = this.references.get(name);
+    if (reference != null) return reference;
 
     const filepath = this.getSettings().getReferencePath(name);
     const new_reference = await BasicReference.load(filepath);
     this.references.set(name, new_reference);
     return new_reference;
+  }
+
+  public async saveReferences(): Promise<void> {
+    for (const [, reference] of this.references) {
+      await reference.save();
+    }
   }
 
   public async loadSourceFilesQueries(...queries: string[]) {
@@ -94,15 +100,15 @@ export class BasicState extends State {
     }
   }
 
-  public pullSourceFileGlob(query: string): Buffer[] {
+  public pullSourceFileGlob(query: string): FileData[] {
     const files = this.source_file_queries.get(query);
     assert.ok(files != null, `Source file query '${query}' not loaded!`);
 
-    const buffers = [];
+    const buffers: FileData[] = [];
     for (const file of files) {
       const buffer = this.source_files.get(file);
       assert.ok(buffer != null, `Source file '${file}' not loaded!`);
-      buffers.push(buffer);
+      buffers.push({ raw: buffer, path: file });
     }
 
     return buffers;

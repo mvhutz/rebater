@@ -6,12 +6,18 @@ interface Time {
 }
 
 interface Row {
+  table: Table;
   data: string[];
 }
 
 interface Table {
   path: string;
   data: Row[];
+}
+
+interface FileData {
+  path: string;
+  raw: Buffer;
 }
 
 interface TransformerResult {

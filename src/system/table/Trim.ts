@@ -15,10 +15,8 @@ type Schema = z.infer<typeof schema>;
 async function run(transformation: Schema, table: Table) {
   const { top, bottom } = transformation;
 
-  return { 
-    ...table,
-    data: table.data.slice(top == null ? undefined : top, bottom == null ? undefined : -bottom)
-  };
+  table.data = table.data.slice(top == null ? undefined : top, bottom == null ? undefined : -bottom);
+  return table;
 }
 
 /** ------------------------------------------------------------------------- */

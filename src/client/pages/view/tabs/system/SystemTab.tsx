@@ -7,7 +7,7 @@ import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
 import NightsStayRoundedIcon from '@mui/icons-material/NightsStayRounded';
 import DoneRoundedIcon from '@mui/icons-material/DoneRounded';
 import PriorityHighRoundedIcon from '@mui/icons-material/PriorityHighRounded';
-import { getSystemProgress, getSystemStatus, getSystemStatusName, isSystemLoading } from '../../../../store/slices/system';
+import { getSystemProgress, getSystemStatus, getSystemStatusName, isSystemActive, isSystemLoading } from '../../../../store/slices/system';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { type SvgIconOwnProps } from '@mui/material';
 import AccordionGroup from '@mui/joy/AccordionGroup';
@@ -15,13 +15,12 @@ import ErrorCard from './ErrorCard';
 import { SystemStatus } from '../../../../../shared/system_status';
 import DiscrepancyTable from './DiscrepancyTable';
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded';
-import Dropdown from '@mui/joy/Dropdown';
-import IconButton from '@mui/joy/IconButton';
-import Menu from '@mui/joy/Menu';
-import MenuButton from '@mui/joy/MenuButton';
-import MenuItem from '@mui/joy/MenuItem';
-import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
-import { getVisible, toggleSettings, toggleTabs } from '../../../../store/slices/ui';
+import TabMenu from '../../TabMenu';
+import { getDisplayTab } from '../../../../../client/store/slices/ui';
+import { Button } from '@mui/joy';
+import { killSystem, pushSystemSettings, startSystem } from '../../../../../client/store/slices/thunk';
+import BlockRounded from '@mui/icons-material/BlockRounded';
+import { PlayArrowRounded } from '@mui/icons-material';
 
 /** ------------------------------------------------------------------------- */
 
@@ -47,43 +46,37 @@ function SystemTab() {
   const messageText = useAppSelector(getSystemStatusName);
   const progress = useAppSelector(getSystemProgress);
   const loading = useAppSelector(isSystemLoading);
-  const { tabs: show_tabs, settings: show_settings } = useAppSelector(getVisible);
-
-  const dispatch = useAppDispatch();
-
-  const handleToggleTabs = React.useCallback(() => {
-    dispatch(toggleTabs());
-  }, [dispatch]);
-
-  const handleToggleSettings = React.useCallback(() => {
-    dispatch(toggleSettings());
-  }, [dispatch]);
+  const display = useAppSelector(getDisplayTab("system"));
 
   const results = status.type === "done" ? status.results : null;
 
+  const dispatch = useAppDispatch();
+  const active = useAppSelector(isSystemActive);
+  
+  const handleRun = React.useCallback(async () => {
+    await dispatch(pushSystemSettings());
+    await dispatch(startSystem());
+  }, [dispatch]);
+
+  const handleCancel = React.useCallback(async () => {
+    await dispatch(killSystem());
+  }, [dispatch]);
+
   return (
-    <Stack padding={0}>
-      <Stack padding={1}>
-        <Stack direction="row" justifyContent="center" alignItems="center" position="relative">
-          {/* <Typography level="title-md" pt={0.5} color="neutral"><code>Status</code></Typography> */}
-          <Typography level="body-lg" pt={0.5} color="neutral"><i>System:</i> {messageText}</Typography>
-          <Dropdown>
-            <MenuButton sx={{ position: "absolute", right: 0, top: 0 }} slots={{ root: IconButton }} slotProps={{ "root": { variant: 'plain', color: 'neutral' } }}>
-              <MoreVertRoundedIcon />
-            </MenuButton>
-            <Menu size='sm' placement="bottom-end">
-              <MenuItem onClick={handleToggleTabs}>{show_tabs ? "Hide" : "Show"} Tabs</MenuItem>
-              <MenuItem onClick={handleToggleSettings}>{show_settings ? "Hide" : "Show"} Settings</MenuItem>
-            </Menu>
-          </Dropdown>
-        </Stack>
-      </Stack>
+    <Stack padding={0} display={display}>
+      <TabMenu>
+        <Typography level="body-lg" pt={0.5} color="neutral"><i>System:</i> {messageText}</Typography>
+      </TabMenu>
       <Stack padding={2}>
         <Stack direction="column" gap={2} flexGrow={1} height="70vh" alignItems="center" position="relative">
-          <Stack alignItems="center" flex={1} justifyContent="center" gap={3}>
+          <Stack alignItems="center" flex={1} justifyContent="center" spacing={6}>
             <CircularProgress color="primary" variant="soft" value={progress} determinate={!loading} size="lg" sx={{ '--CircularProgress-size': '200px' }}>
               <InnerText status={status} />
             </CircularProgress>
+            { active
+              ? <Button fullWidth size="lg" variant="outlined" color="neutral" onClick={handleCancel} sx={{ borderRadius: 100 }} startDecorator={<BlockRounded/>}>Cancel</Button>
+              : <Button fullWidth size="lg" onClick={handleRun} sx={{ borderRadius: 100 }} startDecorator={<PlayArrowRounded/>}>Start</Button>
+            }
           </Stack>
         </Stack>
         <AccordionGroup variant="plain" transition="0.2s" size='lg' disableDivider sx={{ gap: 2 }}>

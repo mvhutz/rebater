@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { rewire } from "../util";
 
 const NAME = "chop";
 
@@ -30,7 +31,7 @@ async function run(transformation: Schema, table: Table) {
       ? table.data.slice(undefined, index)
       : table.data.slice(index, undefined);
 
-  return { ...table, data };
+  return rewire({ ...table, data });
 }
 
 /** ------------------------------------------------------------------------- */

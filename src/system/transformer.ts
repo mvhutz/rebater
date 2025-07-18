@@ -8,6 +8,7 @@ import { State } from "./information/State";
 import { Destination } from "./destination";
 import assert from "assert";
 import { SettingsInterface } from "../shared/settings_interface";
+import { rewire } from "./util";
 
 /** ------------------------------------------------------------------------- */
 
@@ -77,10 +78,13 @@ export class Transformer {
     const source_data = Source.runMany(sources, state);
     const preprocessed_data = await TableTransformation.runMany(preprocess, source_data, state);
     
-    const recombined: Table = {
+    const recombined = rewire({
       path: this.path,
-      data: [{ data: properties.map(p => p.name) }]
-    }
+      data: [{
+        data: properties.map(p => p.name),
+        table: preprocessed_data[0]
+      }]
+    });
 
     const rows = preprocessed_data.map(table => table.data).flat(1);
     for (const row of rows) {
@@ -91,7 +95,7 @@ export class Transformer {
         result.push(output);
       }
 
-      recombined.data.push({ data: result });
+      recombined.data.push({ data: result, table: recombined });
     }
 
     const [postprocessed_data] = await TableTransformation.runMany(postprocess, [recombined], state);

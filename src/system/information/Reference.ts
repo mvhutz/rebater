@@ -1,3 +1,4 @@
+import { existsSync } from "fs";
 import fs from "fs/promises";
 import Papa from "papaparse";
 import { z } from "zod/v4";
@@ -39,13 +40,16 @@ export class BasicReference extends Reference {
   }
 
   public static async load(path: string): Promise<BasicReference> {
-    const raw = await fs.readFile(path, 'utf-8');
+    let data: Record<string,string>[] = [];
 
-    const { data: unclean } = Papa.parse(raw, { header: true });
-    const data = ReferenceSchema.parse(unclean);
+    if (existsSync(path)) {
+      const raw = await fs.readFile(path, 'utf-8');
 
-    const result = new BasicReference(data, path);
-    return result;
+      const { data: unclean } = Papa.parse(raw, { header: true });
+      data = ReferenceSchema.parse(unclean);
+    }
+    
+    return new BasicReference(data, path);
   }
 }
 
