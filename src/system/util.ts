@@ -5,16 +5,17 @@ import assert from "assert";
 
 /** ------------------------------------------------------------------------- */
 
+export const ExcelIndexSchema = z.union([z.number(), z.string().regex(/[A-Z]+/)]);
+export type ExcelIndex = z.infer<typeof ExcelIndexSchema>;
+
 function getIndexFromExcel(letters: string): number {
   return letters.split("").reduce((s, c) => c.charCodeAt(0) - 64 + s * 26, 0) - 1;
 }
 
-export const ExcelIndexSchema = z
-  .union([z.coerce.number().int(), z.string().regex(/[A-Z]+/)])
-  .transform(v => {
-    if (typeof v === "number") return v;
-    return getIndexFromExcel(v);
-  });
+export function getTrueIndex(index: ExcelIndex): number {
+  if (typeof index === "number") return index;
+  return getIndexFromExcel(index);
+}
 
 /** ------------------------------------------------------------------------- */
 

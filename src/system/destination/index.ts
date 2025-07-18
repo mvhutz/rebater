@@ -1,32 +1,34 @@
 import { z } from "zod/v4";
-import { CSV } from "./strategy/CSV";
-import { Destination as DestinationType } from "./strategy";
+import { State } from "../information/State";
+import { CSVDestination } from "./csv";
+import BaseDestination from "./base";
 
 /** ------------------------------------------------------------------------- */
 
 function getSchema() {
-  return z.discriminatedUnion("name", [
-    CSV.getSchema()
+  return z.discriminatedUnion("type", [
+    CSVDestination.getSchema()
   ]);
 }
 
-export type DestinationSchema = z.infer<ReturnType<typeof getSchema>>;
+type Schema = z.infer<ReturnType<typeof getSchema>>;
+
+function run(destination: Schema, table: Table, state: State) {
+  switch (destination.type) {
+    case "csv": return CSVDestination.run(destination, table, state);
+  }
+}
+
+function getDestinationFile(destination: Schema, state: State): string {
+  switch (destination.type) {
+    case "csv": return CSVDestination.getDestinationFile(destination, state);
+  }
+}
 
 /** ------------------------------------------------------------------------- */
 
-export const Destination: DestinationType<DestinationSchema> = {
-  name: "csv",
+export const Destination: BaseDestination<Schema> = {
+  run,
   getSchema,
-
-  run(table, { destination, state }) {
-    switch (destination.name) {
-      case "csv": return CSV.run(table, { destination, state });
-    }
-  },
-
-  getFile({ destination, state }) {
-    switch (destination.name) {
-      case "csv": return CSV.getFile({ destination, state });
-    }
-  },
+  getDestinationFile
 }

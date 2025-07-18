@@ -1,38 +1,35 @@
 import { z } from "zod/v4";
-import { Excel } from "./strategy/Excel";
-import { Source as SourceType } from "./strategy";
+import { ExcelSource } from "./Excel";
+import assert from "assert";
+import { State } from "../information/State";
 
 /** ------------------------------------------------------------------------- */
 
 function getSchema() {
-  return z.discriminatedUnion("name", [
-    Excel.getSchema()
+  return z.discriminatedUnion("type", [
+    ExcelSource.getSchema()
   ]);
 }
 
-export type SourceSchema = z.infer<ReturnType<typeof getSchema>>;
+type Schema = z.infer<ReturnType<typeof getSchema>>;
+
+function run(source: Schema, state: State) {
+  switch (source.type) {
+    case "excel": return ExcelSource.run(source, state);
+  }
+}
+
+function getSourceFileGlob(source: Schema, state: State) {
+  switch (source.type) {
+    case "excel": return ExcelSource.getSourceFileGlob(source, state);
+  }
+}
+
+function runMany(sources: Schema[], state: State) {
+  const results = sources.map(s => run(s, state));
+  return results.flat(1);
+}
 
 /** ------------------------------------------------------------------------- */
 
-export const Source = {
-  name: "excel",
-  getSchema,
-
-  run({ source, state }) {
-    switch (source.name) {
-      case "excel": return Excel.run({ source, state });
-    }
-  },
-
-  getFileGlob({ source, state }) {
-    switch (source.name) {
-      case "excel": return Excel.getFileGlob({ source, state });
-    }
-  },
-
-  runMany(sources, options) {
-    return sources
-      .map((source): Table[] => Source.run({ source, ...options }))
-      .flat(1);
-  },
-} satisfies SourceType<SourceSchema>;
+export const Source = { run, runMany, getSchema, getSourceFileGlob };

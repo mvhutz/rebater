@@ -1,78 +1,70 @@
 import { z } from "zod/v4";
-import { Add } from "./strategy/Add";
-import { RowTransformation as RowTransformationType } from "./strategy";
-import { Coerce } from "./strategy/Coerce";
-import { Column } from "./strategy/Column";
-import { Counter } from "./strategy/Counter";
-import { Literal } from "./strategy/Literal";
-import { Replace } from "./strategy/Replace";
-import { Trim } from "./strategy/Trim";
-import { Reference } from "./strategy/Reference";
-import { Character } from "./strategy/Character";
-import { Multiply } from "./strategy/Multiply";
-import { Meta } from "./strategy/Meta";
-import { Equals } from "./strategy/Equals";
-import { Concat } from "./strategy/Concat";
-import { Divide } from "./strategy/Divide";
-import { Sum } from "./strategy/Sum";
+import Counter from "./Counter";
+import Coerce from "./Coerce";
+import Column from "./Column";
+import Literal from "./Literal";
+import Replace from "./Replace";
+import Trim from "./Trim";
+import assert from "assert";
+import Reference from "./Reference";
+import Character from "./Character";
+import Multiply from "./Multiply";
+import Meta from "./Meta";
+import Add from "./Add";
+import Equals from "./Equals";
+import Concat from "./Concat";
+import { State } from "../information/State";
+import Divide from "./Divide";
+import Sum from "./Sum";
 
-/** ------------------------------------------------------------------------- */
+const REGISTERED = [
+  Coerce,
+  Column,
+  Counter,
+  Literal,
+  Replace,
+  Trim,
+  Reference,
+  Character,
+  Multiply,
+  Meta,
+  Add,
+  Equals,
+  Concat,
+  Divide,
+  Sum
+] as const;
 
-function getSchema() {
-  return z.discriminatedUnion("name", [
-    Add.getSchema(),
-    Coerce.getSchema(),
-    Column.getSchema(),
-    Counter.getSchema(),
-    Literal.getSchema(),
-    Replace.getSchema(),
-    Trim.getSchema(),
-    Reference.getSchema(),
-    Character.getSchema(),
-    Multiply.getSchema(),
-    Meta.getSchema(),
-    Equals.getSchema(),
-    Concat.getSchema(),
-    Divide.getSchema(),
-    Sum.getSchema()
-  ]);
+export const _Schema = z.discriminatedUnion("type", [
+  REGISTERED[0].schema,
+  ...REGISTERED.slice(1).map(r => r.schema)
+]);
+type RowTransformation = z.infer<typeof _Schema>;
+
+export async function _runOnce(transformation: RowTransformation, value: string, row: Row, state: State) {
+  const transformer = REGISTERED.find(r => r.name === transformation.type);
+  assert.ok(transformer != null, `Row transformer ${transformation.type} not found.`);
+
+  // We assume that the transformer takes the schema as valid input.
+  return transformer.run(transformation as never, value, row, state);
 }
 
-export type RowSchema = z.infer<ReturnType<typeof getSchema>>;
+export async function _runMany(transformations: RowTransformation[], row: Row, state: State) {
+  let final = "";
+
+  for (const transformation of transformations) {
+    final = await _runOnce(transformation, final, row, state);
+  }
+
+  return final;
+}
 
 /** ------------------------------------------------------------------------- */
 
-export const RowTransformation = {
-  name: "add",
-  getSchema,
+const RowTransformation = {
+  Schema: _Schema,
+  runOnce: _runOnce,
+  runMany: _runMany,
+}
 
-  run(value, { transformation, state, row }) {
-    switch (transformation.name) {
-      case "add": return Add.run(value, { transformation, state, row });
-      case "coerce": return Coerce.run(value, { transformation, state, row });
-      case "column": return Column.run(value, { transformation, state, row });
-      case "counter": return Counter.run(value, { transformation, state, row });
-      case "literal": return Literal.run(value, { transformation, state, row });
-      case "replace": return Replace.run(value, { transformation, state, row });
-      case "trim": return Trim.run(value, { transformation, state, row });
-      case "reference": return Reference.run(value, { transformation, state, row });
-      case "character": return Character.run(value, { transformation, state, row });
-      case "multiply": return Multiply.run(value, { transformation, state, row });
-      case "meta": return Meta.run(value, { transformation, state, row });
-      case "equals": return Equals.run(value, { transformation, state, row });
-      case "concat": return Concat.run(value, { transformation, state, row });
-      case "divide": return Divide.run(value, { transformation, state, row });
-      case "sum": return Sum.run(value, { transformation, state, row });
-    }
-  },
-  
-  async runMany(transformations, options) {
-    let value = "";
-
-    for (const transformation of transformations) {
-      value = await RowTransformation.run(value, { ...options, transformation });
-    }
-
-    return value;
-  },
-} satisfies RowTransformationType<RowSchema>;
+export default RowTransformation;

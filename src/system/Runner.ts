@@ -5,7 +5,7 @@ import { getPartition, getRebateHash, parseRebateFile, Rebate, RebateSet } from 
 import { mkdir, writeFile, glob } from "fs/promises";
 import path from "path";
 import { SystemStatus } from "../shared/system_status";
-import { SettingsInterface } from "../shared/settings_interface";
+import { SettingsInterface } from "src/shared/settings_interface";
 
 /** ------------------------------------------------------------------------- */
 
