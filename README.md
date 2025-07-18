@@ -1,4 +1,4 @@
-# 👷 Rebator
+# 👷 Rebater
 
 A desktop application to automate Fuse Alliance's Rebate process for its suppliers. The process of manually extracting data from FUSE reports is a long, complicated process. There are many, inconsistent formats for the data, depending on the many different suppliers. This application attempts to make the process faster, and simpler.
 
@@ -8,7 +8,7 @@ Rebator runs a set of [transformers](./docs/index.md) on a [directory of reports
 
 ## Installation
 
-To download the Rebator, complete the following steps:
+To download the Rebater, complete the following steps:
 
 1. Download [Node.js v24](https://nodejs.org/en/download).
 2. [Clone the repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) for Rebator (`mvhutz/rebator`).
