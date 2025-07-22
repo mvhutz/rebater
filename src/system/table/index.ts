@@ -16,19 +16,17 @@ export interface BaseTable {
   run(table: Table, state: State): Promise<Table>;
 }
 
-export function getTableSchema(): z.ZodType<BaseTable> {
-  return z.union([
-    ChopTable.SCHEMA,
-    CoalesceTable.SCHEMA,
-    DebugTable.SCHEMA,
-    FilterTable.SCHEMA,
-    HeaderTable.SCHEMA,
-    PercolateTable.SCHEMA,
-    SelectTable.SCHEMA,
-    SetTable.SCHEMA,
-    TrimTable.SCHEMA
-  ]);
-}
+export const TABLE_SCHEMA: z.ZodType<BaseTable> = z.union([
+  ChopTable.SCHEMA,
+  CoalesceTable.SCHEMA,
+  DebugTable.SCHEMA,
+  FilterTable.SCHEMA,
+  HeaderTable.SCHEMA,
+  PercolateTable.SCHEMA,
+  SelectTable.SCHEMA,
+  SetTable.SCHEMA,
+  TrimTable.SCHEMA
+]);
 
 export async function runMany(rows: BaseTable[], table: Table, state: State) {
   for (const operation of rows) {

@@ -9,8 +9,6 @@ export interface BaseDestination {
   run(table: Table, state: State): void;
 }
 
-export function getDestinationSchema(): z.ZodType<BaseDestination> {
-  return z.union([
-    CSVDestination.SCHEMA
-  ]);
-}
+export const DESTINATION_SCHEMA: z.ZodType<BaseDestination> = z.union([
+  CSVDestination.SCHEMA
+]);

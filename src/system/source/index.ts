@@ -9,8 +9,6 @@ export interface BaseSource {
   run(state: State): Table[];
 }
 
-export function getSourceSchema(): z.ZodType<BaseSource> {
-  return z.union([
-    ExcelSource.SCHEMA
-  ]);
-}
+export const SOURCE_SCHEMA: z.ZodType<BaseSource> = z.union([
+  ExcelSource.SCHEMA
+]);

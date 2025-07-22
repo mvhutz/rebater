@@ -4,9 +4,9 @@ import { z } from "zod/v4";
 import { State } from "./information/State";
 import { SettingsInterface } from "../shared/settings_interface";
 import { rewire } from "./util";
-import { getDestinationSchema } from "./destination";
-import { getSourceSchema } from "./source";
-import { getTableSchema, runMany as runManyTables } from "./table";
+import { DESTINATION_SCHEMA } from "./destination";
+import { SOURCE_SCHEMA } from "./source";
+import { TABLE_SCHEMA, runMany as runManyTables } from "./table";
 import { ROW_SCHEMA, runMany as runManyRows } from "./row";
 
 /** ------------------------------------------------------------------------- */
@@ -14,14 +14,14 @@ import { ROW_SCHEMA, runMany as runManyRows } from "./row";
 const DataSchema = z.strictObject({
   name: z.string(),
   tags: z.array(z.string()).default([]),
-  sources: z.array(getSourceSchema()),
-  preprocess: z.array(getTableSchema()).optional(),
+  sources: z.array(SOURCE_SCHEMA),
+  preprocess: z.array(TABLE_SCHEMA).optional(),
   properties: z.array(z.strictObject({
     name: z.string(),
     definition: z.array(ROW_SCHEMA)
   })),
-  postprocess: z.array(getTableSchema()).optional(),
-  destination: getDestinationSchema(),
+  postprocess: z.array(TABLE_SCHEMA).optional(),
+  destination: DESTINATION_SCHEMA,
 });
 
 export type TransformerData = z.infer<typeof DataSchema>;
