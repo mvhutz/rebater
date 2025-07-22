@@ -1,26 +1,26 @@
 import { z } from "zod/v4";
-import { _runMany, _Schema } from ".";
+import { BaseRow, ROW_SCHEMA, runMany } from ".";
 import { State } from "../information/State";
 
-const NAME = "concat";
-
 /** ------------------------------------------------------------------------- */
 
-const schema = z.strictObject({
-  type: z.literal(NAME),
-  with: z.array(z.any()), // Actually a row transformation.
-  separator: z.string().default("")
-});
+export class ConcatRow implements BaseRow {
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("concat"),
+    with: z.lazy(() => z.array(ROW_SCHEMA)),
+    separator: z.string().default("")
+  }).transform(s => new ConcatRow(s.with, s.separator));
 
-type Transformation = z.infer<typeof schema>;
+  private readonly other: BaseRow[];
+  private readonly separator: string;
 
-async function run(transformation: Transformation, value: string, row: Row, state: State): Promise<string> {
-  const extra = z.array(_Schema).parse(transformation.with);
-  const extra_value = await _runMany(extra, row, state);
-  return extra_value + transformation.separator + value;
+  public constructor(other: BaseRow[], separator: string) {
+    this.other = other;
+    this.separator = separator;
+  }
+
+  async run(value: string, row: Row, state: State): Promise<string> {
+    const other_value = await runMany(this.other, row, state);
+    return other_value + this.separator + value;
+  }
 }
-
-/** ------------------------------------------------------------------------- */
-
-const Concat = { schema, run, name: NAME };
-export default Concat;

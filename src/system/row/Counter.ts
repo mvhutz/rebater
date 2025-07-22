@@ -1,26 +1,20 @@
 import { z } from "zod/v4";
 import { State } from "../information/State";
-
-const NAME = "counter";
+import { BaseRow } from ".";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.strictObject({
-  type: z.literal(NAME),
-});
+export class CounterRow implements BaseRow {
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("counter"),
+  }).transform(() => new CounterRow());
 
-type Transformation = z.infer<typeof schema>;
+  async run(_v: string, _r: Row, state: State): Promise<string> {
+    const counter = state.getCounter("counter");
 
-async function run(transformation: Transformation, value: string, row: Row, state: State): Promise<string> {
-  const counter = state.getCounter(transformation.type);
+    const result = counter.get();
+    counter.increment();
 
-  const result = counter.get();
-  counter.increment();
-
-  return result.toString();
+    return result.toString();
+  }
 }
-
-/** ------------------------------------------------------------------------- */
-
-const Counter = { schema, run, name: NAME };
-export default Counter;

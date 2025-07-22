@@ -1,56 +1,59 @@
+import z from "zod/v4";
 import moment, { Moment } from "moment";
 import assert from "assert";
-import { z } from "zod/v4";
 import { State } from "../../information/State";
-
-const NAME = "date";
+import { BaseRow } from "..";
 
 /** ------------------------------------------------------------------------- */
 
-const attributes = z.strictObject({
-  type: z.literal("coerce"),
-  as: z.literal(NAME),
-  year: z.union([z.literal("assume")]).optional(),
-  parse: z.union([z.string(), z.array(z.string())]).optional(),
-  format: z.string().default("M/D/YYYY")
-});
+export class CoerceDateRow implements BaseRow {
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("coerce"),
+    as: z.literal("date"),
+    year: z.union([z.literal("assume")]).optional(),
+    parse: z.union([z.string(), z.array(z.string())]).optional(),
+    format: z.string().default("M/D/YYYY")
+  }).transform(s => new CoerceDateRow(s.format, s.year, s.parse));
 
-type Attributes = z.infer<typeof attributes>;
+  private readonly year?: "assume";
+  private readonly parse?: string | string[];
+  private readonly format: string;
 
-const COMMON_DATES = [
-  "M/D/YYYY",
-  "M/D/YY",
-  "MM.DD.YYYY",
-  "M.D.YYYY",
-  "MM/DD/YYYY",
-  "YYYY-MM-DD",
-  "YY/MM/DD"
-];
+  private static readonly COMMON_DATES = [
+    "M/D/YYYY",
+    "M/D/YY",
+    "MM.DD.YYYY",
+    "M.D.YYYY",
+    "MM/DD/YYYY",
+    "YYYY-MM-DD",
+    "YY/MM/DD"
+  ];
 
-function run(datum: string, attributes: Attributes, state: State) {
-  const { parse, year, format } = attributes;
-  const attemptInt = Number(datum);
-  let date: Moment;
-
-  if (parse) {
-    if (datum.length === 5) datum = "0" + datum;
-    if (datum.length === 7) datum = "0" + datum;
-    date = moment(datum, parse);
-  } else if (!isNaN(attemptInt)) {
-    date = moment(Date.UTC(0, 0, attemptInt));
-  } else {
-    date = moment(datum, COMMON_DATES);
+  public constructor(format: string, year?: "assume", parse?: string | string[]) {
+    this.year = year;
+    this.parse = parse;
+    this.format = format;
   }
 
-  if (year === "assume") {
-    date.year(state.getSettings().getTime().year);
-  }
+  async run(value: string, row: Row, state: State): Promise<string> {
+    const attemptInt = Number(value);
+    let date: Moment;
 
-  assert.ok(date.isValid(), `Date ${datum} could not be parsed.`);
-  return date.format(format);
+    if (this.parse) {
+      if (value.length === 5) value = "0" + value;
+      if (value.length === 7) value = "0" + value;
+      date = moment(value, this.parse);
+    } else if (!isNaN(attemptInt)) {
+      date = moment(Date.UTC(0, 0, attemptInt));
+    } else {
+      date = moment(value, CoerceDateRow.COMMON_DATES);
+    }
+
+    if (this.year === "assume") {
+      date.year(state.getSettings().getTime().year);
+    }
+
+    assert.ok(date.isValid(), `Date ${value} could not be parsed.`);
+    return date.format(this.format);
+  }
 }
-
-/** ------------------------------------------------------------------------- */
-
-const CoerceDate = { attributes, run, name: NAME };
-export default CoerceDate;

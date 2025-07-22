@@ -1,25 +1,23 @@
 import { z } from "zod/v4";
-import { _runMany, _Schema } from ".";
+import { BaseRow, ROW_SCHEMA, runMany } from ".";
 import { State } from "../information/State";
 
-const NAME = "equals";
-
 /** ------------------------------------------------------------------------- */
 
-const schema = z.strictObject({
-  type: z.literal(NAME),
-  with: z.array(z.any()), // Actually a row transformation.
-});
+export class EqualsRow implements BaseRow {
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("equals"),
+    with: z.lazy(() => z.array(ROW_SCHEMA)),
+  }).transform(s => new EqualsRow(s.with));
 
-type Transformation = z.infer<typeof schema>;
+  private readonly other: BaseRow[];
 
-async function run(transformation: Transformation, value: string, row: Row, state: State): Promise<string> {
-  const extra = z.array(_Schema).parse(transformation.with);
-  const extra_value = await _runMany(extra, row, state);
-  return (extra_value === value).toString();
+  public constructor(other: BaseRow[]) {
+    this.other = other;
+  }
+
+  async run(value: string, row: Row, state: State): Promise<string> {
+    const other_value = await runMany(this.other, row, state);
+    return (value === other_value).toString();
+  }
 }
-
-/** ------------------------------------------------------------------------- */
-
-const Equals = { schema, run, name: NAME };
-export default Equals;

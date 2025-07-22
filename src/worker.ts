@@ -71,22 +71,32 @@ parent.on("message", async message => {
 });
 
 async function main() {
-  const { success, data: settings, error } = SettingsSchema.safeParse(workerData);
-  if (!success) {
-    return send({ type: "error", message: z.prettifyError(error) });
+  try {
+    const { success, data: settings, error } = SettingsSchema.safeParse(workerData);
+    if (!success) {
+      return send({ type: "error", message: z.prettifyError(error) });
+    }
+
+    const settings_interface = makeSettingsInterface(settings);
+    if (!settings_interface.ok) {
+      return send({ type: "error", message: settings_interface.reason });
+    }
+
+    const runner = new Runner({
+      onStatus: s => parent.postMessage(s),
+      onQuestion
+    });
+
+    await runner.run(settings_interface.data);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return send({ type: "error", message: z.prettifyError(error) });
+    } else if (error instanceof Error) {
+      return send({ type: "error", message: error.message });
+    } else {
+      return send({ type: "error", message: `${error}` });
+    }
   }
-
-  const settings_interface = makeSettingsInterface(settings);
-  if (!settings_interface.ok) {
-    return send({ type: "error", message: settings_interface.reason });
-  }
-
-  const runner = new Runner({
-    onStatus: s => parent.postMessage(s),
-    onQuestion
-  });
-
-  await runner.run(settings_interface.data);
 }
 
 main();

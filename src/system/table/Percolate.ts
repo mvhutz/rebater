@@ -1,43 +1,42 @@
 import { z } from "zod/v4";
-import { ExcelIndexSchema, getTrueIndex } from "../util";
-
-const NAME = "percolate";
+import { ExcelIndexSchema, makeTable } from "../util";
+import { BaseTable } from ".";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.strictObject({
-  type: z.literal(NAME),
-  columns: z.array(ExcelIndexSchema),
-  matches: z.array(z.string()).default([""])
-});
+export class PercolateTable implements BaseTable {
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("percolate"),
+    columns: z.array(ExcelIndexSchema),
+    matches: z.array(z.string()).default([""])
+  }).transform(s => new PercolateTable(s.columns, s.matches));
 
-type Schema = z.infer<typeof schema>;
+  private readonly columns: number[];
+  private readonly matches: string[];
 
-async function run(transformation: Schema, table: Table): Promise<Table> {
-  const { columns, matches } = transformation;
-  const indices = new Set(columns.map(getTrueIndex));
-
-  let previous: Maybe<string[]>;
-  const rows = new Array<Row>();
-
-  for (const row of table.data) {
-    const cells = [...row.data];
-
-    for (const index of indices) {
-      if (matches.includes(cells[index])) {
-        if (previous == null) continue;
-        cells[index] = previous[index];
-      }
-    }
-
-    previous = cells;
-    rows.push({ ...row, data: cells });
+  public constructor(columns: number[], matches: string[]) {
+    this.columns = columns;
+    this.matches = matches;
   }
 
-  return { ...table, data: rows };
+  async run(table: Table): Promise<Table> {
+    let previous: Maybe<string[]>;
+    const rows = new Array<string[]>();
+
+    for (const row of table.data) {
+      const cells = [...row.data];
+
+      for (const index of this.columns) {
+        if (this.matches.includes(cells[index])) {
+          if (previous == null) continue;
+          cells[index] = previous[index];
+        }
+      }
+
+      previous = cells;
+      rows.push(cells);
+    }
+
+    return makeTable(rows, table.path);
+  }
 }
-
-/** ------------------------------------------------------------------------- */
-
-const Percolate = { schema, run, name: NAME };
-export default Percolate;

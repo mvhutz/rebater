@@ -1,38 +1,37 @@
 import { z } from "zod/v4";
-import { ExcelIndexSchema, getTrueIndex } from "../util";
-
-const NAME = "sum";
+import { ExcelIndexSchema } from "../util";
+import { BaseRow } from ".";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.strictObject({
-  type: z.literal(NAME),
-  column: ExcelIndexSchema,
-});
+export class SumRow implements BaseRow {
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("sum"),
+    column: ExcelIndexSchema,
+  }).transform(s => new SumRow(s.column));
 
-type Transformation = z.infer<typeof schema>;
+  private readonly column: number;
+  private static cache = new WeakMap<Table, Map<number, number>>();
 
-const CACHE = new WeakMap<Table, Map<number, number>>();
-
-async function run(transformation: Transformation, _value: string, row: Row): Promise<string> {
-  const { column: _column } = transformation;
-  const column = getTrueIndex(_column);
-
-  let cached_table = CACHE.get(row.table);
-  if (cached_table == null) {
-    CACHE.set(row.table, cached_table = new Map());
+  public constructor(column: number) {
+    this.column = column;
   }
 
-  const cached_sum = cached_table.get(column);
-  if (cached_sum != null) return cached_sum.toString();
+  async run(_value: string, row: Row): Promise<string> {
+    let cached_table = SumRow.cache.get(row.table);
+    if (cached_table == null) {
+      SumRow.cache.set(row.table, cached_table = new Map());
+    }
 
-  const sum = row.table.data.reduce((s, b) => s + Number(b.data[column]), 0);
-  cached_table.set(column, sum);
+    const cached_sum = cached_table.get(this.column);
+    if (cached_sum != null) return cached_sum.toString();
 
-  return sum.toString();
+    let sum = 0;
+    for (const _row of row.table.data) {
+      sum += parseFloat(_row.data[this.column]);
+    }
+
+    cached_table.set(this.column, sum);
+    return sum.toString();
+  }
 }
-
-/** ------------------------------------------------------------------------- */
-
-const Sum = { schema, run, name: NAME };
-export default Sum;

@@ -1,66 +1,40 @@
 import { z } from "zod/v4";
-import Chop from "./Chop";
-import Filter from "./Filter";
-import Select from "./Select";
-import Trim from "./Trim";
-import assert from "assert";
-import Header from "./Header";
-import Coalesce from "./Coalesce";
-import Debug from "./Debug";
-import Percolate from "./Percolate";
 import { State } from "../information/State";
-import Set from "./Set";
+import { ChopTable } from "./Chop";
+import { CoalesceTable } from "./Coalesce";
+import { DebugTable } from "./Debug";
+import { FilterTable } from "./Filter";
+import { HeaderTable } from "./Header";
+import { PercolateTable } from "./Percolate";
+import { SelectTable } from "./Select";
+import { SetTable } from "./Set";
+import { TrimTable } from "./Trim";
 
 /** ------------------------------------------------------------------------- */
 
-const REGISTERED = [
-  Chop,
-  Filter,
-  Select,
-  Trim,
-  Header,
-  Coalesce,
-  Debug,
-  Percolate,
-  Set
-] as const;
-
-export const TableTransformationSchema = z.discriminatedUnion("type", [
-  REGISTERED[0].schema,
-  ...REGISTERED.slice(1).map(r => r.schema)
-]);
-type TableTransformation = z.infer<typeof TableTransformationSchema>;
-
-async function runOnce(transformation: TableTransformation, table: Table, state: State) {
-  const transformer = REGISTERED.find(r => r.name === transformation.type);
-  assert.ok(transformer != null, `Row transformer ${transformation.type} not found.`);
-
-  // We assume that the transformer takes the schema as valid input.
-  return await transformer.run(transformation as never, table, state);
+export interface BaseTable {
+  run(table: Table, state: State): Promise<Table>;
 }
 
-async function runMany(transformations: TableTransformation[], tables: Table[], state: State) {
-  const results = Array<Table>();
+export function getTableSchema(): z.ZodType<BaseTable> {
+  return z.union([
+    ChopTable.SCHEMA,
+    CoalesceTable.SCHEMA,
+    DebugTable.SCHEMA,
+    FilterTable.SCHEMA,
+    HeaderTable.SCHEMA,
+    PercolateTable.SCHEMA,
+    SelectTable.SCHEMA,
+    SetTable.SCHEMA,
+    TrimTable.SCHEMA
+  ]);
+}
 
-  for (const table of tables) {
-    let final = table;
-
-    for (const transformation of transformations) {
-      final = await runOnce(transformation, final, state);
-    }
-
-    results.push(final);
+export async function runMany(rows: BaseTable[], table: Table, state: State) {
+  for (const operation of rows) {
+    table = await operation.run(table, state);
   }
 
-  return results;
+  return table;
 }
 
-/** ------------------------------------------------------------------------- */
-
-const TableTransformation = {
-  runOnce,
-  runMany,
-  Schema: TableTransformationSchema,
-}
-
-export default TableTransformation;

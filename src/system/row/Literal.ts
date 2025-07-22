@@ -1,21 +1,21 @@
 import { z } from "zod/v4";
-
-const NAME = "literal";
+import { BaseRow } from ".";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.strictObject({
-  type: z.literal(NAME),
-  value: z.coerce.string()
-});
+export class LiteralRow implements BaseRow {
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("literal"),
+    value: z.coerce.string()
+  }).transform(s => new LiteralRow(s.value));
 
-type Transformation = z.infer<typeof schema>;
+  private readonly value: string;
 
-async function run(transformation: Transformation): Promise<string> {
-  return transformation.value;
+  public constructor(value: string) {
+    this.value = value;
+  }
+
+  async run(): Promise<string> {
+    return this.value;
+  }
 }
-
-/** ------------------------------------------------------------------------- */
-
-const Literal = { schema, run, name: NAME };
-export default Literal;

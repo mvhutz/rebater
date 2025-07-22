@@ -1,33 +1,33 @@
 import { z } from "zod/v4";
 import { rewire } from "../util";
-
-const NAME = "header";
+import { BaseTable } from ".";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.strictObject({
-  type: z.literal(NAME),
-  name: z.string(),
-  action: z.union([z.literal("drop")]),
-});
+export class HeaderTable implements BaseTable {
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("header"),
+    name: z.string(),
+    action: z.union([z.literal("drop")]),
+  }).transform(s => new HeaderTable(s.name, s.action));
 
-type Schema = z.infer<typeof schema>;
+  private readonly name: string;
+  private readonly action: "drop";
 
-async function run(transformation: Schema, table: Table) {
-  const { name } = transformation;
+  public constructor(name: string, action: "drop") {
+    this.name = name;
+    this.action = action;
+  }
 
-  const index = table.data[0].data.findIndex(r => r === name);
-  if (index === -1) return table;
+  async run(table: Table): Promise<Table> {
+    const index = table.data[0].data.findIndex(r => r === this.name);
+    if (index === -1) return table;
 
-  const rows = table.data.map(r => ({
-    ...r,
-    data: r.data.filter((_, i) => i !== index)
-  }));
+    const rows = table.data.map(r => ({
+      ...r,
+      data: r.data.filter((_, i) => i !== index)
+    }));
 
-  return rewire({ ...table, data: rows });
+    return rewire({ ...table, data: rows });
+  }
 }
-
-/** ------------------------------------------------------------------------- */
-
-const Header = { schema, run, name: NAME };
-export default Header;

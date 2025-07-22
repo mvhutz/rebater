@@ -1,27 +1,27 @@
 import { z } from "zod/v4";
-
-const NAME = "character";
+import { BaseRow } from "./base";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.strictObject({
-  type: z.literal(NAME),
-  select: z.string(),
-  action: z.union([z.literal("keep"), z.literal("drop")]).default("keep")
-});
+export class CharacterRow implements BaseRow {
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("character"),
+    select: z.string(),
+    action: z.union([z.literal("keep"), z.literal("drop")]).default("keep")
+  }).transform(s => new CharacterRow(s.select, s.action));
 
-type Transformation = z.infer<typeof schema>;
+  private readonly select: string;
+  private readonly action: "keep" | "drop";
 
-async function run(transformation: Transformation, value = ""): Promise<string> {
-  const { select, action } = transformation;
+  public constructor(select: string, action: "keep" | "drop") {
+    this.select = select;
+    this.action = action;
+  }
 
-  const characters = value.split("");
-  return characters
-    .filter(c => select.includes(c) === (action === "keep"))
-    .join("");
+  async run(value: string): Promise<string> {
+    const characters = value.split("");
+    return characters
+      .filter(c => this.select.includes(c) === (this.action === "keep"))
+      .join("");
+  }
 }
-
-/** ------------------------------------------------------------------------- */
-
-const Character = { schema, run, name: NAME };
-export default Character;

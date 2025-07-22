@@ -1,59 +1,57 @@
 import { z } from "zod/v4";
-import { ExcelIndex, ExcelIndexSchema, getTrueIndex, rewire } from "../util";
+import { ExcelIndexSchema, rewire } from "../util";
+import { BaseTable } from ".";
 import assert from "assert";
 
-const NAME = "coalesce";
-
 /** ------------------------------------------------------------------------- */
 
-const schema = z.strictObject({
-  type: z.literal(NAME),
-  match: z.array(ExcelIndexSchema),
-  combine: z.array(ExcelIndexSchema).default([])
-});
+export class CoalesceTable implements BaseTable {
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("coalesce"),
+    match: z.array(ExcelIndexSchema),
+    combine: z.array(ExcelIndexSchema).default([])
+  }).transform(s => new CoalesceTable(s.match, s.combine));
 
-type Schema = z.infer<typeof schema>;
+  private readonly match: number[];
+  private readonly combine: number[];
 
-function getHash(row: Row, matches: ExcelIndex[]) {
-  const array = matches.map(m => row.data[getTrueIndex(m)]);
-  return JSON.stringify(array);
-}
-
-function combineRows(combineOn: ExcelIndex[], rows: Row[]) {
-  const result = structuredClone(rows.pop());
-  assert.ok(result != null, "Cannot coalesce empty set of arrays.");
-
-  const indices = combineOn.map(getTrueIndex);
-
-  for (const row of rows) {
-    for (const index of indices) {
-      result.data[index] = (Number(row.data[index]) + Number(result.data[index])).toString()
-    }
+  public constructor(match: number[], combine: number[]) {
+    this.match = match;
+    this.combine = combine;
   }
 
-  return result;
-}
-
-async function run(transformation: Schema, table: Table): Promise<Table> {
-  const { match, combine } = transformation;
-
-  const matched = new Map<string, Row[]>();
-  for (const row of table.data) {
-    const hash = getHash(row, match);
-    const list = matched.get(hash);
-
-    if (list == null) {
-      matched.set(hash, [row]);
-    } else {
-      list.push(row);
-    }
+  getHash(row: Row) {
+    const array = this.match.map(m => row.data[m]);
+    return JSON.stringify(array);
   }
 
-  const combined = [...matched.values()].map(combineRows.bind(null, combine));
-  return rewire({ ...table, data: combined });
+  combineRows(rows: Row[]) {
+    const result = structuredClone(rows.pop());
+    assert.ok(result != null, "Cannot coalesce empty set of arrays.");
+
+    for (const row of rows) {
+      for (const index of this.combine) {
+        result.data[index] = (Number(row.data[index]) + Number(result.data[index])).toString()
+      }
+    }
+
+    return result;
+  }
+
+  async run(table: Table): Promise<Table> {
+    const matched = new Map<string, Row[]>();
+    for (const row of table.data) {
+      const hash = this.getHash(row);
+      const list = matched.get(hash);
+
+      if (list == null) {
+        matched.set(hash, [row]);
+      } else {
+        list.push(row);
+      }
+    }
+
+    const combined = [...matched.values()].map(r => this.combineRows(r));
+    return rewire({ ...table, data: combined });
+  }
 }
-
-/** ------------------------------------------------------------------------- */
-
-const Coalesce = { schema, run, name: NAME };
-export default Coalesce;
