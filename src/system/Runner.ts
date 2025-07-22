@@ -1,4 +1,4 @@
-import { Transformer } from "./Transformer";
+import { Transformer } from "./transformer";
 import { BasicState, State } from "./information/State";
 import * as XLSX from "xlsx";
 import { getPartition, getRebateHash, parseRebateFile, Rebate, RebateSet } from "./util";
@@ -78,11 +78,11 @@ export class Runner {
     const actual_glob = settings.getRebatePathGlob();
     const actual_files = await Array.fromAsync(glob(actual_glob));
     const actual = (await Promise.all(actual_files.map(parseRebateFile))).flat();
-    
+
     const expected_glob = settings.getTruthPathGlob();
     const expected_files = await Array.fromAsync(glob(expected_glob));
     const expected = (await Promise.all(expected_files.map(parseRebateFile))).flat();
-  
+
     const results = new Array<DiscrepencyResult>();
 
     const actual_partitions = getPartition(actual, "supplierId");
