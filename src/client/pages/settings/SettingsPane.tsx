@@ -2,7 +2,6 @@ import React from 'react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import AccordionGroup from '@mui/joy/AccordionGroup';
 import Button from '@mui/joy/Button';
-import ListDivider from '@mui/joy/ListDivider';
 import Stack from '@mui/joy/Stack';
 import Sheet from '@mui/joy/Sheet';
 import { SxProps } from '@mui/joy/styles/types';
@@ -12,6 +11,7 @@ import AdvancedSettings from './AdvancedSettings';
 import { SaveRounded } from '@mui/icons-material';
 import { pullTransformers, pushSystemSettings } from '../../../client/store/slices/thunk';
 import { getVisible } from '../../../client/store/slices/ui';
+import { Divider } from '@mui/joy';
 
 /** ------------------------------------------------------------------------- */
 
@@ -49,7 +49,7 @@ function SettingsPane() {
           </Stack>
           <Sheet variant='soft' sx={{ flex: 1 }}/>
         </Stack>
-        <ListDivider/>
+        <Divider />
         <Sheet sx={{ p: 1 }}>
           <Button onClick={handleSave} fullWidth variant="outlined" size='sm' color="neutral" startDecorator={<SaveRounded/>}>Save Settings</Button>
         </Sheet>
