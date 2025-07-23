@@ -10,7 +10,7 @@ Rebator runs a set of [transformers](./docs/index.md) on a [directory of reports
 
 To download the Rebater, complete the following steps:
 
-1. Download [Node.js](https://nodejs.org/en/download).
+1. Download [Node.js v24](https://nodejs.org/en/download).
 2. [Clone the repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) for Rebator (`mvhutz/rebator`).
 3. Open a Terminal in the folder where you cloned the repository.
 4. Run `npm install`, to install the dependencies of the program.
