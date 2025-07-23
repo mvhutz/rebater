@@ -2,7 +2,7 @@ import { Transformer } from "./transformer";
 import { BasicState, State } from "./information/State";
 import * as XLSX from "xlsx";
 import { getPartition, getRebateHash, parseRebateFile, Rebate, RebateSet } from "./util";
-import { mkdir, writeFile, glob } from "fs/promises";
+import { mkdir, writeFile, glob, rm } from "fs/promises";
 import path from "path";
 import { SystemStatus } from "../shared/system_status";
 import { SettingsInterface } from "src/shared/settings_interface";
@@ -119,6 +119,11 @@ export class Runner {
     }
 
     this.updateStatus({ type: "loading", message: "Saving data..." });
+    
+    for await (const file of glob(state.getSettings().getRebatePathGlob())) {
+      await rm(file);
+    }
+
     await state.saveDestinationFiles();
     await state.saveReferences();
 

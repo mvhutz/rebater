@@ -67,7 +67,7 @@ function makeBasicTarget(strategy: Settings["advanced"]["target"], time: Time): 
       directory,
       "sources",
     ),
-     getRebatePathGlob: () => path.join(
+    getRebatePathGlob: () => path.join(
       directory,
       "rebates",
       getTimeString(time),
