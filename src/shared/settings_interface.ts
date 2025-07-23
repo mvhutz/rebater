@@ -17,10 +17,12 @@ interface TargetInterface {
   getTruthPathGlob(): string;
   getDestinationPath(name: string): string;
   getSourcePathGlob(group: string, file?: string, extension?: string): string;
-  getSourcePath(): string;
+  getSourcePath(time?: Time): string;
+  getSingleSourcePath(group: string, time?: Time): string;
   getTransformerPathGlob(): string;
   getTransformerPath(name: string): string;
   getOutputFile(extension: string): string;
+  getAllSourcePath(): string;
 }
 
 interface AdvancedInterface extends TargetInterface {
@@ -63,9 +65,20 @@ function makeBasicTarget(strategy: Settings["advanced"]["target"], time: Time): 
       group,
       `**/${file}${extension}`
     ),
-    getSourcePath: () => path.join(
+    getSingleSourcePath: (group, t = time) => path.join(
       directory,
       "sources",
+      getTimeString(t),
+      group,
+    ),
+    getSourcePath: (t = time) => path.join(
+      directory,
+      "sources",
+      getTimeString(t)
+    ),
+    getAllSourcePath: () => path.join(
+      directory,
+      "sources"
     ),
     getRebatePathGlob: () => path.join(
       directory,

@@ -37,6 +37,8 @@ async function createWindow() {
   ipcMain.handle.openDir();
   ipcMain.handle.getTransformers();
   ipcMain.handle.openOutputFile();
+  ipcMain.handle.getAllQuarters();
+  ipcMain.handle.createQuarter();
 
   // Talking with system.
   let worker: Maybe<Worker>;
@@ -89,6 +91,9 @@ async function createWindow() {
     ipcMain.remove.openDir();
     ipcMain.remove.runProgram();
     ipcMain.remove.setSettings();
+    ipcMain.remove.openOutputFile();
+    ipcMain.remove.getAllQuarters();
+    ipcMain.remove.createQuarter();
   });
 
   // and load the index.html of the app.

@@ -8,6 +8,8 @@ import { SystemStatus } from "./system_status";
 import { getTransformers } from "./ipc/system/getTransformers";
 import { getSettings } from "./ipc/system/getSettings";
 import { openOutputFile } from "./ipc/system/openOutputFile";
+import { getAllQuarters } from "./ipc/system/getAllQuarters";
+import { createQuarter } from "./ipc/system/createQuarter";
 
 /** ------------------------------------------------------------------------- */
 
@@ -30,6 +32,8 @@ const IPC = createInterprocess({
     getTransformers,
     getSettings,
     openOutputFile,
+    getAllQuarters,
+    createQuarter,
     async setSettings(_, settings: Settings): Promise<Reply<string>> {
       const file = path.join(app.getPath("userData"), "settings.json");
       await fs.writeFile(file, JSON.stringify(settings));

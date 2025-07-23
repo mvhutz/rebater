@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { RootState } from '..';
-import { pushSystemSettings } from './thunk';
+import { pullAllQuarters, pushSystemSettings } from './thunk';
 
 /** ------------------------------------------------------------------------- */
 
@@ -60,8 +60,15 @@ export const UISlice = createSlice({
           state.messages.push({ type: "info", text: "Settings saved!" });
         }
       })
-    .addCase(pushSystemSettings.rejected, (state, { error }) => {
+      .addCase(pushSystemSettings.rejected, (state, { error }) => {
         state.messages.push({ type: "error", text: error.message ?? "Unknown error saving settings." });
+      })
+      .addCase(pullAllQuarters.rejected, (state, { error }) => {
+        state.messages.push({ type: "error", text: error.message ?? "Unknown error loading quarters." });
+      })
+      .addCase(pullAllQuarters.fulfilled, (state, { payload }) => {
+        if (payload.ok) return;
+        state.messages.push({ type: "error", text: payload.reason });
       })
   },
 });

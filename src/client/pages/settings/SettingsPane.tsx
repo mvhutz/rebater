@@ -9,9 +9,10 @@ import ContextSettings from './ContextSettings';
 import TransformerSettings from './TransformerSettings';
 import AdvancedSettings from './AdvancedSettings';
 import { SaveRounded } from '@mui/icons-material';
-import { pullTransformers, pushSystemSettings } from '../../../client/store/slices/thunk';
+import { pullSystemSettings, pullTransformers, pushSystemSettings } from '../../../client/store/slices/thunk';
 import { getVisible } from '../../../client/store/slices/ui';
-import { Divider } from '@mui/joy';
+import { Divider, IconButton } from '@mui/joy';
+import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 
 /** ------------------------------------------------------------------------- */
 
@@ -32,6 +33,12 @@ function SettingsPane() {
   const handleSave = React.useCallback(async () => {
     await dispatch(pushSystemSettings());
     await dispatch(pullTransformers());
+    await dispatch(pullSystemSettings());
+  }, [dispatch]);
+
+  const handleRefresh = React.useCallback(async () => {
+    await dispatch(pullSystemSettings());
+    await dispatch(pullTransformers());
   }, [dispatch]);
 
   if (!show) return null;
@@ -50,9 +57,12 @@ function SettingsPane() {
           <Sheet variant='soft' sx={{ flex: 1 }}/>
         </Stack>
         <Divider />
-        <Sheet sx={{ p: 1 }}>
+        <Stack direction="row" spacing={1} sx={{ p: 1 }}>
           <Button onClick={handleSave} fullWidth variant="outlined" size='sm' color="neutral" startDecorator={<SaveRounded/>}>Save Settings</Button>
-        </Sheet>
+          <IconButton onClick={handleRefresh} variant="outlined">
+            <RefreshRoundedIcon/>
+          </IconButton>
+        </Stack>
       </Stack>
     </Sheet >
   );
