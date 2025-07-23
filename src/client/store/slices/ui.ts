@@ -16,6 +16,7 @@ interface UIState {
   show: {
     tabs: boolean;
     settings: boolean;
+    new_quarter_modal: boolean;
   },
   tab: Tab
 }
@@ -25,6 +26,7 @@ const initialState: UIState = {
   show: {
     tabs: true,
     settings: true,
+    new_quarter_modal: false,
   },
   tab: "system"
 }
@@ -46,6 +48,9 @@ export const UISlice = createSlice({
     },
     toggleSettings(state) {
       state.show.settings = !state.show.settings;
+    },
+    toggleNewQuarterModal(state) {
+      state.show.new_quarter_modal = !state.show.new_quarter_modal;
     },
     setTab(state, action: PayloadAction<Tab>) {
       state.tab = action.payload;
@@ -75,9 +80,10 @@ export const UISlice = createSlice({
 
 /** ------------------------------------------------------------------------- */
 
-export const { popMessage, pushMessage, toggleTabs, toggleSettings, setTab } = UISlice.actions
+export const { popMessage, pushMessage, toggleTabs, toggleSettings, setTab, toggleNewQuarterModal } = UISlice.actions
 
 export const getLatestMessage = (state: RootState) => state.ui.messages.at(-1);
 export const getVisible = (state: RootState) => state.ui.show;
 export const getTab = (state: RootState) => state.ui.tab;
+export const getNewQuarterModal = (state: RootState) => state.ui.show.new_quarter_modal;
 export const getDisplayTab = (name: Tab) => (state: RootState) => state.ui.tab === name ? "initial" : "none";

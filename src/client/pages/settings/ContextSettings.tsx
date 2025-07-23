@@ -18,6 +18,7 @@ import { getContextSettings, getQuarterList, setSystemQuarter, setSystemYear } f
 import { ResourceStatus } from '../../../shared/resource';
 import moment from 'moment';
 import { IconButton } from '@mui/joy';
+import { toggleNewQuarterModal } from '../../store/slices/ui';
 
 /** ------------------------------------------------------------------------- */
 
@@ -31,6 +32,10 @@ function ContextSettings() {
     const new_time = moment(new_quarter, "YYYY-QQ");
     dispatch(setSystemYear(new_time.year()));
     dispatch(setSystemQuarter(new_time.quarter()));
+  }, [dispatch]);
+
+  const handleNewQuarter = React.useCallback(() => {
+    dispatch(toggleNewQuarterModal());
   }, [dispatch]);
 
   console.log(year, quarter, quarterStatus);
@@ -65,7 +70,7 @@ function ContextSettings() {
             </FormControl>
             <FormControl>
               <FormLabel>&nbsp;</FormLabel>
-              <IconButton color="neutral" variant="outlined">
+              <IconButton color="neutral" variant="outlined" onClick={handleNewQuarter}>
                 <AddRoundedIcon fontSize="small" />
               </IconButton>
             </FormControl>

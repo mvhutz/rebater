@@ -30,8 +30,8 @@ export async function createQuarter(_: unknown, options: CreateQuarterOptions): 
   await mkdir(source_group, { recursive: true });
 
   if (createStructureFrom != null) {
-    if (!quarters.includes(createStructureFrom)) {
-      return bad(`QUarter to create structure from, ${quarter.year}-${quarter.quarter}, does not exist!`);
+    if (!quarters.find(t => createStructureFrom.quarter === t.quarter && createStructureFrom.year === t.year)) {
+      return bad(`Quarter to create structure from, ${quarter.year}-${quarter.quarter}, does not exist!`);
     }
 
     const structure_group = isettings.getSourcePath(createStructureFrom);
@@ -41,9 +41,8 @@ export async function createQuarter(_: unknown, options: CreateQuarterOptions): 
     })) {
       if (!f.isFile()) continue;
 
-      const relative = path.relative(f.parentPath, structure_group);
+      const relative = path.relative(structure_group, f.parentPath);
       const new_folder = path.join(source_group, relative);
-
       await mkdir(new_folder, { recursive: true });
     }
   }

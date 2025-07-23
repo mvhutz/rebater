@@ -13,6 +13,7 @@ import { pullSystemSettings, pullTransformers, pushSystemSettings } from '../../
 import { getVisible } from '../../../client/store/slices/ui';
 import { Divider, IconButton } from '@mui/joy';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
+import NewQuarterModal from './NewQuarterModal';
 
 /** ------------------------------------------------------------------------- */
 
@@ -39,6 +40,7 @@ function SettingsPane() {
   const handleRefresh = React.useCallback(async () => {
     await dispatch(pullSystemSettings());
     await dispatch(pullTransformers());
+    await dispatch(pullSystemSettings());
   }, [dispatch]);
 
   if (!show) return null;
@@ -64,7 +66,8 @@ function SettingsPane() {
           </IconButton>
         </Stack>
       </Stack>
-    </Sheet >
+      <NewQuarterModal/>
+    </Sheet>
   );
 }
 
