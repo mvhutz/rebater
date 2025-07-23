@@ -36,7 +36,7 @@ function TransformerSettings() {
   if (transformers_reply.ok) {
     const { data: transformers } = transformers_reply;
     const all_tags = new Set(transformers.map(t => t.tags).flat());
-    chip = <Chip variant="outlined" color="primary">{transformers.length}</Chip>
+    chip = <Chip variant="outlined" color="neutral">{transformers.length}</Chip>
 
     inner = (
       <Stack spacing={2} pt={1}>

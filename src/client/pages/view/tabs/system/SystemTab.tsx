@@ -11,6 +11,7 @@ import { getSystemProgress, getSystemStatus, getSystemStatusName, isSystemActive
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { type SvgIconOwnProps } from '@mui/material';
 import AccordionGroup from '@mui/joy/AccordionGroup';
+import UpdateRoundedIcon from '@mui/icons-material/UpdateRounded';
 import ErrorCard from './ErrorCard';
 import { SystemStatus } from '../../../../../shared/system_status';
 import DiscrepancyTable from './DiscrepancyTable';
@@ -18,6 +19,7 @@ import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded
 import TabMenu from '../../TabMenu';
 import { getDisplayTab } from '../../../../../client/store/slices/ui';
 import { Button } from '@mui/joy';
+import FileOpenRoundedIcon from '@mui/icons-material/FileOpenRounded';
 import { killSystem, pushSystemSettings, startSystem } from '../../../../../client/store/slices/thunk';
 import BlockRounded from '@mui/icons-material/BlockRounded';
 import { PlayArrowRounded } from '@mui/icons-material';
@@ -41,6 +43,8 @@ function InnerText({ status }: { status: SystemStatus }) {
 
 /** ------------------------------------------------------------------------- */
 
+const { invoke } = window.api;
+
 function SystemTab() {
   const status = useAppSelector(getSystemStatus);
   const messageText = useAppSelector(getSystemStatusName);
@@ -62,20 +66,29 @@ function SystemTab() {
     await dispatch(killSystem());
   }, [dispatch]);
 
+  const handleOutput = React.useCallback(async () => {
+    await invoke.openOutputFile();
+  }, []);
+
   return (
     <Stack padding={0} display={display}>
       <TabMenu>
         <Typography level="body-lg" pt={0.5} color="neutral"><i>System:</i> {messageText}</Typography>
       </TabMenu>
       <Stack padding={2}>
-        <Stack direction="column" gap={2} flexGrow={1} height="70vh" alignItems="center" position="relative">
+        <Stack direction="column" gap={2} flexGrow={1} height="75vh" alignItems="center" position="relative">
           <Stack alignItems="center" flex={1} justifyContent="center" spacing={6}>
             <CircularProgress color="primary" variant="soft" value={progress} determinate={!loading} size="lg" sx={{ '--CircularProgress-size': '200px' }}>
               <InnerText status={status} />
             </CircularProgress>
-            { active
-              ? <Button fullWidth size="lg" variant="outlined" color="neutral" onClick={handleCancel} sx={{ borderRadius: 100 }} startDecorator={<BlockRounded/>}>Cancel</Button>
-              : <Button fullWidth size="lg" onClick={handleRun} sx={{ borderRadius: 100 }} startDecorator={<PlayArrowRounded/>}>Start</Button>
+            { status.type === "done"
+              ? <Stack spacing={1} width={1}>
+                <Button fullWidth size="lg" color="success" onClick={handleOutput} sx={{ borderRadius: 100 }} startDecorator={<FileOpenRoundedIcon/>}>View Output</Button>
+                <Button fullWidth size="sm" variant="soft" color="neutral" onClick={handleRun} sx={{ borderRadius: 100 }} startDecorator={<UpdateRoundedIcon/>}>Redo</Button>
+              </Stack>
+              : active
+                ? <Button fullWidth size="lg" variant="outlined" color="neutral" onClick={handleCancel} sx={{ borderRadius: 100 }} startDecorator={<BlockRounded/>}>Cancel</Button>
+                : <Button fullWidth size="lg" onClick={handleRun} sx={{ borderRadius: 100 }} startDecorator={<PlayArrowRounded/>}>Start</Button>
             }
           </Stack>
         </Stack>

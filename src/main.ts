@@ -36,6 +36,7 @@ async function createWindow() {
   ipcMain.handle.setSettings();
   ipcMain.handle.openDir();
   ipcMain.handle.getTransformers();
+  ipcMain.handle.openOutputFile();
 
   // Talking with system.
   let worker: Maybe<Worker>;
