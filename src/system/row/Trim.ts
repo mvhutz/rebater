@@ -1,20 +1,14 @@
 import { z } from "zod/v4";
-
-const NAME = "trim";
+import { BaseRow } from ".";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.strictObject({
-  type: z.literal(NAME),
-});
+export class TrimRow implements BaseRow {
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("trim"),
+  }).transform(() => new TrimRow());
 
-type Transformation = z.infer<typeof schema>;
-
-async function run(_transformation: Transformation, value: string): Promise<string> {
-  return value.trim();
+  async run(value: string): Promise<string> {
+    return value.trim();
+  }
 }
-
-/** ------------------------------------------------------------------------- */
-
-const Trim = { schema, run, name: NAME };
-export default Trim;

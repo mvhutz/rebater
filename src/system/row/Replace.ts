@@ -1,51 +1,58 @@
 import { z } from "zod/v4";
-import Meta from "./Meta";
+import { META_TYPE, MetaRow } from "./Meta";
 import { State } from "../information/State";
-
-const NAME = "replace";
+import { BaseRow } from ".";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.strictObject({
-  type: z.literal(NAME),
-  characters: z.string().min(1).optional(),
-  substring: z.string().min(1).optional(),
-  all: z.string().optional(),
-  put: z.string().default(""),
-  put_meta: Meta.schema.shape.value.optional(),
-});
+export class ReplaceRow implements BaseRow {
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("replace"),
+    characters: z.string().min(1).optional(),
+    substring: z.string().min(1).optional(),
+    all: z.string().optional(),
+    put: z.string().default(""),
+    put_meta: META_TYPE.optional(),
+  }).transform(s => new ReplaceRow(s.put, s.put_meta, s.all, s.substring, s.characters));
 
-type Transformation = z.infer<typeof schema>;
+  private readonly characters?: string;
+  private readonly substring?: string;
+  private readonly all?: string;
+  private readonly put: string;
+  private readonly put_meta?: MetaRow;
 
-async function run(transformation: Transformation, value: string, _r: unknown, state: State): Promise<string> {
-  const { characters, put, substring, put_meta, all } = transformation;
-  let result = value;
-
-  let truePut = put;
-  if (put_meta) {
-    truePut = await Meta.run({ type: "meta", value: put_meta }, null, null, state);
+  public constructor(put: string, put_meta?: MetaRow["value"], all?: string, substring?: string, characters?: string) {
+    this.characters = characters;
+    this.substring = substring;
+    this.all = all;
+    this.put = put;
+    this.put_meta = put_meta && new MetaRow(put_meta);
   }
 
-  if (characters != null) {
-    for (const character of characters) {
-      result = result.replace(character, truePut);
+  async run(value: string, row: Row, state: State): Promise<string> {
+    let result = value;
+
+    let truePut = this.put;
+    if (this.put_meta) {
+      truePut = await this.put_meta.run("", row, state);
     }
-  }
 
-  if (substring != null) {
-    result = result.replace(substring, truePut);
-  }
-
-  if (all != null) {
-    if (result === all) {
-      result = truePut;
+    if (this.characters != null) {
+      for (const character of this.characters) {
+        result = result.replace(character, truePut);
+      }
     }
-  }
 
-  return result;
+    if (this.substring != null) {
+      result = result.replace(this.substring, truePut);
+    }
+
+    if (this.all != null) {
+      if (result === this.all) {
+        result = truePut;
+      }
+    }
+
+    return result;
+  }
 }
-
-/** ------------------------------------------------------------------------- */
-
-const Replace = { schema, run, name: NAME };
-export default Replace;

@@ -1,25 +1,23 @@
 import { z } from "zod/v4";
-import { _runMany, _Schema } from ".";
+import { BaseRow, ROW_SCHEMA, runMany } from ".";
 import { State } from "../information/State";
 
-const NAME = "add";
-
 /** ------------------------------------------------------------------------- */
 
-const schema = z.strictObject({
-  type: z.literal(NAME),
-  with: z.array(z.any()), // Actually a row transformation.
-});
+export class AddRow implements BaseRow {
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("add"),
+    with: z.lazy(() => z.array(ROW_SCHEMA))
+  }).transform(s => new AddRow(s.with));
 
-type Transformation = z.infer<typeof schema>;
+  private readonly other: BaseRow[];
 
-async function run(transformation: Transformation, value: string, row: Row, state: State): Promise<string> {
-  const extra = z.array(_Schema).parse(transformation.with);
-  const extra_value = await _runMany(extra, row, state);
-  return (Number(extra_value) + Number(value)).toString();
+  public constructor(other: BaseRow[]) {
+    this.other = other;
+  }
+
+  async run(value: string, row: Row, state: State): Promise<string> {
+    const other_value = await runMany(this.other, row, state);
+    return (Number(value) + Number(other_value)).toString();
+  }
 }
-
-/** ------------------------------------------------------------------------- */
-
-const Add = { schema, run, name: NAME };
-export default Add;

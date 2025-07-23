@@ -1,28 +1,27 @@
 import { glob, readFile } from "fs/promises";
 import path from "path";
 import { z } from "zod/v4";
-import TableTransformation from "./table";
-import RowTransformation from "./row";
-import { Source } from "./source";
 import { State } from "./information/State";
-import { Destination } from "./destination";
-import assert from "assert";
 import { SettingsInterface } from "../shared/settings_interface";
 import { rewire } from "./util";
+import { DESTINATION_SCHEMA } from "./destination";
+import { SOURCE_SCHEMA } from "./source";
+import { TABLE_SCHEMA, runMany as runManyTables } from "./table";
+import { ROW_SCHEMA, runMany as runManyRows } from "./row";
 
 /** ------------------------------------------------------------------------- */
 
 const DataSchema = z.strictObject({
   name: z.string(),
   tags: z.array(z.string()).default([]),
-  sources: z.array(Source.getSchema()),
-  preprocess: z.array(TableTransformation.Schema).optional(),
+  sources: z.array(SOURCE_SCHEMA),
+  preprocess: z.array(TABLE_SCHEMA).optional(),
   properties: z.array(z.strictObject({
     name: z.string(),
-    definition: z.array(RowTransformation.Schema)
+    definition: z.array(ROW_SCHEMA)
   })),
-  postprocess: z.array(TableTransformation.Schema).optional(),
-  destination: Destination.getSchema(),
+  postprocess: z.array(TABLE_SCHEMA).optional(),
+  destination: DESTINATION_SCHEMA,
 });
 
 export type TransformerData = z.infer<typeof DataSchema>;
@@ -48,8 +47,13 @@ export class Transformer {
       const name = path.parse(filepath).name;
       return new Transformer(DataSchema.parse(json), name, filepath);
     } catch (error) {
-      assert.ok(error instanceof z.ZodError);
-      throw Error(`Invalid schema for ${filepath}: ${z.prettifyError(error)}`)
+      if (error instanceof z.ZodError) {
+        throw Error(`Invalid schema for ${filepath}: ${z.prettifyError(error)}`);
+      } else if (error instanceof Error) {
+        throw Error(`Invalid schema for ${filepath}: ${error.message}`);
+      } else {
+        throw Error(`Thrown: ${error}`);
+      }
     }
   }
 
@@ -69,14 +73,14 @@ export class Transformer {
   }
 
   public getSourcesGlobs(state: State): string[] {
-    return this.data.sources.map(s => Source.getSourceFileGlob(s, state));
+    return this.data.sources.map(s => s.getSourceFileGlob(state));
   }
 
   public async run(state: State): Promise<TransformerResult> {
     const start = performance.now();
     const { preprocess = [], postprocess = [], sources, destination, properties } = this.data;
-    const source_data = Source.runMany(sources, state);
-    const preprocessed_data = await TableTransformation.runMany(preprocess, source_data, state);
+    const source_data = sources.map(s => s.run(state)).flat(1);
+    const preprocessed_data = (await Promise.all(source_data.map(d => runManyTables(preprocess, d, state)))).flat(1);
     
     const recombined = rewire({
       path: this.path,
@@ -91,15 +95,15 @@ export class Transformer {
       const result = new Array<string>();
 
       for (const { definition } of properties) {
-        const output = await RowTransformation.runMany(definition, row, state);
+        const output = await runManyRows(definition, row, state);
         result.push(output);
       }
 
       recombined.data.push({ data: result, table: recombined });
     }
 
-    const [postprocessed_data] = await TableTransformation.runMany(postprocess, [recombined], state);
-    Destination.run(destination, postprocessed_data, state);
+    const postprocessed_data = await runManyTables(postprocess, recombined, state);
+    destination.run(postprocessed_data, state);
 
     const end = performance.now();
     return { start, end, name: this.name };

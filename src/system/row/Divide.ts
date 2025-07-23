@@ -1,25 +1,23 @@
 import { z } from "zod/v4";
-import { _runMany, _Schema } from ".";
+import { BaseRow, ROW_SCHEMA, runMany } from ".";
 import { State } from "../information/State";
 
-const NAME = "divide";
-
 /** ------------------------------------------------------------------------- */
 
-const schema = z.strictObject({
-  type: z.literal(NAME),
-  with: z.array(z.any()), // Actually a row transformation.
-});
+export class DivideRow implements BaseRow {
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("divide"),
+    with: z.lazy(() => z.array(ROW_SCHEMA)),
+  }).transform(s => new DivideRow(s.with));
 
-type Transformation = z.infer<typeof schema>;
+  private readonly other: BaseRow[];
 
-async function run(transformation: Transformation, value: string, row: Row, state: State): Promise<string> {
-  const extra = z.array(_Schema).parse(transformation.with);
-  const extra_value = await _runMany(extra, row, state);
-  return (Number(value) / Number(extra_value)).toString();
+  public constructor(other: BaseRow[]) {
+    this.other = other;
+  }
+
+  async run(value: string, row: Row, state: State): Promise<string> {
+    const other_value = await runMany(this.other, row, state);
+    return (Number(value) / Number(other_value)).toString();
+  }
 }
-
-/** ------------------------------------------------------------------------- */
-
-const Divide = { schema, run, name: NAME };
-export default Divide;

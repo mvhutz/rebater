@@ -1,25 +1,27 @@
 import { z } from "zod/v4";
-
-const NAME = "trim";
+import { BaseTable } from ".";
+import { rewire } from "../util";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.strictObject({
-  type: z.literal(NAME),
-  top: z.number().optional(),
-  bottom: z.number().optional(),
-});
+export class TrimTable implements BaseTable {
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("trim"),
+    top: z.number().optional(),
+    bottom: z.number().optional(),
+  }).transform(s => new TrimTable(s.top, s.bottom));
 
-type Schema = z.infer<typeof schema>;
+  private readonly top?: number;
+  private readonly bottom?: number;
 
-async function run(transformation: Schema, table: Table) {
-  const { top, bottom } = transformation;
+  public constructor(top?: number, bottom?: number) {
+    this.top = top == null ? undefined : top;
+    this.bottom = bottom == null ? undefined : -bottom;
+  }
 
-  table.data = table.data.slice(top == null ? undefined : top, bottom == null ? undefined : -bottom);
-  return table;
+  async run(table: Table): Promise<Table> {
+    table.data = table.data.slice(this.top, this.bottom);
+    return rewire(table);
+  }
 }
 
-/** ------------------------------------------------------------------------- */
-
-const Trim = { schema, run, name: NAME };
-export default Trim;

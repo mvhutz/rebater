@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { setStatus, SystemSlice } from './slices/system';
 import { UISlice } from './slices/ui';
-import { pullSystemSettings, pullTransformers } from './slices/thunk';
+import { pullAllQuarters, pullSystemSettings, pullTransformers } from './slices/thunk';
 
 /** ------------------------------------------------------------------------- */
 
@@ -20,6 +20,7 @@ const { handle } = window.api;
 async function load() {
   await Store.dispatch(pullSystemSettings());
   await Store.dispatch(pullTransformers());
+  await Store.dispatch(pullAllQuarters());
 }
 
 load();

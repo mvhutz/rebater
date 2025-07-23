@@ -1,11 +1,11 @@
-import { Transformer } from "./Transformer";
+import { Transformer } from "./transformer";
 import { BasicState, State } from "./information/State";
 import * as XLSX from "xlsx";
 import { getPartition, getRebateHash, parseRebateFile, Rebate, RebateSet } from "./util";
-import { mkdir, writeFile, glob } from "fs/promises";
+import { mkdir, writeFile, glob, rm } from "fs/promises";
 import path from "path";
 import { SystemStatus } from "../shared/system_status";
-import { SettingsInterface } from "src/shared/settings_interface";
+import { SettingsInterface } from "../shared/settings_interface";
 
 /** ------------------------------------------------------------------------- */
 
@@ -78,11 +78,11 @@ export class Runner {
     const actual_glob = settings.getRebatePathGlob();
     const actual_files = await Array.fromAsync(glob(actual_glob));
     const actual = (await Promise.all(actual_files.map(parseRebateFile))).flat();
-    
+
     const expected_glob = settings.getTruthPathGlob();
     const expected_files = await Array.fromAsync(glob(expected_glob));
     const expected = (await Promise.all(expected_files.map(parseRebateFile))).flat();
-  
+
     const results = new Array<DiscrepencyResult>();
 
     const actual_partitions = getPartition(actual, "supplierId");
@@ -119,6 +119,11 @@ export class Runner {
     }
 
     this.updateStatus({ type: "loading", message: "Saving data..." });
+    
+    for await (const file of glob(state.getSettings().getRebatePathGlob())) {
+      await rm(file);
+    }
+
     await state.saveDestinationFiles();
     await state.saveReferences();
 

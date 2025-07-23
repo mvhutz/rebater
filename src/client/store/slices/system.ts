@@ -3,7 +3,7 @@ import { type RootState } from '..'
 import { DEFAULT_SETTINGS, Settings } from '../../../shared/settings';
 import { resource, Resource, ResourceStatus } from '../../../shared/resource';
 import { SystemStatus } from '../../../shared/system_status';
-import { killSystem, pullSystemSettings, pullTransformers, pushSystemSettings, startSystem } from './thunk';
+import { killSystem, pullAllQuarters, pullSystemSettings, pullTransformers, pushSystemSettings, startSystem } from './thunk';
 import { bad, Reply } from '../../../shared/reply';
 import { TransformerData } from '../../../system/transformer';
 
@@ -13,11 +13,13 @@ interface SystemState {
   status: SystemStatus;
   settings: Resource<Settings>;
   transformers: Reply<TransformerData[]>;
+  quarters: Resource<Time[]>;
 }
 
 const initialState: SystemState = {
   status: { type: "idle" },
   settings: resource(DEFAULT_SETTINGS),
+  quarters: resource([], ResourceStatus.LOADING),
   transformers: bad("Loading transformers...")
 }
 
@@ -103,6 +105,19 @@ export const SystemSlice = createSlice({
       .addCase(pullTransformers.fulfilled, (state, { payload }) => {
         state.transformers = payload;
       })
+      .addCase(pullAllQuarters.pending, state => {
+        state.quarters = resource([], ResourceStatus.LOADING);
+      })
+      .addCase(pullAllQuarters.rejected, (state) => {
+        state.quarters = resource([], ResourceStatus.LOADING);
+      })
+      .addCase(pullAllQuarters.fulfilled, (state, { payload }) => {
+        if (payload.ok) {
+          state.quarters = resource(payload.data, ResourceStatus.PRESENT);
+        } else {
+          state.quarters = resource([], ResourceStatus.LOADING);
+        }
+      })
   },
 });
 
@@ -148,4 +163,8 @@ export const getSystemProgress = (state: RootState): number => {
     case "error": return 0;
     case "asking": return 0;
   }
+}
+
+export const getQuarterList = (state: RootState): Resource<Time[]> => {
+  return state.system.quarters
 }

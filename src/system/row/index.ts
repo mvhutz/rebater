@@ -1,70 +1,51 @@
 import { z } from "zod/v4";
-import Counter from "./Counter";
-import Coerce from "./Coerce";
-import Column from "./Column";
-import Literal from "./Literal";
-import Replace from "./Replace";
-import Trim from "./Trim";
-import assert from "assert";
-import Reference from "./Reference";
-import Character from "./Character";
-import Multiply from "./Multiply";
-import Meta from "./Meta";
-import Add from "./Add";
-import Equals from "./Equals";
-import Concat from "./Concat";
 import { State } from "../information/State";
-import Divide from "./Divide";
-import Sum from "./Sum";
-
-const REGISTERED = [
-  Coerce,
-  Column,
-  Counter,
-  Literal,
-  Replace,
-  Trim,
-  Reference,
-  Character,
-  Multiply,
-  Meta,
-  Add,
-  Equals,
-  Concat,
-  Divide,
-  Sum
-] as const;
-
-export const _Schema = z.discriminatedUnion("type", [
-  REGISTERED[0].schema,
-  ...REGISTERED.slice(1).map(r => r.schema)
-]);
-type RowTransformation = z.infer<typeof _Schema>;
-
-export async function _runOnce(transformation: RowTransformation, value: string, row: Row, state: State) {
-  const transformer = REGISTERED.find(r => r.name === transformation.type);
-  assert.ok(transformer != null, `Row transformer ${transformation.type} not found.`);
-
-  // We assume that the transformer takes the schema as valid input.
-  return transformer.run(transformation as never, value, row, state);
-}
-
-export async function _runMany(transformations: RowTransformation[], row: Row, state: State) {
-  let final = "";
-
-  for (const transformation of transformations) {
-    final = await _runOnce(transformation, final, row, state);
-  }
-
-  return final;
-}
+import { ColumnRow } from "./Column";
+import { LiteralRow } from "./Literal";
+import { ReplaceRow } from "./Replace";
+import { ReferenceRow } from "./Reference";
+import { TrimRow } from "./Trim";
+import { CharacterRow } from "./Character";
+import { CounterRow } from "./Counter";
+import { MultiplyRow } from "./Multiply";
+import { MetaRow } from "./Meta";
+import { AddRow } from "./Add";
+import { EqualsRow } from "./Equals";
+import { ConcatRow } from "./Concat";
+import { DivideRow } from "./Divide";
+import { SumRow } from "./Sum";
+import { getCoerceSchema } from "./Coerce";
 
 /** ------------------------------------------------------------------------- */
 
-const RowTransformation = {
-  Schema: _Schema,
-  runOnce: _runOnce,
-  runMany: _runMany,
+export interface BaseRow {
+  run(value: string, row: Row, state: State): Promise<string>;
 }
 
-export default RowTransformation;
+export const ROW_SCHEMA: z.ZodType<BaseRow> = z.union([
+  getCoerceSchema(),
+  ColumnRow.SCHEMA,
+  CounterRow.SCHEMA,
+  LiteralRow.SCHEMA,
+  ReplaceRow.SCHEMA,
+  TrimRow.SCHEMA,
+  ReferenceRow.SCHEMA,
+  CharacterRow.SCHEMA,
+  MultiplyRow.SCHEMA,
+  MetaRow.SCHEMA,
+  AddRow.SCHEMA,
+  EqualsRow.SCHEMA,
+  ConcatRow.SCHEMA,
+  DivideRow.SCHEMA,
+  SumRow.SCHEMA
+]);
+
+export async function runMany(rows: BaseRow[], row: Row, state: State) {
+  let value = "";
+
+  for (const operation of rows) {
+    value = await operation.run(value, row, state);
+  }
+
+  return value;
+}

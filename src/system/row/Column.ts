@@ -1,23 +1,22 @@
 import { z } from "zod/v4";
-import { ExcelIndexSchema, getTrueIndex } from "../util";
-
-const NAME = "column";
+import { ExcelIndexSchema } from "../util";
+import { BaseRow } from ".";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.strictObject({
-  type: z.literal(NAME),
-  index: ExcelIndexSchema,
-});
+export class ColumnRow implements BaseRow {
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("column"),
+    index: ExcelIndexSchema
+  }).transform(s => new ColumnRow(s.index));
 
-type Transformation = z.infer<typeof schema>;
+  private readonly index: number;
 
+  public constructor(index: number) {
+    this.index = index;
+  }
 
-async function run(transformation: Transformation, _value: string, row: Row): Promise<string> {
-  return row.data[getTrueIndex(transformation.index)];
+  async run(_v: string, row: Row): Promise<string> {
+    return row.data[this.index];
+  }
 }
-
-/** ------------------------------------------------------------------------- */
-
-const Column = { schema, run, name: NAME };
-export default Column;

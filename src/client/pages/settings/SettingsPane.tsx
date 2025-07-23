@@ -2,7 +2,6 @@ import React from 'react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import AccordionGroup from '@mui/joy/AccordionGroup';
 import Button from '@mui/joy/Button';
-import ListDivider from '@mui/joy/ListDivider';
 import Stack from '@mui/joy/Stack';
 import Sheet from '@mui/joy/Sheet';
 import { SxProps } from '@mui/joy/styles/types';
@@ -10,8 +9,11 @@ import ContextSettings from './ContextSettings';
 import TransformerSettings from './TransformerSettings';
 import AdvancedSettings from './AdvancedSettings';
 import { SaveRounded } from '@mui/icons-material';
-import { pullTransformers, pushSystemSettings } from '../../../client/store/slices/thunk';
+import { pullSystemSettings, pullTransformers, pushSystemSettings } from '../../../client/store/slices/thunk';
 import { getVisible } from '../../../client/store/slices/ui';
+import { Divider, IconButton } from '@mui/joy';
+import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
+import NewQuarterModal from './NewQuarterModal';
 
 /** ------------------------------------------------------------------------- */
 
@@ -32,6 +34,13 @@ function SettingsPane() {
   const handleSave = React.useCallback(async () => {
     await dispatch(pushSystemSettings());
     await dispatch(pullTransformers());
+    await dispatch(pullSystemSettings());
+  }, [dispatch]);
+
+  const handleRefresh = React.useCallback(async () => {
+    await dispatch(pullSystemSettings());
+    await dispatch(pullTransformers());
+    await dispatch(pullSystemSettings());
   }, [dispatch]);
 
   if (!show) return null;
@@ -49,12 +58,16 @@ function SettingsPane() {
           </Stack>
           <Sheet variant='soft' sx={{ flex: 1 }}/>
         </Stack>
-        <ListDivider/>
-        <Sheet sx={{ p: 1 }}>
+        <Divider />
+        <Stack direction="row" spacing={1} sx={{ p: 1 }}>
           <Button onClick={handleSave} fullWidth variant="outlined" size='sm' color="neutral" startDecorator={<SaveRounded/>}>Save Settings</Button>
-        </Sheet>
+          <IconButton onClick={handleRefresh} variant="outlined">
+            <RefreshRoundedIcon/>
+          </IconButton>
+        </Stack>
       </Stack>
-    </Sheet >
+      <NewQuarterModal/>
+    </Sheet>
   );
 }
 

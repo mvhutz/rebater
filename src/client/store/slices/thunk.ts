@@ -9,6 +9,13 @@ import { TransformerData } from "../../../system/transformer";
 
 const { invoke } = window.api;
 
+export const pullAllQuarters = createAsyncThunk(
+  'system/getAllQuarters',
+  async (): Promise<Reply<Time[]>> => {
+    return await invoke.getAllQuarters();
+  }
+);
+
 export const pushSystemSettings = createAsyncThunk(
   'system/pushSettings',
   async (_, { getState }): Promise<Reply<string>> => {

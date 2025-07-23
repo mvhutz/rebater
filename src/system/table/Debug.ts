@@ -1,27 +1,24 @@
 import { z } from "zod/v4";
 import { State } from "../information/State";
 import { CSVDestination } from "../destination/CSV";
-
-const NAME = "debug";
+import { BaseTable } from ".";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.strictObject({
-  type: z.literal(NAME),
-  name: z.string().default("default"),
-});
+export class DebugTable implements BaseTable {
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("debug"),
+    name: z.string().default("default"),
+  }).transform(s => new DebugTable(s.name));
 
-type Schema = z.infer<typeof schema>;
+  private readonly destination: CSVDestination;
 
-async function run(transformation: Schema, table: Table, state: State) {
-  CSVDestination.run({
-    type: "csv",
-    name: transformation.name,
-  }, table, state)
-  return table;
+  public constructor(name: string) {
+    this.destination = new CSVDestination(name);
+  }
+
+  async run(table: Table, state: State): Promise<Table> {
+    this.destination.run(table, state);
+    return table;
+  }
 }
-
-/** ------------------------------------------------------------------------- */
-
-const Debug = { schema, run, name: NAME };
-export default Debug;

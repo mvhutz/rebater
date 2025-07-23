@@ -1,32 +1,31 @@
 import { z } from "zod/v4";
-import RowTransformation from "../row";
+import { ROW_SCHEMA, runMany } from "../row";
 import { State } from "../information/State";
 import { rewire } from "../util";
-
-const NAME = "filter";
+import { BaseTable } from ".";
+import { BaseRow } from "../row/base";
 
 /** ------------------------------------------------------------------------- */
 
-const schema = z.strictObject({
-  type: z.literal(NAME),
-  criteria: z.array(z.unknown()) // Actually a row transformation.
-});
+export class FilterTable implements BaseTable {
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("filter"),
+    criteria: z.lazy(() => z.array(ROW_SCHEMA)),
+  }).transform(s => new FilterTable(s.criteria));
 
-type Schema = z.infer<typeof schema>;
+  private readonly criteria: BaseRow[];
 
-async function run(transformation: Schema, table: Table, state: State): Promise<Table> {
-  const criteria = z.array(RowTransformation.Schema).parse(transformation.criteria);
-
-  const rows = new Array<Row>();
-  for (const row of table.data) {
-    const value = await RowTransformation.runMany(criteria, row, state);
-    if (value === "true") rows.push(row);
+  public constructor(criteria: BaseRow[]) {
+    this.criteria = criteria;
   }
 
-  return rewire({ ...table, data: rows });
+  async run(table: Table, state: State): Promise<Table> {
+    const rows = new Array<Row>();
+    for (const row of table.data) {
+      const value = await runMany(this.criteria, row, state);
+      if (value === "true") rows.push(row);
+    }
+
+    return rewire({ ...table, data: rows });
+  }
 }
-
-/** ------------------------------------------------------------------------- */
-
-const Filter = { schema, run, name: NAME };
-export default Filter;

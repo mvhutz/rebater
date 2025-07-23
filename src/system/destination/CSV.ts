@@ -1,29 +1,31 @@
-
 import { unparse } from "papaparse";
 import { z } from "zod/v4";
 import { State } from "../information/State";
-import BaseDestination from "./base";
+import { BaseDestination } from ".";
 
 /** ------------------------------------------------------------------------- */
 
-function getSchema() {
-  return z.strictObject({
+export class CSVDestination implements BaseDestination {
+
+  public static readonly SCHEMA = z.strictObject({
     type: z.literal("csv"),
     name: z.string(),
-  });
-};
+  }).transform(s => new CSVDestination(s.name));
 
-type Schema = z.infer<ReturnType<typeof getSchema>>;
+  private name: string;
 
-function getDestinationFile(destination: Schema, state: State): string {
-  return state.getSettings().getDestinationPath(destination.name);
+  public constructor(name: string) {
+    this.name = name;
+  }
+
+  getDestinationFile(state: State): string {
+    return state.getSettings().getDestinationPath(this.name);
+  }
+
+  run(table: Table, state: State): void {
+    const data = table.data.map(row => row.data);
+    const buffer = Buffer.from(unparse(data));
+
+    state.appendDestinationFile(this.getDestinationFile(state), buffer);
+  }
 }
-
-function run(destination: Schema, table: Table, state: State): void {
-  const data = table.data.map(row => row.data);
-  const buffer = Buffer.from(unparse(data));
-
-  state.appendDestinationFile(getDestinationFile(destination, state), buffer);
-}
-
-export const CSVDestination: BaseDestination<Schema> = { getSchema, run, getDestinationFile };

@@ -5,16 +5,24 @@ import { TransformerData } from "../system/transformer";
 
 /** ------------------------------------------------------------------------- */
 
+function getTimeString(time: Time) {
+  return `${time.year}-Q${time.quarter}`;
+}
+
+/** ------------------------------------------------------------------------- */
+
 interface TargetInterface {
   getReferencePath(name: string): string;
   getRebatePathGlob(): string;
   getTruthPathGlob(): string;
   getDestinationPath(name: string): string;
   getSourcePathGlob(group: string, file?: string, extension?: string): string;
-  getSourcePath(): string;
+  getSourcePath(time?: Time): string;
+  getSingleSourcePath(group: string, time?: Time): string;
   getTransformerPathGlob(): string;
   getTransformerPath(name: string): string;
   getOutputFile(extension: string): string;
+  getAllSourcePath(): string;
 }
 
 interface AdvancedInterface extends TargetInterface {
@@ -47,34 +55,41 @@ function makeBasicTarget(strategy: Settings["advanced"]["target"], time: Time): 
     getDestinationPath: (name) => path.join(
       directory,
       "rebates",
-      time.year.toString(),
-      `Q${time.quarter.toString()}`,
+      getTimeString(time),
       `${name}.csv`
     ),
     getSourcePathGlob: (group, file = "*", extension = "") => path.join(
       directory,
       "sources",
+      getTimeString(time),
       group,
-      time.year.toString(),
-      `Q${time.quarter.toString()}`,
       `**/${file}${extension}`
     ),
-    getSourcePath: () => path.join(
+    getSingleSourcePath: (group, t = time) => path.join(
       directory,
       "sources",
+      getTimeString(t),
+      group,
     ),
-     getRebatePathGlob: () => path.join(
+    getSourcePath: (t = time) => path.join(
+      directory,
+      "sources",
+      getTimeString(t)
+    ),
+    getAllSourcePath: () => path.join(
+      directory,
+      "sources"
+    ),
+    getRebatePathGlob: () => path.join(
       directory,
       "rebates",
-      time.year.toString(),
-      `Q${time.quarter.toString()}`,
+      getTimeString(time),
       `**/*.csv`
     ),
     getTruthPathGlob: () => path.join(
       directory,
       "truth",
-      time.year.toString(),
-      `Q${time.quarter.toString()}`,
+      getTimeString(time),
       `**/*.csv`
     ),
     getTransformerPathGlob: () => path.join(
@@ -90,8 +105,7 @@ function makeBasicTarget(strategy: Settings["advanced"]["target"], time: Time): 
     getOutputFile: extension => path.join(
       directory,
       "upload",
-      time.year.toString(),
-      `Q${time.quarter.toString()}`,
+      getTimeString(time),
       `TOTAL.${extension}`
     ),
   });
