@@ -18,5 +18,5 @@
     "strictFunctionTypes": true,
     "strictBindCallApply": true,
   },
-  "exclude": ["node_modules", "__*__/**/*"]
+  "exclude": ["node_modules", "__*__/**/*", "dist"]
 }

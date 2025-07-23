@@ -70,9 +70,9 @@ parent.on("message", async message => {
   }
 });
 
-async function main() {
+export async function main(data: unknown) {
   try {
-    const { success, data: settings, error } = SettingsSchema.safeParse(workerData);
+    const { success, data: settings, error } = SettingsSchema.safeParse(data);
     if (!success) {
       return send({ type: "error", message: z.prettifyError(error) });
     }
@@ -99,4 +99,4 @@ async function main() {
   }
 }
 
-main();
+main(workerData);

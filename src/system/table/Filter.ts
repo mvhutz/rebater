@@ -1,9 +1,8 @@
 import { z } from "zod/v4";
-import { ROW_SCHEMA, runMany } from "../row";
+import { BaseRow, ROW_SCHEMA, runMany } from "../row";
 import { State } from "../information/State";
 import { rewire } from "../util";
 import { BaseTable } from ".";
-import { BaseRow } from "../row/base";
 
 /** ------------------------------------------------------------------------- */
 

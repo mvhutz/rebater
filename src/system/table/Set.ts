@@ -1,9 +1,8 @@
 import { z } from "zod/v4";
 import { ExcelIndexSchema, rewire } from "../util";
-import { ROW_SCHEMA, runMany } from "../row";
+import { BaseRow, ROW_SCHEMA, runMany } from "../row";
 import { State } from "../information/State";
 import { BaseTable } from ".";
-import { BaseRow } from "../row/base";
 
 /** ------------------------------------------------------------------------- */
 
