@@ -23,7 +23,7 @@ export class ReferenceRow implements BaseRow {
   }
 
   async run(value: string, row: Row, state: State): Promise<string> {
-    const reference = await state.getReference(this.table);
+    const reference = state.reference_store.get(this.table);
     const release = await state.requestAsk();
 
     const result = reference.ask(this.match, value, this.take, this.group);

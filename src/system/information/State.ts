@@ -1,17 +1,17 @@
 import { BasicCounter, Counter } from "./Counter";
-import { BasicReference, Reference } from "./Reference";
 import fs from "fs/promises";
 import assert from "assert";
 import path from "path";
 import { glob } from "fs/promises";
 import { SettingsInterface } from "../../shared/settings_interface";
 import mutexify from 'mutexify/promise';
+import { ReferenceStore } from "./reference/ReferenceStore";
 
 /** ------------------------------------------------------------------------- */
 
 export abstract class State {
+  public abstract readonly reference_store: ReferenceStore;
   public abstract getCounter(name: string): Counter;
-  public abstract getReference(name: string): Promise<Reference>;
   public abstract getSettings(): SettingsInterface;
 
   public abstract loadSourceFilesQueries(...filepaths: string[]): Promise<void>;
@@ -27,7 +27,7 @@ export class BasicState extends State {
   public static readonly INITIAL_COUNTER_VALUE = 0;
 
   private counters: Map<string, BasicCounter>;
-  private references: Map<string, BasicReference>;
+  public readonly reference_store: ReferenceStore;
 
   private settings_interface: SettingsInterface;
 
@@ -42,7 +42,7 @@ export class BasicState extends State {
 
     this.settings_interface = settings;
     this.counters = new Map();
-    this.references = new Map();
+    this.reference_store = new ReferenceStore(settings.getReferencePath());
     this.source_files = new Map();
     this.source_file_queries = new Map();
     this.destination_files = new Map();
@@ -64,22 +64,6 @@ export class BasicState extends State {
     const new_counter = new BasicCounter(BasicState.INITIAL_COUNTER_VALUE);
     this.counters.set(name, new_counter);
     return new_counter;
-  }
-
-  public async getReference(name: string): Promise<BasicReference> {
-    const reference = this.references.get(name);
-    if (reference != null) return reference;
-
-    const filepath = this.getSettings().getReferencePath(name);
-    const new_reference = await BasicReference.load(filepath);
-    this.references.set(name, new_reference);
-    return new_reference;
-  }
-
-  public async saveReferences(): Promise<void> {
-    for (const [, reference] of this.references) {
-      await reference.save();
-    }
   }
 
   public async loadSourceFilesQueries(...queries: string[]) {

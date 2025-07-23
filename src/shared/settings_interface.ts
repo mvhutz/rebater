@@ -12,7 +12,8 @@ function getTimeString(time: Time) {
 /** ------------------------------------------------------------------------- */
 
 interface TargetInterface {
-  getReferencePath(name: string): string;
+  getSingleReferencePath(name: string): string;
+  getReferencePath(): string;
   getRebatePathGlob(): string;
   getTruthPathGlob(): string;
   getDestinationPath(name: string): string;
@@ -47,10 +48,14 @@ function makeBasicTarget(strategy: Settings["advanced"]["target"], time: Time): 
   if (directory == null) return bad("You must specify a target directory.");
 
   return good({
-    getReferencePath: name => path.join(
+    getSingleReferencePath: name => path.join(
       directory,
       "tables",
       `${name}.csv`
+    ),
+    getReferencePath: () => path.join(
+      directory,
+      "tables"
     ),
     getDestinationPath: (name) => path.join(
       directory,

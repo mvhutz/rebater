@@ -11,7 +11,7 @@
     "win": "electron-forge make --platform win32",
     "linux": "electron-forge make --platform linux",
     "publish": "electron-forge publish",
-    "lint": "eslint --ext .ts,.tsx .",
+    "lint": "eslint src/**/*.{ts,tsx}",
     "test": "tsc && node dist/src/profile.js"
   },
   "keywords": [],

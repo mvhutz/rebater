@@ -125,7 +125,7 @@ export class Runner {
     }
 
     await state.saveDestinationFiles();
-    await state.saveReferences();
+    await state.reference_store.save();
 
     if (state.getSettings().doTesting()) {
       this.updateStatus({ type: "loading", message: "Scoring accuracy..." });
