@@ -8,11 +8,6 @@ import path from "path";
 export class ReferenceStore {
   private store = new Map<string, Reference>();
   private emitter = new EventEmitter();
-  public readonly directory: string;
-
-  public constructor(directory: string) {
-    this.directory = directory;
-  }
 
   private add(name: string, reference: Reference): void {
     const current_reference = this.store.get(name);
@@ -23,8 +18,8 @@ export class ReferenceStore {
     }
   }
 
-  public async load(): Promise<void> {
-    const full_directory = path.join(this.directory, "**/*.csv");
+  public async load(directory: string): Promise<void> {
+    const full_directory = path.join(directory, "**/*.csv");
 
     for await (const dirent of glob(full_directory, { withFileTypes: true })) {
       const filepath = path.join(dirent.parentPath, dirent.name);
@@ -38,12 +33,18 @@ export class ReferenceStore {
     }
   }
 
-  public async save(): Promise<void> {
+  public static async fromDir(directory: string): Promise<ReferenceStore> {
+    const store = new ReferenceStore();
+    await store.load(directory);
+    return store;
+  }
+
+  public async save(directory: string): Promise<void> {
     for (const [name, reference] of this.store) {
-      const full_directory = path.join(this.directory, `${name}.csv`);
+      const full_directory = path.join(directory, `${name}.csv`);
       const raw = reference.toRaw();
 
-      await mkdir(path.dirname(full_directory));
+      await mkdir(path.dirname(full_directory), { recursive: true });
       await writeFile(full_directory, raw);
     }
   }

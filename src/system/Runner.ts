@@ -112,6 +112,8 @@ export class Runner {
       await state.loadSourceFilesQueries(...transformer.getSourcesGlobs(state));
     }
 
+    await state.reference_store.load(isettings.getReferencePath());
+
     for (const [i, transformer] of transformers.entries()) {
       this.updateStatus({ type: "running", progress: i / transformers.length });
 
@@ -125,7 +127,7 @@ export class Runner {
     }
 
     await state.saveDestinationFiles();
-    await state.reference_store.save();
+    await state.reference_store.save(isettings.getReferencePath());
 
     if (state.getSettings().doTesting()) {
       this.updateStatus({ type: "loading", message: "Scoring accuracy..." });

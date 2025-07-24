@@ -42,7 +42,7 @@ export class BasicState extends State {
 
     this.settings_interface = settings;
     this.counters = new Map();
-    this.reference_store = new ReferenceStore(settings.getReferencePath());
+    this.reference_store = new ReferenceStore();
     this.source_files = new Map();
     this.source_file_queries = new Map();
     this.destination_files = new Map();
