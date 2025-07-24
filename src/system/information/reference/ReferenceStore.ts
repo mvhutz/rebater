@@ -1,13 +1,11 @@
 import { glob, mkdir, readFile, writeFile } from "fs/promises";
 import { Reference } from "./Reference";
-import EventEmitter from "events";
 import path from "path";
 
 /** ------------------------------------------------------------------------- */
 
 export class ReferenceStore {
   private store = new Map<string, Reference>();
-  private emitter = new EventEmitter();
 
   private add(name: string, reference: Reference): void {
     const current_reference = this.store.get(name);

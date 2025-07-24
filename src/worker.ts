@@ -1,11 +1,10 @@
 import { parentPort, workerData } from "node:worker_threads";
 import { Runner } from "./system/Runner";
 import { z } from "zod/v4";
-import { makeSettingsInterface } from "./shared/settings_interface";
-import { SettingsSchema } from "./shared/settings";
 import assert from "node:assert";
 import { WorkerRequestSchema } from "./shared/worker_message";
 import { SystemStatus } from "./shared/system_status";
+import { Settings } from "./shared/settings";
 
 /** ------------------------------------------------------------------------- */
 
@@ -28,21 +27,21 @@ function send(status: SystemStatus) {
   parent.postMessage(status);
 }
 
-function onQuestion(question: string): Promise<Maybe<string>> {
-  return new Promise((res, rej) => {
-    if (STATE.answerer != null) {
-      rej("The system cannot answer two questions at once.");
-    }
+// function onQuestion(question: string): Promise<Maybe<string>> {
+//   return new Promise((res, rej) => {
+//     if (STATE.answerer != null) {
+//       rej("The system cannot answer two questions at once.");
+//     }
 
-    STATE.answerer = answer => {
-      STATE.answerer = undefined;
+//     STATE.answerer = answer => {
+//       STATE.answerer = undefined;
 
-      res(answer);
-    }
+//       res(answer);
+//     }
 
-    send({ type: "asking", question });
-  })
-}
+//     send({ type: "asking", question });
+//   })
+// }
 
 async function onAnswer(answer?: string) {
   if (STATE.answerer == null) {
@@ -72,22 +71,18 @@ parent.on("message", async message => {
 
 export async function main(data: unknown) {
   try {
-    const { success, data: settings, error } = SettingsSchema.safeParse(data);
-    if (!success) {
-      return send({ type: "error", message: z.prettifyError(error) });
+    const settings_parse = Settings.from(data);
+    if (!settings_parse.ok) {
+      return send({ type: "error", message: settings_parse.reason });
     }
 
-    const settings_interface = makeSettingsInterface(settings);
-    if (!settings_interface.ok) {
-      return send({ type: "error", message: settings_interface.reason });
-    }
+    const runner = new Runner();
 
-    const runner = new Runner({
-      onStatus: s => parent.postMessage(s),
-      onQuestion
+    runner.on("status", status => {
+      send(status);
     });
 
-    await runner.run(settings_interface.data);
+    await runner.run(settings_parse.data);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return send({ type: "error", message: z.prettifyError(error) });

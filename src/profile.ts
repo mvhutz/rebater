@@ -1,9 +1,7 @@
-import { SettingsSchema } from "./shared/settings";
-import z from "zod/v4";
-import { makeSettingsInterface } from "./shared/settings_interface";
 import { Runner } from "./system/Runner";
 
 import dotenv from "dotenv";
+import { Settings } from "./shared/settings";
 dotenv.config();
 
 const DATA = {
@@ -31,20 +29,15 @@ const DATA = {
 /** ------------------------------------------------------------------------- */
 
 async function main() {
-  const { success, data: settings, error } = SettingsSchema.safeParse(DATA);
-  if (!success) {
-    throw Error(z.prettifyError(error));
-  }
-
-  const settings_interface = makeSettingsInterface(settings);
-  if (!settings_interface.ok) {
-    throw Error(settings_interface.reason);
+  const settings_parse = Settings.from(DATA);
+  if (!settings_parse.ok) {
+    throw Error(settings_parse.reason);
   }
 
   const runner = new Runner();
 
   console.profile();
-  await runner.run(settings_interface.data);
+  await runner.run(settings_parse.data);
   console.profileEnd();
 }
 

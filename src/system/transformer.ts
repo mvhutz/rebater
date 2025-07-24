@@ -2,12 +2,12 @@ import { glob, readFile } from "fs/promises";
 import path from "path";
 import { z } from "zod/v4";
 import { State } from "./information/State";
-import { SettingsInterface } from "../shared/settings_interface";
 import { rewire } from "./util";
 import { DESTINATION_SCHEMA } from "./destination";
 import { SOURCE_SCHEMA } from "./source";
 import { TABLE_SCHEMA, runMany as runManyTables } from "./table";
 import { ROW_SCHEMA, runMany as runManyRows } from "./row";
+import { Settings } from "../shared/settings";
 
 /** ------------------------------------------------------------------------- */
 
@@ -57,7 +57,7 @@ export class Transformer {
     }
   }
 
-  public static async pullAll(settings: SettingsInterface, filter = false) {
+  public static async pullAll(settings: Settings, filter = false) {
     const transformer_glob = settings.getTransformerPathGlob();
     const transformer_files = await Array.fromAsync(glob(transformer_glob));
 

@@ -1,6 +1,6 @@
 import React from 'react';
-import { useAppSelector } from './store/hooks';
-import { getSystemStatus } from './store/slices/system';
+// import { useAppSelector } from './store/hooks';
+// import { getSystemStatus } from './store/slices/system';
 import Button from '@mui/joy/Button';
 import DialogContent from '@mui/joy/DialogContent';
 import DialogTitle from '@mui/joy/DialogTitle';
@@ -17,9 +17,9 @@ import Markdown from 'react-markdown';
 const { invoke } = window.api;
 
 function InputModal() {
-  const status = useAppSelector(getSystemStatus);
-  const open = status.type === "asking";
-  const question = status.type === "asking" ? status.question : null;
+  // const status = useAppSelector(getSystemStatus);
+  const open = false; // status.type === "asking";
+  const question = null; // status.type === "asking" ? status.question : null;
 
   const handleForm = React.useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

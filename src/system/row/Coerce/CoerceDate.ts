@@ -50,7 +50,7 @@ export class CoerceDateRow implements BaseRow {
     }
 
     if (this.year === "assume") {
-      date.year(state.getSettings().getTime().year);
+      date.year(state.settings.getTime().year);
     }
 
     assert.ok(date.isValid(), `Date ${value} could not be parsed.`);

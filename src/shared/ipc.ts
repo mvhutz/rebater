@@ -3,13 +3,13 @@ import { createInterprocess } from "interprocess";
 import path from "path";
 import fs from 'fs/promises';
 import { good, Reply } from "./reply";
-import { Settings } from "./settings";
 import { SystemStatus } from "./system_status";
 import { getTransformers } from "./ipc/system/getTransformers";
 import { getSettings } from "./ipc/system/getSettings";
 import { openOutputFile } from "./ipc/system/openOutputFile";
 import { getAllQuarters } from "./ipc/system/getAllQuarters";
 import { createQuarter } from "./ipc/system/createQuarter";
+import { SettingsData } from "./settings";
 
 /** ------------------------------------------------------------------------- */
 
@@ -34,12 +34,12 @@ const IPC = createInterprocess({
     openOutputFile,
     getAllQuarters,
     createQuarter,
-    async setSettings(_, settings: Settings): Promise<Reply<string>> {
+    async setSettings(_, settings: SettingsData): Promise<Reply<string>> {
       const file = path.join(app.getPath("userData"), "settings.json");
       await fs.writeFile(file, JSON.stringify(settings));
       return good(file);
     },
-    async runProgram(_, settings?: Settings): Promise<Reply> {
+    async runProgram(_, settings?: SettingsData): Promise<Reply> {
       void [settings];
 
       return good(undefined);

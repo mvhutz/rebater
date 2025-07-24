@@ -19,7 +19,7 @@ export class CSVDestination implements BaseDestination {
   }
 
   getDestinationFile(state: State): string {
-    return state.getSettings().getDestinationPath(this.name);
+    return state.settings.getDestinationPath(this.name);
   }
 
   run(table: Table, state: State): void {

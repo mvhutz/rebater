@@ -30,12 +30,12 @@ export class MetaRow implements BaseRow {
   }
 
   static getQuarterLastDay(state: State): string {
-    const { year, quarter } = state.getSettings().getTime();
+    const { year, quarter } = state.settings.getTime();
     return moment().year(year).quarter(quarter).endOf("quarter").format("MM/DD/YYYY");
   }
 
   static getQuarterNumber(state: State): string {
-    return state.getSettings().getTime().quarter.toString();
+    return state.settings.getTime().quarter.toString();
   }
 
   static getRowSource(row: Row) {

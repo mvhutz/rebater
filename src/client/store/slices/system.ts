@@ -1,19 +1,20 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { type RootState } from '..'
-import { DEFAULT_SETTINGS, Settings } from '../../../shared/settings';
+import { DEFAULT_SETTINGS, type SettingsData } from '../../../shared/settings';
 import { resource, Resource, ResourceStatus } from '../../../shared/resource';
 import { SystemStatus } from '../../../shared/system_status';
 import { killSystem, pullAllQuarters, pullSystemSettings, pullTransformers, pushSystemSettings, startSystem } from './thunk';
 import { bad, Reply } from '../../../shared/reply';
 import { TransformerData } from '../../../system/transformer';
+import { TimeData } from '../../../shared/time';
 
 /** ------------------------------------------------------------------------- */
 
 interface SystemState {
   status: SystemStatus;
-  settings: Resource<Settings>;
+  settings: Resource<SettingsData>;
   transformers: Reply<TransformerData[]>;
-  quarters: Resource<Time[]>;
+  quarters: Resource<TimeData[]>;
 }
 
 const initialState: SystemState = {
@@ -32,7 +33,7 @@ export const SystemSlice = createSlice({
     setStatus: (state, action: PayloadAction<SystemStatus>) => {
       state.status = action.payload;
     },
-    setSystemTarget: (state, action: PayloadAction<Settings["advanced"]["target"]>) => {
+    setSystemTarget: (state, action: PayloadAction<SettingsData["advanced"]["target"]>) => {
       state.settings.data.advanced.target = action.payload;
     },
     setSystemYear: (state, action: PayloadAction<Maybe<number>>) => {
@@ -150,7 +151,6 @@ export const getSystemStatusName = (state: RootState): string => {
     case "loading": return state.system.status.message ?? "Loading...";
     case "running": return "Running transformers...";
     case "error": return "Error encountered!";
-    case "asking": return "Input required!"
   }
 }
 
@@ -161,10 +161,9 @@ export const getSystemProgress = (state: RootState): number => {
     case "loading": return 0;
     case "running": return 100 * state.system.status.progress;
     case "error": return 0;
-    case "asking": return 0;
   }
 }
 
-export const getQuarterList = (state: RootState): Resource<Time[]> => {
+export const getQuarterList = (state: RootState): Resource<TimeData[]> => {
   return state.system.quarters
 }

@@ -1,35 +1,21 @@
-import { BasicCounter, Counter } from "./Counter";
+import { BasicCounter } from "./Counter";
 import fs from "fs/promises";
 import assert from "assert";
 import path from "path";
 import { glob } from "fs/promises";
-import { SettingsInterface } from "../../shared/settings_interface";
 import mutexify from 'mutexify/promise';
 import { ReferenceStore } from "./reference/ReferenceStore";
+import { Settings } from "../../shared/settings";
 
 /** ------------------------------------------------------------------------- */
 
-export abstract class State {
-  public abstract readonly reference_store: ReferenceStore;
-  public abstract getCounter(name: string): Counter;
-  public abstract getSettings(): SettingsInterface;
-
-  public abstract loadSourceFilesQueries(...filepaths: string[]): Promise<void>;
-  public abstract pullSourceFileGlob(filepath: string): FileData[];
-
-  public abstract appendDestinationFile(filepath: string, data: Buffer): void;
-  public abstract saveDestinationFiles(): Promise<void>;
-  public abstract requestAsk(): Promise<() => void>;
-  public abstract ask(question: string): Promise<Maybe<string>>;
-}
-
-export class BasicState extends State {
+export class State {
   public static readonly INITIAL_COUNTER_VALUE = 0;
 
   private counters: Map<string, BasicCounter>;
   public readonly reference_store: ReferenceStore;
 
-  private settings_interface: SettingsInterface;
+  public readonly settings: Settings;
 
   private source_files: Map<string, Buffer>;
   private source_file_queries: Map<string, string[]>;
@@ -37,10 +23,8 @@ export class BasicState extends State {
   public ask: (question: string) => Promise<Maybe<string>>;
   private lock = mutexify();
 
-  constructor(settings: SettingsInterface, onAsk: (question: string) => Promise<Maybe<string>>) {
-    super();
-
-    this.settings_interface = settings;
+  constructor(settings: Settings, onAsk: (question: string) => Promise<Maybe<string>>) {
+    this.settings = settings;
     this.counters = new Map();
     this.reference_store = new ReferenceStore();
     this.source_files = new Map();
@@ -53,15 +37,11 @@ export class BasicState extends State {
     return await this.lock();
   }
 
-  public getSettings(): SettingsInterface {
-    return this.settings_interface;
-  }
-
   public getCounter(name: string): BasicCounter {
     const counter = this.counters.get(name);
     if (counter != null) return counter;
 
-    const new_counter = new BasicCounter(BasicState.INITIAL_COUNTER_VALUE);
+    const new_counter = new BasicCounter(State.INITIAL_COUNTER_VALUE);
     this.counters.set(name, new_counter);
     return new_counter;
   }

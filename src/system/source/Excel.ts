@@ -26,7 +26,7 @@ export class ExcelSource implements BaseSource {
   }
 
   getSourceFileGlob(state: State) {
-    return state.getSettings().getSourcePathGlob(this.group, this.file, ".xls*");
+    return state.settings.getSourcePathGlob(this.group, this.file, ".xls*");
   }
 
   run(state: State): Table[] {
