@@ -7,7 +7,6 @@ import PriorityHighRoundedIcon from '@mui/icons-material/PriorityHighRounded';
 import { getSystemStatus } from '../../store/slices/system';
 import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { SystemStatus } from '../../../shared/system_status';
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded';
 import ListItemDecorator from '@mui/joy/ListItemDecorator';
 import Tab, { tabClasses } from '@mui/joy/Tab';
@@ -17,6 +16,7 @@ import { SxProps } from '@mui/joy/styles/types';
 import { getTab, getVisible, pushMessage, setTab } from '../../store/slices/ui';
 import SystemTab from './tabs/system/SystemTab';
 import DocumentationTab from './tabs/documentation/DocumentationTab';
+import { SystemStatus } from '../../../shared/worker/response';
 
 /** ------------------------------------------------------------------------- */
 

@@ -8,6 +8,7 @@ import { SOURCE_SCHEMA } from "./source";
 import { TABLE_SCHEMA, runMany as runManyTables } from "./table";
 import { ROW_SCHEMA, runMany as runManyRows } from "./row";
 import { Settings } from "../shared/settings";
+import { TransformerResult } from "../shared/worker/response";
 
 /** ------------------------------------------------------------------------- */
 

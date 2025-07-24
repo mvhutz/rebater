@@ -3,13 +3,13 @@ import { createInterprocess } from "interprocess";
 import path from "path";
 import fs from 'fs/promises';
 import { good, Reply } from "./reply";
-import { SystemStatus } from "./system_status";
 import { getTransformers } from "./ipc/system/getTransformers";
 import { getSettings } from "./ipc/system/getSettings";
 import { openOutputFile } from "./ipc/system/openOutputFile";
 import { getAllQuarters } from "./ipc/system/getAllQuarters";
 import { createQuarter } from "./ipc/system/createQuarter";
 import { SettingsData } from "./settings";
+import { SystemStatus } from "./worker/response";
 
 /** ------------------------------------------------------------------------- */
 

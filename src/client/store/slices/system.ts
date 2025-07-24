@@ -2,11 +2,11 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { type RootState } from '..'
 import { DEFAULT_SETTINGS, type SettingsData } from '../../../shared/settings';
 import { resource, Resource, ResourceStatus } from '../../../shared/resource';
-import { SystemStatus } from '../../../shared/system_status';
 import { killSystem, pullAllQuarters, pullSystemSettings, pullTransformers, pushSystemSettings, startSystem } from './thunk';
 import { bad, Reply } from '../../../shared/reply';
 import { TransformerData } from '../../../system/transformer';
 import { TimeData } from '../../../shared/time';
+import { SystemStatus } from '../../../shared/worker/response';
 
 /** ------------------------------------------------------------------------- */
 

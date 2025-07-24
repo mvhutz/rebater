@@ -4,9 +4,9 @@ import * as XLSX from "xlsx";
 import { getPartition, getRebateHash, parseRebateFile, Rebate, RebateSet } from "./util";
 import { mkdir, writeFile, glob, rm } from "fs/promises";
 import path from "path";
-import { SystemStatus } from "../shared/system_status";
 import EventEmitter from "events";
 import { Settings } from "../shared/settings";
+import { DiscrepencyResult, RunResults, SystemStatus } from "../shared/worker/response";
 
 /** ------------------------------------------------------------------------- */
 
@@ -57,8 +57,8 @@ export class Runner extends EventEmitter<RunnerEvents> {
     expected.forEach(r => actual_set.take(r));
 
     return {
-      drop: actual_set.values(),
-      take: expected_set.values(),
+      drop: actual_set.values().map(getRebateHash),
+      take: expected_set.values().map(getRebateHash),
     }
   }
 
@@ -79,7 +79,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     for (const [member_id, actual_partition_bucket] of actual_partitions) {
       const expected_partition_bucket = expected_partitions.get(member_id) ?? [];
       const { drop, take } = this.compareRebates(actual_partition_bucket, expected_partition_bucket);
-      results.push({ name: member_id, drop: drop.map(getRebateHash), take: take.map(getRebateHash) });
+      results.push({ name: member_id, drop: drop, take: take });
     }
 
     return results;

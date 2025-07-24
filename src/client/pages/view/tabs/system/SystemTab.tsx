@@ -13,7 +13,6 @@ import { type SvgIconOwnProps } from '@mui/material';
 import AccordionGroup from '@mui/joy/AccordionGroup';
 import UpdateRoundedIcon from '@mui/icons-material/UpdateRounded';
 import ErrorCard from './ErrorCard';
-import { SystemStatus } from '../../../../../shared/system_status';
 import DiscrepancyTable from './DiscrepancyTable';
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded';
 import TabMenu from '../../TabMenu';
@@ -23,6 +22,7 @@ import FileOpenRoundedIcon from '@mui/icons-material/FileOpenRounded';
 import { killSystem, pushSystemSettings, startSystem } from '../../../../../client/store/slices/thunk';
 import BlockRounded from '@mui/icons-material/BlockRounded';
 import { PlayArrowRounded } from '@mui/icons-material';
+import { SystemStatus } from '../../../../../shared/worker/response';
 
 /** ------------------------------------------------------------------------- */
 

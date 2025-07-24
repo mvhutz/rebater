@@ -2,19 +2,14 @@ import { parentPort, workerData } from "node:worker_threads";
 import { Runner } from "./system/Runner";
 import { z } from "zod/v4";
 import assert from "node:assert";
-import { WorkerRequestSchema } from "./shared/worker_message";
-import { SystemStatus } from "./shared/system_status";
 import { Settings } from "./shared/settings";
+import { SystemStatus, WorkerResponse } from "./shared/worker/response";
+// import { WorkerRequestSchema } from "./shared/worker/request";
+import { randomUUID } from "node:crypto";
 
 /** ------------------------------------------------------------------------- */
 
-interface WorkerState {
-  answerer?: (answer?: string) => void;
-}
-
-const STATE: WorkerState = {
-  answerer: undefined
-};
+const QUESTIONS = new Map<string, string>();
 
 /** ------------------------------------------------------------------------- */
 
@@ -23,73 +18,58 @@ const parent = parentPort;
 
 /** ------------------------------------------------------------------------- */
 
-function send(status: SystemStatus) {
-  parent.postMessage(status);
+function sendStatus(status: SystemStatus) {
+  parent.postMessage({ type: "status", status } as WorkerResponse);
 }
 
-// function onQuestion(question: string): Promise<Maybe<string>> {
-//   return new Promise((res, rej) => {
-//     if (STATE.answerer != null) {
-//       rej("The system cannot answer two questions at once.");
-//     }
-
-//     STATE.answerer = answer => {
-//       STATE.answerer = undefined;
-
-//       res(answer);
-//     }
-
-//     send({ type: "asking", question });
-//   })
-// }
-
-async function onAnswer(answer?: string) {
-  if (STATE.answerer == null) {
-    return send({ type: "error", message: "The system didn't ask." });
-  }
-
-  STATE.answerer(answer);
-  STATE.answerer = undefined;
+function sendQuestion(question: string, hash: string) {
+  parent.postMessage({ type: "question", question, hash } as WorkerResponse);
 }
 
-parent.on("message", async message => {
-  try {
-    const request = WorkerRequestSchema.parse(message);
-    switch (request.type) {
-      case "answer": await onAnswer(request.answer);
-    }
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return send({ type: "error", message: z.prettifyError(error) });
-    } else if (error instanceof Error) {
-      return send({ type: "error", message: error.message });
-    } else {
-      return send({ type: "error", message: `${error}` });
-    }
-  }
-});
+// parent.on("message", async message => {
+//   try {
+//     const request = WorkerRequestSchema.parse(message);
+//     switch (request.type) {
+//       case "answer": await onAnswer(request.answer);
+//     }
+//   } catch (error) {
+//     if (error instanceof z.ZodError) {
+//       return sendStatus({ type: "error", message: z.prettifyError(error) });
+//     } else if (error instanceof Error) {
+//       return sendStatus({ type: "error", message: error.message });
+//     } else {
+//       return sendStatus({ type: "error", message: `${error}` });
+//     }
+//   }
+// });
 
 export async function main(data: unknown) {
   try {
     const settings_parse = Settings.from(data);
     if (!settings_parse.ok) {
-      return send({ type: "error", message: settings_parse.reason });
+      return sendStatus({ type: "error", message: settings_parse.reason });
     }
 
     const runner = new Runner();
 
     runner.on("status", status => {
-      send(status);
+      sendStatus(status);
     });
+
+    runner.on("question", question => {
+      const hash = randomUUID();
+      QUESTIONS.set(hash, question);
+      sendQuestion(question, hash);
+    })
 
     await runner.run(settings_parse.data);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return send({ type: "error", message: z.prettifyError(error) });
+      return sendStatus({ type: "error", message: z.prettifyError(error) });
     } else if (error instanceof Error) {
-      return send({ type: "error", message: error.message });
+      return sendStatus({ type: "error", message: error.message });
     } else {
-      return send({ type: "error", message: `${error}` });
+      return sendStatus({ type: "error", message: `${error}` });
     }
   }
 }

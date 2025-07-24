@@ -4,7 +4,7 @@ import started from 'electron-squirrel-startup';
 import IPC from './shared/ipc';
 import { Worker } from 'worker_threads';
 import { bad, good } from './shared/reply';
-import { WorkerRequest } from './shared/worker_message';
+import { WorkerRequest } from './shared/worker/request';
 
 /** ------------------------------------------------------------------------- */
 

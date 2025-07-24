@@ -1,17 +1,10 @@
 import z from "zod/v4";
-// import { SettingsSchema } from "./settings";
 
 /** ------------------------------------------------------------------------- */
 
-// const StartWorkerRequestSchema = z.object({
-//   type: z.literal("start"),
-//   settings: SettingsSchema,
-// });
-
-// export type StartWorkerRequest = z.infer<typeof StartWorkerRequestSchema>;
-
 const AnswerWorkerRequestSchema = z.object({
   type: z.literal("answer"),
+  hash: z.string(),
   answer: z.string().optional(),
 });
 

@@ -15,21 +15,4 @@ interface FileData {
   raw: Buffer;
 }
 
-interface TransformerResult {
-  start: number;
-  end: number;
-  name: string;
-}
-
-interface DiscrepencyResult {
-  name: string;
-  take: Rebate[];
-  drop: Rebate[];
-}
-
-interface RunResults {
-  config: TransformerResult[];
-  discrepency: Maybe<DiscrepencyResult[]>;
-}
-
 type Maybe<T> = T | undefined | null;
