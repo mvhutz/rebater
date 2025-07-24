@@ -1,6 +1,4 @@
 import React from 'react';
-// import { useAppSelector } from './store/hooks';
-// import { getSystemStatus } from './store/slices/system';
 import Button from '@mui/joy/Button';
 import DialogContent from '@mui/joy/DialogContent';
 import DialogTitle from '@mui/joy/DialogTitle';
@@ -11,26 +9,32 @@ import Modal from '@mui/joy/Modal';
 import ModalDialog from '@mui/joy/ModalDialog';
 import Stack from '@mui/joy/Stack';
 import Markdown from 'react-markdown';
+import { getCurrentQuestion, popQuestion } from './store/slices/system';
+import { useAppDispatch, useAppSelector } from './store/hooks';
 
 /** ------------------------------------------------------------------------- */
 
 const { invoke } = window.api;
 
 function InputModal() {
-  // const status = useAppSelector(getSystemStatus);
-  const open = false; // status.type === "asking";
-  const question = null; // status.type === "asking" ? status.question : null;
+  const question = useAppSelector(getCurrentQuestion);
+  const dispatch = useAppDispatch();
+  const open = question != null;
 
   const handleForm = React.useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     
-    invoke.answerQuestion(data.get("answer")?.toString());
-  }, []);
+    invoke.answerQuestion({
+      question,
+      value: data.get("answer")?.toString()
+    });
+    dispatch(popQuestion());
+  }, [dispatch, question]);
   
   const handleClose = React.useCallback(() => {
-    invoke.answerQuestion(undefined);
-  }, []);
+    invoke.answerQuestion({ question, value: undefined });
+  }, [question]);
   
   return (
     <Modal open={open} onClose={handleClose}>

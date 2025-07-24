@@ -2,7 +2,7 @@ import { Runner } from "./system/Runner";
 
 import dotenv from "dotenv";
 import { Settings } from "./shared/settings";
-dotenv.config();
+dotenv.config({ quiet: true });
 
 const DATA = {
   "context": {
@@ -35,10 +35,19 @@ async function main() {
   }
 
   const runner = new Runner();
+  runner.on("question", question => {
+    console.log(question);
 
-  console.profile();
+    process.stdin.once("data", (data) => {
+      runner.asker.answer(question, data.toString().trim());
+    });
+  })
+
+  runner.on("status", status => {
+    console.log(JSON.stringify(status));
+  })
+
   await runner.run(settings_parse.data);
-  console.profileEnd();
 }
 
 main();

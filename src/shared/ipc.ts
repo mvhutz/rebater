@@ -47,7 +47,7 @@ const IPC = createInterprocess({
     async cancelProgram(): Promise<Reply> {
       return good(undefined);
     },
-    async answerQuestion(_, answer: Maybe<string>): Promise<Reply> {
+    async answerQuestion(_, answer: { question: string, value: Maybe<string> }): Promise<Reply> {
       void [answer];
 
       return good(undefined);
@@ -56,6 +56,9 @@ const IPC = createInterprocess({
   renderer: {
     async runnerUpdate(_, runner_status: SystemStatus) {
       void [runner_status];
+    },
+    async runnerQuestion(_, question: string) {
+      void [question];
     }
   }
 });

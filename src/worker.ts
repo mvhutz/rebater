@@ -4,12 +4,8 @@ import { z } from "zod/v4";
 import assert from "node:assert";
 import { Settings } from "./shared/settings";
 import { SystemStatus, WorkerResponse } from "./shared/worker/response";
+import { WorkerRequestSchema } from "./shared/worker/request";
 // import { WorkerRequestSchema } from "./shared/worker/request";
-import { randomUUID } from "node:crypto";
-
-/** ------------------------------------------------------------------------- */
-
-const QUESTIONS = new Map<string, string>();
 
 /** ------------------------------------------------------------------------- */
 
@@ -22,48 +18,41 @@ function sendStatus(status: SystemStatus) {
   parent.postMessage({ type: "status", status } as WorkerResponse);
 }
 
-function sendQuestion(question: string, hash: string) {
-  parent.postMessage({ type: "question", question, hash } as WorkerResponse);
+function sendQuestion(question: string) {
+  parent.postMessage({ type: "question", question } as WorkerResponse);
 }
 
-// parent.on("message", async message => {
-//   try {
-//     const request = WorkerRequestSchema.parse(message);
-//     switch (request.type) {
-//       case "answer": await onAnswer(request.answer);
-//     }
-//   } catch (error) {
-//     if (error instanceof z.ZodError) {
-//       return sendStatus({ type: "error", message: z.prettifyError(error) });
-//     } else if (error instanceof Error) {
-//       return sendStatus({ type: "error", message: error.message });
-//     } else {
-//       return sendStatus({ type: "error", message: `${error}` });
-//     }
-//   }
-// });
-
 export async function main(data: unknown) {
-  try {
-    const settings_parse = Settings.from(data);
-    if (!settings_parse.ok) {
-      return sendStatus({ type: "error", message: settings_parse.reason });
-    }
+  const settings_parse = Settings.from(data);
+  if (!settings_parse.ok) {
+    return sendStatus({ type: "error", message: settings_parse.reason });
+  }
 
-    const runner = new Runner();
+  await runner.run(settings_parse.data);
+}
 
-    runner.on("status", status => {
-      sendStatus(status);
-    });
+const runner = new Runner();
 
-    runner.on("question", question => {
-      const hash = randomUUID();
-      QUESTIONS.set(hash, question);
-      sendQuestion(question, hash);
-    })
+runner.on("status", sendStatus);
+runner.on("question", sendQuestion);
 
-    await runner.run(settings_parse.data);
-  } catch (error) {
+parent.on("message", async message => {
+  const request_parse = WorkerRequestSchema.safeParse(message);
+  if (!request_parse.success) {
+    return sendStatus({ type: "error", message: z.prettifyError(request_parse.error) });
+  }
+
+  const { data } = request_parse;
+
+  switch (data.type) {
+    case "answer": runner.asker.answer(data.question, data.answer);
+  }
+});
+
+/** ------------------------------------------------------------------------- */
+
+main(workerData)
+  .catch(error => {
     if (error instanceof z.ZodError) {
       return sendStatus({ type: "error", message: z.prettifyError(error) });
     } else if (error instanceof Error) {
@@ -71,7 +60,4 @@ export async function main(data: unknown) {
     } else {
       return sendStatus({ type: "error", message: `${error}` });
     }
-  }
-}
-
-main(workerData);
+  });

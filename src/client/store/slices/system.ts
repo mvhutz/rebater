@@ -15,13 +15,15 @@ interface SystemState {
   settings: Resource<SettingsData>;
   transformers: Reply<TransformerData[]>;
   quarters: Resource<TimeData[]>;
+  questions: string[];
 }
 
 const initialState: SystemState = {
   status: { type: "idle" },
   settings: resource(DEFAULT_SETTINGS),
   quarters: resource([], ResourceStatus.LOADING),
-  transformers: bad("Loading transformers...")
+  transformers: bad("Loading transformers..."),
+  questions: []
 }
 
 /** ------------------------------------------------------------------------- */
@@ -50,6 +52,12 @@ export const SystemSlice = createSlice({
     },
     setTransformersTags: (state, action: PayloadAction<Maybe<string[]>>) => {
       state.settings.data.transformers.tags.include = action.payload ?? undefined;
+    },
+    pushQuestion: (state, action: PayloadAction<string>) => {
+      state.questions.push(action.payload);
+    },
+    popQuestion: (state) => {
+      state.questions.shift();
     }
   },
   extraReducers(builder) {
@@ -126,7 +134,7 @@ export const SystemSlice = createSlice({
 
 export const {
   setStatus, setSystemTarget, setSystemQuarter, setSystemYear, setSystemTesting,
-  setTransformersNames, setTransformersTags
+  setTransformersNames, setTransformersTags, pushQuestion, popQuestion
 } = SystemSlice.actions
 
 export const getSystemStatus = (state: RootState) => state.system.status;
@@ -135,6 +143,7 @@ export const getContextSettings = (state: RootState) => state.system.settings.da
 export const getTestSettings = (state: RootState) => state.system.settings.data.advanced.doTesting;
 export const getTransformers = (state: RootState) => state.system.transformers;
 export const getTransformersSettings = (state: RootState) => state.system.settings.data.transformers;
+export const getCurrentQuestion = (state: RootState) => state.system.questions[0];
 
 export const isSystemLoading = (state: RootState) => {
   return state.system.status.type === "loading";

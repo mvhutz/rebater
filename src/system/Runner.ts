@@ -7,6 +7,7 @@ import path from "path";
 import EventEmitter from "events";
 import { Settings } from "../shared/settings";
 import { DiscrepencyResult, RunResults, SystemStatus } from "../shared/worker/response";
+import { Asker } from "../Asker";
 
 /** ------------------------------------------------------------------------- */
 
@@ -16,18 +17,12 @@ interface RunnerEvents {
 }
 
 export class Runner extends EventEmitter<RunnerEvents> {
+  public asker = new Asker();
+
   public constructor() {
     super();
 
     this.emit("status", { type: "idle" });
-  }
-
-  private async handleQuestion(): Promise<Maybe<string>> {
-    // this.updateStatus({ type: "asking", question });
-    // this.once("")
-    // const answer = await this.onQuestion?.(question);
-    // return answer;
-    return null;
   }
 
   public async pushRebates(state: State) {
@@ -86,7 +81,11 @@ export class Runner extends EventEmitter<RunnerEvents> {
   }
 
   public async run(settings: Settings) {
-    const state = new State(settings, () => this.handleQuestion());
+    const state = new State(settings, async question => {
+      this.emit("question", question);
+      return await this.asker.ask(question);
+    });
+
     const results: RunResults = {
       config: [],
       discrepency: undefined,

@@ -4,7 +4,7 @@ import z from "zod/v4";
 
 const AnswerWorkerRequestSchema = z.object({
   type: z.literal("answer"),
-  hash: z.string(),
+  question: z.string(),
   answer: z.string().optional(),
 });
 

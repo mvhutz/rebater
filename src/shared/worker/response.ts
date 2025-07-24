@@ -4,7 +4,6 @@ import { z } from 'zod/v4';
 
 export const QuestionWorkerResponseSchema = z.object({
   type: z.literal("question"),
-  hash: z.string(),
   question: z.string()
 });
 
