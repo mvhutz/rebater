@@ -27,7 +27,6 @@ load();
 
 // Handle system responses.
 handle.runnerUpdate(async (_, { data }) => {
-  console.log(data);
   Store.dispatch(setStatus(data));
 });
 

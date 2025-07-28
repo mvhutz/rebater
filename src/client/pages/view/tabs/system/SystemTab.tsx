@@ -31,7 +31,6 @@ const INNER_TEXT_ICON_SX: SvgIconOwnProps["sx"] = {
 }
 
 function InnerText({ status }: { status: SystemStatus }) {
-  console.log("STATUS", status.type);
   switch (status.type) {
     case "done": return <DoneRoundedIcon sx={INNER_TEXT_ICON_SX} />;
     case "idle": return <NightsStayRoundedIcon sx={INNER_TEXT_ICON_SX} />;

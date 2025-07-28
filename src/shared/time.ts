@@ -33,4 +33,25 @@ export class Time {
   public static of(data: TimeData) {
     return new Time(data.year, data.quarter);
   }
+
+  private static readonly REGEX = /(?<year>\d{4})-Q(?<quarter>[1234])/;
+
+  public static parse(from: string) {
+    const matches = from.match(Time.REGEX);
+    if (matches == null) {
+      return null;
+    }
+
+    const { year, quarter } = matches.groups ?? {};
+
+    const yearParsed = parseFloat(year);
+    const quarterParsed = parseFloat(quarter);
+
+    const parsed = Time.SCHEMA.safeParse({ year: yearParsed, quarter: quarterParsed });
+    if (!parsed.success) {
+      return null;
+    }
+
+    return parsed.data;
+  }
 }

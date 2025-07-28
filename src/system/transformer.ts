@@ -73,10 +73,6 @@ export class Transformer {
     return transformers;
   }
 
-  public getSourcesGlobs(state: State): string[] {
-    return this.data.sources.map(s => s.getSourceFileGlob(state));
-  }
-
   public async run(state: State): Promise<TransformerResult> {
     const start = performance.now();
     const { preprocess = [], postprocess = [], sources, destination, properties } = this.data;

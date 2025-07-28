@@ -53,8 +53,6 @@ function NewQuarterModal() {
   const handleCreate = React.useCallback(async () => {
     if (!new_ready || (currentStructure && !old_ready)) return;
 
-    console.log(old_time);
-
     const reply = await invoke.createQuarter({
       createStructureFrom: currentStructure ? old_time : undefined,
       quarter: new_time,

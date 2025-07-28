@@ -30,11 +30,14 @@ export class ExcelSource implements BaseSource {
   }
 
   run(state: State): Table[] {
-    const files = state.pullSourceFileGlob(this.getSourceFileGlob(state));
+    const files = state.sources.getByGlob(this.getSourceFileGlob(state));
     const results = new Array<Table>();
 
     for (const file of files) {
-      const workbook = XLSX.read(file.raw, { type: "buffer" });
+      const raw = file.getData();
+      assert.ok(raw != null, `Source file '${file.path}' not loaded!`);
+
+      const workbook = XLSX.read(raw, { type: "buffer" });
 
       const sheetsToTake = new Set<string>();
       if (this.sheets == null) {

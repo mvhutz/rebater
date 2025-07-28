@@ -5,7 +5,6 @@ import { State } from "../information/State";
 /** ------------------------------------------------------------------------- */
 
 export interface BaseSource {
-  getSourceFileGlob(state: State): string;
   run(state: State): Table[];
 }
 

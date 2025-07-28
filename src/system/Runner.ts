@@ -95,11 +95,9 @@ export class Runner extends EventEmitter<RunnerEvents> {
     const transformers = await Transformer.pullAll(state.settings, true);
 
     this.emit("status", { type: "loading", message: "Loading sources..." });
-    for (const transformer of transformers) {
-      await state.loadSourceFilesQueries(...transformer.getSourcesGlobs(state));
-    }
-
-    await state.reference_store.load(state.settings.getReferencePath());
+    await state.sources.gather();
+    await state.sources.load();
+    await state.references.load();
 
     for (const [i, transformer] of transformers.entries()) {
       this.emit("status", { type: "running", progress: i / transformers.length });
@@ -114,7 +112,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     }
 
     await state.saveDestinationFiles();
-    await state.reference_store.save(state.settings.getReferencePath());
+    await state.references.save();
 
     if (state.settings.doTesting()) {
       this.emit("status", { type: "loading", message: "Scoring accuracy..." });

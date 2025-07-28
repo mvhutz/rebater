@@ -2,10 +2,10 @@ import { BasicCounter } from "./Counter";
 import fs from "fs/promises";
 import assert from "assert";
 import path from "path";
-import { glob } from "fs/promises";
 import mutexify from 'mutexify/promise';
 import { ReferenceStore } from "./reference/ReferenceStore";
 import { Settings } from "../../shared/settings";
+import { SourceStore } from "./source/SourceStore";
 
 /** ------------------------------------------------------------------------- */
 
@@ -13,12 +13,10 @@ export class State {
   public static readonly INITIAL_COUNTER_VALUE = 0;
 
   private counters: Map<string, BasicCounter>;
-  public readonly reference_store: ReferenceStore;
-
+  public readonly references: ReferenceStore;
   public readonly settings: Settings;
+  public readonly sources: SourceStore;
 
-  private source_files: Map<string, Buffer>;
-  private source_file_queries: Map<string, string[]>;
   private destination_files: Map<string, Buffer>;
   public ask: (question: string) => Promise<Maybe<string>>;
   private lock = mutexify();
@@ -26,9 +24,8 @@ export class State {
   constructor(settings: Settings, onAsk: (question: string) => Promise<Maybe<string>>) {
     this.settings = settings;
     this.counters = new Map();
-    this.reference_store = new ReferenceStore();
-    this.source_files = new Map();
-    this.source_file_queries = new Map();
+    this.references = new ReferenceStore(settings.getReferencePath());
+    this.sources = new SourceStore(settings.getAllSourcePath());
     this.destination_files = new Map();
     this.ask = onAsk;
   }
@@ -44,38 +41,6 @@ export class State {
     const new_counter = new BasicCounter(State.INITIAL_COUNTER_VALUE);
     this.counters.set(name, new_counter);
     return new_counter;
-  }
-
-  public async loadSourceFilesQueries(...queries: string[]) {
-    for (const query of queries) {
-      if (this.source_file_queries.has(query)) continue;
-
-      const files = [];
-
-      for await (const file of glob(query)) {
-        if (this.source_files.has(file)) continue;
-
-        const buffer = await fs.readFile(file);
-        this.source_files.set(file, buffer);
-        files.push(file);
-      }
-
-      this.source_file_queries.set(query, files);
-    }
-  }
-
-  public pullSourceFileGlob(query: string): FileData[] {
-    const files = this.source_file_queries.get(query);
-    assert.ok(files != null, `Source file query '${query}' not loaded!`);
-
-    const buffers: FileData[] = [];
-    for (const file of files) {
-      const buffer = this.source_files.get(file);
-      assert.ok(buffer != null, `Source file '${file}' not loaded!`);
-      buffers.push({ raw: buffer, path: file });
-    }
-
-    return buffers;
   }
 
   public appendDestinationFile(filepath: string, data: Buffer) {
