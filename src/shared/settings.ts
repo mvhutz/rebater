@@ -94,6 +94,10 @@ export class Settings {
     return path.join(this.directory, "rebates", this.time.toString(), `${name}.csv`);
   }
 
+  getAllDestinationPath() {
+    return path.join(this.directory, "rebates");
+  }
+
   getSourcePathGlob(group: string, file = "*", extension = "") {
     return path.join(this.directory, "sources", this.time.toString(), group, `**/${file}${extension}`);
   }

@@ -2,7 +2,7 @@ import { Transformer } from "./transformer";
 import { State } from "./information/State";
 import * as XLSX from "xlsx";
 import { getPartition, getRebateHash, parseRebateFile, Rebate, RebateSet } from "./util";
-import { mkdir, writeFile, glob, rm } from "fs/promises";
+import { mkdir, writeFile, glob } from "fs/promises";
 import path from "path";
 import EventEmitter from "events";
 import { Settings } from "../shared/settings";
@@ -58,9 +58,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
   }
 
   async compareAllRebates(state: State): Promise<DiscrepencyResult[]> {
-    const actual_glob = state.settings.getRebatePathGlob();
-    const actual_files = await Array.fromAsync(glob(actual_glob));
-    const actual = (await Promise.all(actual_files.map(parseRebateFile))).flat();
+    const actual = state.destinations.get().map(d => d.getData() ?? []).flat();
 
     const expected_glob = state.settings.getTruthPathGlob();
     const expected_files = await Array.fromAsync(glob(expected_glob));
@@ -106,12 +104,8 @@ export class Runner extends EventEmitter<RunnerEvents> {
     }
 
     this.emit("status", { type: "loading", message: "Saving data..." });
-    
-    for await (const file of glob(state.settings.getRebatePathGlob())) {
-      await rm(file);
-    }
 
-    await state.saveDestinationFiles();
+    await state.destinations.save();
     await state.references.save();
 
     if (state.settings.doTesting()) {

@@ -1,7 +1,9 @@
-import { unparse } from "papaparse";
+import Papa from "papaparse";
 import { z } from "zod/v4";
 import { State } from "../information/State";
 import { BaseDestination } from ".";
+import { Destination } from "../information/destination/Destination";
+import { RebateSchema } from "../../shared/worker/response";
 
 /** ------------------------------------------------------------------------- */
 
@@ -24,8 +26,11 @@ export class CSVDestination implements BaseDestination {
 
   run(table: Table, state: State): void {
     const data = table.data.map(row => row.data);
-    const buffer = Buffer.from(unparse(data));
+    const { data: raw } = Papa.parse(Papa.unparse(data), { header: true });
+    const rebates = z.array(RebateSchema).parse(raw);
 
-    state.appendDestinationFile(this.getDestinationFile(state), buffer);
+    const destination = new Destination(this.name, state.settings.time, this.getDestinationFile(state));
+    destination.append(rebates);
+    state.destinations.add(destination);
   }
 }
