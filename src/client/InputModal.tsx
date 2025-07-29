@@ -10,7 +10,8 @@ import ModalDialog from '@mui/joy/ModalDialog';
 import Markdown from 'react-markdown';
 import { clearQuestions, getCurrentQuestion, popQuestion } from './store/slices/system';
 import { useAppDispatch, useAppSelector } from './store/hooks';
-import { DialogActions } from '@mui/joy';
+import { Box, ButtonGroup, DialogActions, IconButton } from '@mui/joy';
+import NotificationsPausedRoundedIcon from '@mui/icons-material/NotificationsPausedRounded';
 
 /** ------------------------------------------------------------------------- */
 
@@ -66,9 +67,12 @@ function InputModal() {
             </DialogContent>
             <DialogActions sx={{ mt: 2 }}>
               <Button type="submit">Submit</Button>
-              <Button type="button" variant="outlined" color="neutral" onClick={handleIgnore}>Ignore</Button>
-              <Button type="button" variant="plain" color="neutral" onClick={handleIgnoreAll}>Ignore All</Button>
-              <Button type="button" variant="outlined" color="danger" onClick={handleClose}>Stop</Button>
+              <ButtonGroup variant="outlined" color="neutral">
+                <Button onClick={handleIgnore}>Later</Button>
+                <IconButton onClick={handleIgnoreAll}><NotificationsPausedRoundedIcon/></IconButton>
+              </ButtonGroup>
+              <Box width={1}/>
+              <Button type="button" variant="outlined" color="danger" onClick={handleClose}>Quit</Button>
             </DialogActions>
           </form>
         </ModalDialog>
