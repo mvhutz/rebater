@@ -7,8 +7,8 @@ import EventEmitter from "events";
 import { Settings } from "../../shared/settings";
 import { DiscrepencyResult, RunResults, SystemStatus } from "../../shared/worker/response";
 import { CounterStore } from "../information/counter/CounterStore";
-import { ReferenceStore } from "../information/ReferenceStore";
-import { SourceStore } from "../information/SourceStore";
+import { ReferenceStore } from "../information/store/ReferenceStore";
+import { SourceStore } from "../information/store/SourceStore";
 import { DestinationStore } from "../information/destination/DestinationStore";
 import { Asker } from "./Asker";
 
