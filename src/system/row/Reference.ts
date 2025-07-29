@@ -1,4 +1,3 @@
-import assert from "assert";
 import { z } from "zod/v4";
 import { State } from "../information/State";
 import { BaseRow } from ".";
@@ -22,27 +21,24 @@ export class ReferenceRow implements BaseRow {
     return `For **\`${group}\`**, what is the **\`${take}\`** of this **\`${table}\`**?\n\n *\`${value}\`*`;
   }
 
-  async run(value: string, row: Row, state: State): Promise<string> {
+  async run(value: string, row: Row, state: State): Promise<Maybe<string>> {
     const reference = state.references.get(this.table);
-    const release = await state.requestAsk();
 
     const result = reference.ask(this.match, value, this.take, this.group);
     if (result != null) {
-      release();
       return result;
     }
 
     const question = this.getQuestionFormat(this.group, this.take, this.table, value);
-    const answer = await state.ask(question);
-    assert.ok(answer != null, `Table '${this.table}' has no item '${value}' for '${this.match}'.`);
+    const answer = await state.asker.ask(question);
+    if (answer == null) return null;
     
     reference.append({
       [this.match]: value,
       [this.take]: answer,
       group: this.group,
     });
-
-    release();
+    
     return answer;
   }
 

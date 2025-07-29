@@ -58,6 +58,9 @@ export const SystemSlice = createSlice({
     },
     popQuestion: (state) => {
       state.questions.shift();
+    },
+    clearQuestions: (state) => {
+      state.questions = [];
     }
   },
   extraReducers(builder) {
@@ -134,7 +137,7 @@ export const SystemSlice = createSlice({
 
 export const {
   setStatus, setSystemTarget, setSystemQuarter, setSystemYear, setSystemTesting,
-  setTransformersNames, setTransformersTags, pushQuestion, popQuestion
+  setTransformersNames, setTransformersTags, pushQuestion, popQuestion, clearQuestions
 } = SystemSlice.actions
 
 export const getSystemStatus = (state: RootState) => state.system.status;

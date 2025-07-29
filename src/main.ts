@@ -61,10 +61,20 @@ async function createWindow() {
     return good(undefined);
   });
 
+  ipcMain.handle.ignoreAll(async () => {
+    if (worker == null) return bad("System is not running!");
+    
+    worker.postMessage({ type: "ignore_all" } as WorkerRequest);
+    return good(undefined);
+  })
+
   ipcMain.handle.runProgram(async (_, { data }) => {
     if (worker != null) {
-      return bad("System is already running!");
-    } else if (data == null) {
+      await worker.terminate();
+      worker = null;
+    }
+    
+    if (data == null) {
       return bad("Cannot give empty settings.");
     }
 
@@ -112,6 +122,7 @@ async function createWindow() {
     ipcMain.remove.openOutputFile();
     ipcMain.remove.getAllQuarters();
     ipcMain.remove.createQuarter();
+    ipcMain.remove.ignoreAll();
   });
 
   // and load the index.html of the app.

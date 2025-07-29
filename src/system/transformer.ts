@@ -88,12 +88,22 @@ export class Transformer {
     });
 
     const rows = preprocessed_data.map(table => table.data).flat(1);
+
     for (const row of rows) {
       const result = new Array<string>();
+      let bad = false;
 
       for (const { definition } of properties) {
         const output = await runManyRows(definition, row, state);
+        if (output == null) {
+          bad = true;
+          break;
+        }
         result.push(output);
+      }
+
+      if (bad) {
+        continue;
       }
 
       recombined.data.push({ data: result, table: recombined });

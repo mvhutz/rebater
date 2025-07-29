@@ -33,12 +33,12 @@ async function main() {
     throw Error(settings_parse.reason);
   }
 
-  const runner = new Runner();
-  runner.on("question", question => {
+  const runner = new Runner(settings_parse.data);
+  runner.state.asker.on("ask", question => {
     console.log(question);
 
     process.stdin.once("data", (data) => {
-      runner.asker.answer(question, data.toString().trim());
+      runner.state.asker.answer(question, data.toString().trim());
     });
   })
 
@@ -46,7 +46,7 @@ async function main() {
     console.log(JSON.stringify(status));
   })
 
-  await runner.run(settings_parse.data);
+  await runner.run();
 }
 
 main();

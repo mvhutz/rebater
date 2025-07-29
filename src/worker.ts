@@ -27,26 +27,33 @@ export async function main(data: unknown) {
     return sendStatus({ type: "error", message: settings_parse.reason });
   }
 
-  await runner.run(settings_parse.data);
+  const runner = new Runner(settings_parse.data);
+
+  runner.on("status", sendStatus);
+  runner.state.asker.on("ask", sendQuestion);
+
+  parent.on("message", async message => {
+    const request_parse = WorkerRequestSchema.safeParse(message);
+    if (!request_parse.success) {
+      return sendStatus({ type: "error", message: z.prettifyError(request_parse.error) });
+    }
+
+    const { data } = request_parse;
+
+    switch (data.type) {
+      case "answer":
+        runner.state.asker.answer(data.question, data.answer);
+        break;
+      case "exit":
+        runner.stop();
+        break;
+      case "ignore_all":
+        runner.state.asker.ignoreAll();
+    }
+  });
+
+  await runner.run();
 }
-
-const runner = new Runner();
-
-runner.on("status", sendStatus);
-runner.on("question", sendQuestion);
-
-parent.on("message", async message => {
-  const request_parse = WorkerRequestSchema.safeParse(message);
-  if (!request_parse.success) {
-    return sendStatus({ type: "error", message: z.prettifyError(request_parse.error) });
-  }
-
-  const { data } = request_parse;
-
-  switch (data.type) {
-    case "answer": runner.asker.answer(data.question, data.answer);
-  }
-});
 
 /** ------------------------------------------------------------------------- */
 

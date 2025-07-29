@@ -19,7 +19,7 @@ import { getCoerceSchema } from "./Coerce";
 /** ------------------------------------------------------------------------- */
 
 export interface BaseRow {
-  run(value: string, row: Row, state: State): Promise<string>;
+  run(value: string, row: Row, state: State): Promise<Maybe<string>>;
 }
 
 export const ROW_SCHEMA: z.ZodType<BaseRow> = z.union([
@@ -40,11 +40,13 @@ export const ROW_SCHEMA: z.ZodType<BaseRow> = z.union([
   SumRow.SCHEMA
 ]);
 
-export async function runMany(rows: BaseRow[], row: Row, state: State) {
+export async function runMany(rows: BaseRow[], row: Row, state: State): Promise<Maybe<string>> {
   let value = "";
 
   for (const operation of rows) {
-    value = await operation.run(value, row, state);
+    const result = await operation.run(value, row, state);
+    if (result == null) return result;
+    value = result;
   }
 
   return value;

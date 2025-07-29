@@ -7,20 +7,22 @@ import path from "path";
 import EventEmitter from "events";
 import { Settings } from "../../shared/settings";
 import { DiscrepencyResult, RunResults, SystemStatus } from "../../shared/worker/response";
-import { Asker } from "./Asker";
 
 /** ------------------------------------------------------------------------- */
 
 interface RunnerEvents {
   status: [SystemStatus];
-  question: [string];
 }
 
 export class Runner extends EventEmitter<RunnerEvents> {
-  public asker = new Asker();
+  public readonly state: State;
+  private running: boolean;
 
-  public constructor() {
+  public constructor(settings: Settings) {
     super();
+
+    this.state = new State(settings);
+    this.running = false;
 
     this.emit("status", { type: "idle" });
   }
@@ -78,11 +80,8 @@ export class Runner extends EventEmitter<RunnerEvents> {
     return results;
   }
 
-  public async run(settings: Settings) {
-    const state = new State(settings, async question => {
-      this.emit("question", question);
-      return await this.asker.ask(question);
-    });
+  public async run() {
+    this.running = true;
 
     const results: RunResults = {
       config: [],
@@ -90,32 +89,68 @@ export class Runner extends EventEmitter<RunnerEvents> {
     }
 
     this.emit("status", { type: "loading", message: "Reading transformers..." });
-    const transformers = await Transformer.pullAll(state.settings, true);
+    if (!this.running) {
+      this.emit("status", { type: "idle" });
+      return;
+    }
+
+    const transformers = await Transformer.pullAll(this.state.settings, true);
 
     this.emit("status", { type: "loading", message: "Loading sources..." });
-    await state.sources.gather();
-    await state.sources.load();
-    await state.references.load();
+    if (!this.running) {
+      this.emit("status", { type: "idle" });
+      return;
+    }
+
+    await this.state.sources.gather();
+    await this.state.sources.load();
+    await this.state.references.load();
 
     for (const [i, transformer] of transformers.entries()) {
       this.emit("status", { type: "running", progress: i / transformers.length });
+        if (!this.running) {
+        this.emit("status", { type: "idle" });
+        return;
+      }
 
-      results.config.push(await transformer.run(state));
+      results.config.push(await transformer.run(this.state));
     }
 
     this.emit("status", { type: "loading", message: "Saving data..." });
+    if (!this.running) {
+      this.emit("status", { type: "idle" });
+      return;
+    }
 
-    await state.destinations.save();
-    await state.references.save();
+    await this.state.destinations.save();
+    await this.state.references.save();
 
-    if (state.settings.doTesting()) {
+    if (this.state.settings.doTesting()) {
       this.emit("status", { type: "loading", message: "Scoring accuracy..." });
-      results.discrepency = await this.compareAllRebates(state);
+      if (!this.running) {
+        this.emit("status", { type: "idle" });
+        return;
+      }
+      results.discrepency = await this.compareAllRebates(this.state);
     }
 
     this.emit("status", { type: "loading", message: "Compiling rebates..." });
-    await this.pushRebates(state);
+    if (!this.running) {
+      this.emit("status", { type: "idle" });
+      return;
+    }
+    await this.pushRebates(this.state);
     
     this.emit("status", { type: "done", results: results });
+    if (!this.running) {
+      this.emit("status", { type: "idle" });
+      return;
+    }
+
+    this.running = false;
+  }
+
+  public stop() {
+    this.running = false;
   }
 }

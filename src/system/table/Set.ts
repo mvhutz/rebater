@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { ExcelIndexSchema, rewire } from "../util";
+import { ExcelIndexSchema, makeTable } from "../util";
 import { BaseRow, ROW_SCHEMA, runMany } from "../row";
 import { State } from "../information/State";
 import { BaseTable } from ".";
@@ -22,11 +22,15 @@ export class SetTable implements BaseTable {
   }
 
   async run(table: Table, state: State): Promise<Table> {
+    const new_rows = [];
     for (const row of table.data) {
       const value = await runMany(this.to, row, state);
-      row.data[this.column] = value;
+      if (value != null) {
+        row.data[this.column] = value;
+        new_rows.push(row.data);
+      }
     }
 
-    return rewire(table);
+    return makeTable(new_rows, table.path);
   }
 }

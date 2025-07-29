@@ -7,10 +7,11 @@ import FormLabel from '@mui/joy/FormLabel';
 import Input from '@mui/joy/Input';
 import Modal from '@mui/joy/Modal';
 import ModalDialog from '@mui/joy/ModalDialog';
-import Stack from '@mui/joy/Stack';
 import Markdown from 'react-markdown';
-import { getCurrentQuestion, popQuestion } from './store/slices/system';
+import { clearQuestions, getCurrentQuestion, popQuestion } from './store/slices/system';
 import { useAppDispatch, useAppSelector } from './store/hooks';
+import { DialogActions } from '@mui/joy';
+import { killSystem } from './store/slices/thunk';
 
 /** ------------------------------------------------------------------------- */
 
@@ -32,27 +33,45 @@ function InputModal() {
     dispatch(popQuestion());
   }, [dispatch, question]);
   
-  const handleClose = React.useCallback(() => {
+  const handleClose = React.useCallback(async (event: React.UIEvent) => {
+    event.preventDefault();
+    invoke.cancelProgram();
+    dispatch(clearQuestions());
+    await dispatch(killSystem());
+  }, [dispatch]);
+
+  const handleIgnore = React.useCallback((event: React.UIEvent) => {
+    event.preventDefault();
     invoke.answerQuestion({ question, value: undefined });
-  }, [question]);
+    dispatch(popQuestion());
+  }, [dispatch, question]);
+
+  const handleIgnoreAll = React.useCallback((event: React.UIEvent) => {
+    event.preventDefault();
+    invoke.ignoreAll();
+    dispatch(clearQuestions());
+  }, [dispatch]);
   
   return (
     <Modal open={open} onClose={handleClose}>
-        <ModalDialog>
-          <DialogTitle>Rebator needs your help!</DialogTitle>
-          <DialogContent>
-            <Markdown>
-              {question}
-            </Markdown>
-            </DialogContent>
+        <ModalDialog minWidth={500}>
           <form onSubmit={handleForm}>
-            <Stack spacing={2}>
+            <DialogTitle>Rebator needs your help!</DialogTitle>
+            <DialogContent>
+              <Markdown>
+                {question}
+              </Markdown>
               <FormControl>
                 <FormLabel>Answer</FormLabel>
                 <Input name="answer" required />
               </FormControl>
+            </DialogContent>
+            <DialogActions sx={{ mt: 2 }}>
               <Button type="submit">Submit</Button>
-            </Stack>
+              <Button type="button" variant="outlined" color="neutral" onClick={handleIgnore}>Ignore</Button>
+              <Button type="button" variant="plain" color="neutral" onClick={handleIgnoreAll}>Ignore All</Button>
+              <Button type="button" variant="outlined" color="danger" onClick={handleClose}>Stop</Button>
+            </DialogActions>
           </form>
         </ModalDialog>
       </Modal>
