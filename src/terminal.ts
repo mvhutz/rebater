@@ -1,7 +1,6 @@
-import { Runner } from "./system/Runner";
-
 import dotenv from "dotenv";
 import { Settings } from "./shared/settings";
+import { Runner } from "./system/runner/Runner";
 dotenv.config({ quiet: true });
 
 const DATA = {

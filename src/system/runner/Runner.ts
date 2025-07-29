@@ -1,13 +1,13 @@
-import { Transformer } from "./transformer";
-import { State } from "./information/State";
+import { Transformer } from "../transformer";
+import { State } from "../information/State";
 import * as XLSX from "xlsx";
-import { getPartition, getRebateHash, parseRebateFile, Rebate, RebateSet } from "./util";
+import { getPartition, getRebateHash, parseRebateFile, Rebate, RebateSet } from "../util";
 import { mkdir, writeFile, glob } from "fs/promises";
 import path from "path";
 import EventEmitter from "events";
-import { Settings } from "../shared/settings";
-import { DiscrepencyResult, RunResults, SystemStatus } from "../shared/worker/response";
-import { Asker } from "../Asker";
+import { Settings } from "../../shared/settings";
+import { DiscrepencyResult, RunResults, SystemStatus } from "../../shared/worker/response";
+import { Asker } from "./Asker";
 
 /** ------------------------------------------------------------------------- */
 

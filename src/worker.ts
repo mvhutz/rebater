@@ -1,11 +1,10 @@
 import { parentPort, workerData } from "node:worker_threads";
-import { Runner } from "./system/Runner";
+import { Runner } from "./system/runner/Runner";
 import { z } from "zod/v4";
 import assert from "node:assert";
 import { Settings } from "./shared/settings";
 import { SystemStatus, WorkerResponse } from "./shared/worker/response";
 import { WorkerRequestSchema } from "./shared/worker/request";
-// import { WorkerRequestSchema } from "./shared/worker/request";
 
 /** ------------------------------------------------------------------------- */
 
