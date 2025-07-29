@@ -4,6 +4,7 @@ import assert from "assert";
 import { makeTable } from "../util";
 import { BaseSource } from ".";
 import { Runner } from "../runner/Runner";
+import path from "path";
 
 /** ------------------------------------------------------------------------- */
 
@@ -30,7 +31,8 @@ export class ExcelSource implements BaseSource {
   }
 
   run(runner: Runner): Table[] {
-    const files = runner.sources.getByGlob(this.getSourceFileGlob(runner));
+    const glob = this.getSourceFileGlob(runner);
+    const files = runner.sources.filter(s => path.matchesGlob(s.path, glob));
     const results = new Array<Table>();
 
     for (const file of files) {

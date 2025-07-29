@@ -13,11 +13,13 @@ export class Destination {
   public readonly path: string;
 
   private data?: Rebate[];
+  private _loaded: boolean;
 
   public constructor(group: string, quarter: Time, path: string) {
     this.group = group;
     this.quarter = quarter;
     this.path = path;
+    this._loaded = false;
   }
 
   public add(other: Destination) {
@@ -33,6 +35,7 @@ export class Destination {
     const file = await readFile(this.path, 'utf-8');
     const { data } = Papa.parse(file, { header: true, skipEmptyLines: true });
     this.data = z.array(RebateSchema).parse(data);
+    this._loaded = true;
   }
 
   public async save(): Promise<boolean> {
@@ -45,7 +48,11 @@ export class Destination {
     return true;
   }
 
-  public getData(): Maybe<Rebate[]> {
-    return this.data;
+  public get rebates(): Rebate[] {
+    return this.data ?? [];
+  }
+
+  public get loaded(): boolean {
+    return this._loaded;
   }
 }

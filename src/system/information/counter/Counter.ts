@@ -6,7 +6,7 @@ export class Counter {
     this.amount = initial;
   }
 
-  public get(): number {
+  public get value(): number {
     return this.amount;
   }
 
@@ -15,7 +15,7 @@ export class Counter {
   }
 
   public getThenIncrement(): number {
-    const n = this.get();
+    const n = this.value;
     this.increment();
 
     return n;

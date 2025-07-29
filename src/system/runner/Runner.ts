@@ -7,8 +7,8 @@ import EventEmitter from "events";
 import { Settings } from "../../shared/settings";
 import { DiscrepencyResult, RunResults, SystemStatus } from "../../shared/worker/response";
 import { CounterStore } from "../information/counter/CounterStore";
-import { ReferenceStore } from "../information/reference/ReferenceStore";
-import { SourceStore } from "../information/source/SourceStore";
+import { ReferenceStore } from "../information/ReferenceStore";
+import { SourceStore } from "../information/SourceStore";
 import { DestinationStore } from "../information/destination/DestinationStore";
 import { Asker } from "./Asker";
 
@@ -74,7 +74,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
   }
 
   async compareAllRebates(): Promise<DiscrepencyResult[]> {
-    const actual = this.destinations.allData();
+    const actual = this.destinations.rebates;
 
     const expected_glob = this.settings.getTruthPathGlob();
     const expected_files = await Array.fromAsync(glob(expected_glob));
@@ -97,6 +97,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
   private async load() {
     await this.sources.gather();
     await this.sources.load();
+    await this.references.gather();
     await this.references.load();
   }
 

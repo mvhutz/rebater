@@ -7,7 +7,7 @@ import { Rebate } from "../../util";
 /** ------------------------------------------------------------------------- */
 
 export class DestinationStore {
-  public destinations = new Map<string, Destination>();
+  private destinations = new Map<string, Destination>();
   private directory: string;
 
   public constructor(directory: string) {
@@ -18,15 +18,15 @@ export class DestinationStore {
     this.destinations.clear();
   }
 
-  public get(): Destination[] {
+  public get items(): Destination[] {
     return this.destinations.values().toArray();
   }
 
-  public allData(): Rebate[] {
+  public get rebates(): Rebate[] {
     const results: Rebate[] = [];
 
     for (const [, destination] of this.destinations) {
-      results.concat(destination.getData() ?? []);
+      results.concat(destination.rebates);
     }
 
     return results;
@@ -47,16 +47,6 @@ export class DestinationStore {
     } else {
       this.destinations.set(destination.path, destination);
     }
-  }
-  
-  public async loadQuarter(time: Time): Promise<void> {
-    await Promise.all(this.destinations.values().map(s => {
-      if (s.quarter.is(time)) {
-        return s.load();
-      } else {
-        return null;
-      }
-    }))
   }
 
   public async load(): Promise<void> {

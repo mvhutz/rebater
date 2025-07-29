@@ -22,7 +22,7 @@ export class ReferenceRow implements BaseRow {
   }
 
   async run(value: string, row: Row, runner: Runner): Promise<Maybe<string>> {
-    const reference = runner.references.get(this.table);
+    const reference = runner.references.byHash(this.table);
 
     const result = reference.ask(this.match, value, this.take, this.group);
     if (result != null) {
@@ -33,7 +33,7 @@ export class ReferenceRow implements BaseRow {
     const answer = await runner.asker.ask(question);
     if (answer == null) return null;
     
-    reference.append({
+    reference.push({
       [this.match]: value,
       [this.take]: answer,
       group: this.group,

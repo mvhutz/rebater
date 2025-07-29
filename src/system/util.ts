@@ -1,7 +1,8 @@
 import { z } from "zod/v4";
-import fs from 'fs/promises';
+import fs, { readdir } from 'fs/promises';
 import Papa from 'papaparse';
 import assert from "assert";
+import path from "path";
 
 /** ------------------------------------------------------------------------- */
 
@@ -131,6 +132,16 @@ export function makeTable(rows: string[][], path = "") {
   table.data = rows.map(r => ({ data: r, table }));
 
   return table;
+}
+
+export async function getSubFiles(directory: string): Promise<[string, string][]> {
+  const entries = await readdir(directory, { withFileTypes: true, recursive: true });
+  return entries.filter(e => e.isFile()).map(e => [path.join(e.parentPath, e.name), e.name]);
+}
+
+export async function getSubFolders(directory: string): Promise<[string, string][]> {
+  const entries = await readdir(directory, { withFileTypes: true });
+  return entries.filter(e => e.isDirectory()).map(e => [path.join(e.parentPath, e.name), e.name]);
 }
 
 /** ------------------------------------------------------------------------- */

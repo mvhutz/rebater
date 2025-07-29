@@ -77,7 +77,7 @@ export class Transformer {
     const start = performance.now();
     const { preprocess = [], postprocess = [], sources, destination, properties } = this.data;
     const source_data = sources.map(s => s.run(runner)).flat(1);
-    const preprocessed_data = (await Promise.all(source_data.map(d => runManyTables(preprocess, d, runner)))).flat(1);
+    const preprocessed_data = (await Promise.all(source_data.map(d => runManyTables(preprocess, d, runner))));
     
     const recombined = rewire({
       path: this.path,
