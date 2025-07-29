@@ -3,8 +3,8 @@ import { Runner } from "./system/runner/Runner";
 import { z } from "zod/v4";
 import assert from "node:assert";
 import { Settings } from "./shared/settings";
-import { SystemStatus, WorkerResponse } from "./shared/worker/response";
-import { WorkerRequestSchema } from "./shared/worker/request";
+import { WorkerResponse } from "./shared/worker/response";
+import { WorkerRequest, WorkerRequestSchema } from "./shared/worker/request";
 
 /** ------------------------------------------------------------------------- */
 
@@ -13,57 +13,63 @@ const parent = parentPort;
 
 /** ------------------------------------------------------------------------- */
 
-function sendStatus(status: SystemStatus) {
-  parent.postMessage({ type: "status", status } as WorkerResponse);
+function send(response: WorkerResponse) {
+  parent.postMessage(response);
 }
 
-function sendQuestion(question: string) {
-  parent.postMessage({ type: "question", question } as WorkerResponse);
+function sendError(message?: string) {
+  send({ type: "status", status: { type: "error", message } });
 }
 
-export async function main(data: unknown) {
-  const settings_parse = Settings.from(data);
-  if (!settings_parse.ok) {
-    return sendStatus({ type: "error", message: settings_parse.reason });
-  }
-
-  const runner = new Runner(settings_parse.data);
-
-  runner.on("status", sendStatus);
-  runner.state.asker.on("ask", sendQuestion);
-
-  parent.on("message", async message => {
+function onReceive(fn: (message: WorkerRequest) => Promise<void>) {
+  parent.on("message", message => {
     const request_parse = WorkerRequestSchema.safeParse(message);
     if (!request_parse.success) {
-      return sendStatus({ type: "error", message: z.prettifyError(request_parse.error) });
+      return sendError(z.prettifyError(request_parse.error));
     }
 
-    const { data } = request_parse;
-
-    switch (data.type) {
-      case "answer":
-        runner.state.asker.answer(data.question, data.answer);
-        break;
-      case "exit":
-        runner.stop();
-        break;
-      case "ignore_all":
-        runner.state.asker.ignoreAll();
-    }
+    fn(request_parse.data);
   });
-
-  await runner.run();
 }
 
 /** ------------------------------------------------------------------------- */
 
-main(workerData)
-  .catch(error => {
-    if (error instanceof z.ZodError) {
-      return sendStatus({ type: "error", message: z.prettifyError(error) });
-    } else if (error instanceof Error) {
-      return sendStatus({ type: "error", message: error.message });
-    } else {
-      return sendStatus({ type: "error", message: `${error}` });
+function main() {
+  const settings_reply = Settings.from(workerData);
+  if (!settings_reply.ok) return sendError(settings_reply.reason);
+
+  const runner = new Runner(settings_reply.data);
+
+  runner.on("status", status => send({ type: "status", status }));
+  runner.asker.on("ask", question => send({ type: "question", question }));
+
+  onReceive(async request => {
+    switch (request.type) {
+      case "answer":
+        runner.asker.answer(request.question, request.answer);
+        break;
+      case "exit":
+        runner.asker.ignoreAll();
+        runner.stop();
+        break;
+      case "ignore_all":
+        runner.asker.ignoreAll();
+        break;
     }
-  });
+  })
+
+  runner.run()
+    .catch(error => {
+      if (error instanceof z.ZodError) {
+        return sendError(z.prettifyError(error));
+      } else if (error instanceof Error) {
+        return sendError(error.message);
+      } else {
+        return error(`${error}`);
+      }
+    });
+}
+
+/** ------------------------------------------------------------------------- */
+
+main();

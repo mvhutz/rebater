@@ -1,7 +1,6 @@
 import { glob, readFile } from "fs/promises";
 import path from "path";
 import { z } from "zod/v4";
-import { State } from "./information/State";
 import { rewire } from "./util";
 import { DESTINATION_SCHEMA } from "./destination";
 import { SOURCE_SCHEMA } from "./source";
@@ -9,6 +8,7 @@ import { TABLE_SCHEMA, runMany as runManyTables } from "./table";
 import { ROW_SCHEMA, runMany as runManyRows } from "./row";
 import { Settings } from "../shared/settings";
 import { TransformerResult } from "../shared/worker/response";
+import { Runner } from "./runner/Runner";
 
 /** ------------------------------------------------------------------------- */
 
@@ -73,11 +73,11 @@ export class Transformer {
     return transformers;
   }
 
-  public async run(state: State): Promise<TransformerResult> {
+  public async run(runner: Runner): Promise<TransformerResult> {
     const start = performance.now();
     const { preprocess = [], postprocess = [], sources, destination, properties } = this.data;
-    const source_data = sources.map(s => s.run(state)).flat(1);
-    const preprocessed_data = (await Promise.all(source_data.map(d => runManyTables(preprocess, d, state)))).flat(1);
+    const source_data = sources.map(s => s.run(runner)).flat(1);
+    const preprocessed_data = (await Promise.all(source_data.map(d => runManyTables(preprocess, d, runner)))).flat(1);
     
     const recombined = rewire({
       path: this.path,
@@ -94,7 +94,7 @@ export class Transformer {
       let bad = false;
 
       for (const { definition } of properties) {
-        const output = await runManyRows(definition, row, state);
+        const output = await runManyRows(definition, row, runner);
         if (output == null) {
           bad = true;
           break;
@@ -109,8 +109,8 @@ export class Transformer {
       recombined.data.push({ data: result, table: recombined });
     }
 
-    const postprocessed_data = await runManyTables(postprocess, recombined, state);
-    destination.run(postprocessed_data, state);
+    const postprocessed_data = await runManyTables(postprocess, recombined, runner);
+    destination.run(postprocessed_data, runner);
 
     const end = performance.now();
     return { start, end, name: this.name };

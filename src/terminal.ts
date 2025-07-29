@@ -34,11 +34,11 @@ async function main() {
   }
 
   const runner = new Runner(settings_parse.data);
-  runner.state.asker.on("ask", question => {
+  runner.asker.on("ask", question => {
     console.log(question);
 
     process.stdin.once("data", (data) => {
-      runner.state.asker.answer(question, data.toString().trim());
+      runner.asker.answer(question, data.toString().trim());
     });
   })
 

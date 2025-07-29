@@ -61,6 +61,13 @@ async function createWindow() {
     return good(undefined);
   });
 
+  ipcMain.handle.exitProgram(async () => {
+    if (worker == null) return bad("System is not running!");
+
+    worker.postMessage({ type: "exit" } as WorkerRequest);
+    return good(undefined);
+  });
+
   ipcMain.handle.ignoreAll(async () => {
     if (worker == null) return bad("System is not running!");
     

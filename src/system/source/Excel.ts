@@ -1,9 +1,9 @@
 import { z } from "zod/v4";
 import * as XLSX from "xlsx";
 import assert from "assert";
-import { State } from "../information/State";
 import { makeTable } from "../util";
 import { BaseSource } from ".";
+import { Runner } from "../runner/Runner";
 
 /** ------------------------------------------------------------------------- */
 
@@ -25,12 +25,12 @@ export class ExcelSource implements BaseSource {
     this.sheets = sheets;
   }
 
-  getSourceFileGlob(state: State) {
-    return state.settings.getSourcePathGlob(this.group, this.file, ".xls*");
+  private getSourceFileGlob(runner: Runner) {
+    return runner.settings.getSourcePathGlob(this.group, this.file, ".xls*");
   }
 
-  run(state: State): Table[] {
-    const files = state.sources.getByGlob(this.getSourceFileGlob(state));
+  run(runner: Runner): Table[] {
+    const files = runner.sources.getByGlob(this.getSourceFileGlob(runner));
     const results = new Array<Table>();
 
     for (const file of files) {

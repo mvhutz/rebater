@@ -1,11 +1,11 @@
 import { z } from "zod/v4";
 import { ExcelSource } from "./Excel";
-import { State } from "../information/State";
+import { Runner } from "../runner/Runner";
 
 /** ------------------------------------------------------------------------- */
 
 export interface BaseSource {
-  run(state: State): Table[];
+  run(runner: Runner): Table[];
 }
 
 export const SOURCE_SCHEMA: z.ZodType<BaseSource> = z.union([

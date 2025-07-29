@@ -35,7 +35,7 @@ function InputModal() {
   
   const handleClose = React.useCallback(async (event: React.UIEvent) => {
     event.preventDefault();
-    invoke.cancelProgram();
+    invoke.exitProgram();
     dispatch(clearQuestions());
     await dispatch(killSystem());
   }, [dispatch]);

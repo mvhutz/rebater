@@ -94,73 +94,53 @@ export class Runner extends EventEmitter<RunnerEvents> {
     return results;
   }
 
-  public async run() {
-    this.running = true;
-
+  private async* iterator(): AsyncIterableIterator<SystemStatus> {
     const results: RunResults = {
       config: [],
       discrepency: undefined,
     }
 
-    this.emit("status", { type: "loading", message: "Reading transformers..." });
-    if (!this.running) {
-      this.emit("status", { type: "idle" });
-      return;
-    }
-
+    yield { type: "loading", message: "Reading transformers..." };
     const transformers = await Transformer.pullAll(this.settings, true);
 
-    this.emit("status", { type: "loading", message: "Loading sources..." });
-    if (!this.running) {
-      this.emit("status", { type: "idle" });
-      return;
-    }
-
+    yield { type: "loading", message: "Loading sources..." };
     await this.sources.gather();
     await this.sources.load();
     await this.references.load();
 
     for (const [i, transformer] of transformers.entries()) {
-      this.emit("status", { type: "running", progress: i / transformers.length });
-        if (!this.running) {
-        this.emit("status", { type: "idle" });
-        return;
-      }
-
+      yield { type: "running", progress: i / transformers.length };
       results.config.push(await transformer.run(this));
     }
 
-    this.emit("status", { type: "loading", message: "Saving data..." });
-    if (!this.running) {
-      this.emit("status", { type: "idle" });
-      return;
-    }
-
+    yield { type: "loading", message: "Saving data..." };
     await this.destinations.save();
     await this.references.save();
 
     if (this.settings.doTesting()) {
-      this.emit("status", { type: "loading", message: "Scoring accuracy..." });
-      if (!this.running) {
-        this.emit("status", { type: "idle" });
-        return;
-      }
+      yield { type: "loading", message: "Scoring accuracy..." };
       results.discrepency = await this.compareAllRebates();
     }
 
-    this.emit("status", { type: "loading", message: "Compiling rebates..." });
-    if (!this.running) {
-      this.emit("status", { type: "idle" });
-      return;
-    }
+    yield { type: "loading", message: "Compiling rebates..." };
     await this.pushRebates();
     
-    this.emit("status", { type: "done", results: results });
-    if (!this.running) {
-      this.emit("status", { type: "idle" });
-      return;
-    }
+    yield { type: "done", results: results };
+  }
 
+  public async run() {
+    this.running = true;
+
+    for await (const status of this.iterator()) {
+      await new Promise(res => setImmediate(res));
+
+      if (!this.running) {
+        this.emit('status', { type: "idle" });
+        return;
+      }
+
+      this.emit('status', status);
+    }
     this.running = false;
   }
 

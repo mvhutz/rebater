@@ -56,6 +56,9 @@ const IPC = createInterprocess({
       void [];
 
       return good(undefined);
+    },
+    async exitProgram(): Promise<Reply> {
+      return good(undefined);
     }
   },
   renderer: {
