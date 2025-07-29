@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { BaseRow, ROW_SCHEMA, runMany } from ".";
-import { State } from "../information/State";
+import { Runner } from "../runner/Runner";
 
 /** ------------------------------------------------------------------------- */
 
@@ -16,8 +16,8 @@ export class DivideRow implements BaseRow {
     this.other = other;
   }
 
-  async run(value: string, row: Row, state: State): Promise<string> {
-    const other_value = await runMany(this.other, row, state);
+  async run(value: string, row: Row, runner: Runner): Promise<string> {
+    const other_value = await runMany(this.other, row, runner);
     return (Number(value) / Number(other_value)).toString();
   }
 }

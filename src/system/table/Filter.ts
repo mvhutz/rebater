@@ -1,8 +1,8 @@
 import { z } from "zod/v4";
 import { BaseRow, ROW_SCHEMA, runMany } from "../row";
-import { State } from "../information/State";
 import { rewire } from "../util";
 import { BaseTable } from ".";
+import { Runner } from "../runner/Runner";
 
 /** ------------------------------------------------------------------------- */
 
@@ -18,10 +18,10 @@ export class FilterTable implements BaseTable {
     this.criteria = criteria;
   }
 
-  async run(table: Table, state: State): Promise<Table> {
+  async run(table: Table, runner: Runner): Promise<Table> {
     const rows = new Array<Row>();
     for (const row of table.data) {
-      const value = await runMany(this.criteria, row, state);
+      const value = await runMany(this.criteria, row, runner);
       if (value === "true") rows.push(row);
     }
 

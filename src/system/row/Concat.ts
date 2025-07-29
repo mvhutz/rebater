@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { BaseRow, ROW_SCHEMA, runMany } from ".";
-import { State } from "../information/State";
+import { Runner } from "../runner/Runner";
 
 /** ------------------------------------------------------------------------- */
 
@@ -19,8 +19,8 @@ export class ConcatRow implements BaseRow {
     this.separator = separator;
   }
 
-  async run(value: string, row: Row, state: State): Promise<string> {
-    const other_value = await runMany(this.other, row, state);
+  async run(value: string, row: Row, runner: Runner): Promise<string> {
+    const other_value = await runMany(this.other, row, runner);
     return other_value + this.separator + value;
   }
 }

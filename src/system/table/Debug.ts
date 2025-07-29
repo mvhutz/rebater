@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
-import { State } from "../information/State";
 import { CSVDestination } from "../destination/CSV";
 import { BaseTable } from ".";
+import { Runner } from "../runner/Runner";
 
 /** ------------------------------------------------------------------------- */
 
@@ -17,8 +17,8 @@ export class DebugTable implements BaseTable {
     this.destination = new CSVDestination(name);
   }
 
-  async run(table: Table, state: State): Promise<Table> {
-    this.destination.run(table, state);
+  async run(table: Table, runner: Runner): Promise<Table> {
+    this.destination.run(table, runner);
     return table;
   }
 }

@@ -1,5 +1,4 @@
 import { Transformer } from "../transformer";
-import { State } from "../information/State";
 import * as XLSX from "xlsx";
 import { getPartition, getRebateHash, parseRebateFile, Rebate, RebateSet } from "../util";
 import { mkdir, writeFile, glob } from "fs/promises";
@@ -7,6 +6,11 @@ import path from "path";
 import EventEmitter from "events";
 import { Settings } from "../../shared/settings";
 import { DiscrepencyResult, RunResults, SystemStatus } from "../../shared/worker/response";
+import { CounterStore } from "../information/counter/CounterStore";
+import { ReferenceStore } from "../information/reference/ReferenceStore";
+import { SourceStore } from "../information/source/SourceStore";
+import { DestinationStore } from "../information/destination/DestinationStore";
+import { Asker } from "./Asker";
 
 /** ------------------------------------------------------------------------- */
 
@@ -15,20 +19,30 @@ interface RunnerEvents {
 }
 
 export class Runner extends EventEmitter<RunnerEvents> {
-  public readonly state: State;
+  public readonly counters: CounterStore;
+  public readonly references: ReferenceStore;
+  public readonly settings: Settings;
+  public readonly sources: SourceStore;
+  public readonly destinations: DestinationStore;
+  public readonly asker = new Asker();
+
   private running: boolean;
 
   public constructor(settings: Settings) {
     super();
 
-    this.state = new State(settings);
+    this.settings = settings;
+    this.counters = new CounterStore();
+    this.references = new ReferenceStore(settings.getReferencePath());
+    this.sources = new SourceStore(settings.getAllSourcePath());
+    this.destinations = new DestinationStore(settings.getAllDestinationPath());
     this.running = false;
 
     this.emit("status", { type: "idle" });
   }
 
-  public async pushRebates(state: State) {
-    const rebate_glob = state.settings.getRebatePathGlob();
+  public async pushRebates() {
+    const rebate_glob = this.settings.getRebatePathGlob();
     const rebate_files = await Array.fromAsync(glob(rebate_glob));
 
     const rebates = new Array<Rebate>();
@@ -41,7 +55,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     XLSX.utils.book_append_sheet(book, sheet, "Rebates");
     const buffer = XLSX.write(book, { type: "buffer" });
     
-    const file = state.settings.getOutputFile("xlsx");
+    const file = this.settings.getOutputFile("xlsx");
     await mkdir(path.dirname(file), { recursive: true });
     await writeFile(file, buffer);
   }
@@ -59,10 +73,10 @@ export class Runner extends EventEmitter<RunnerEvents> {
     }
   }
 
-  async compareAllRebates(state: State): Promise<DiscrepencyResult[]> {
-    const actual = state.destinations.get().map(d => d.getData() ?? []).flat();
+  async compareAllRebates(): Promise<DiscrepencyResult[]> {
+    const actual = this.destinations.get().map(d => d.getData() ?? []).flat();
 
-    const expected_glob = state.settings.getTruthPathGlob();
+    const expected_glob = this.settings.getTruthPathGlob();
     const expected_files = await Array.fromAsync(glob(expected_glob));
     const expected = (await Promise.all(expected_files.map(parseRebateFile))).flat();
 
@@ -94,7 +108,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
       return;
     }
 
-    const transformers = await Transformer.pullAll(this.state.settings, true);
+    const transformers = await Transformer.pullAll(this.settings, true);
 
     this.emit("status", { type: "loading", message: "Loading sources..." });
     if (!this.running) {
@@ -102,9 +116,9 @@ export class Runner extends EventEmitter<RunnerEvents> {
       return;
     }
 
-    await this.state.sources.gather();
-    await this.state.sources.load();
-    await this.state.references.load();
+    await this.sources.gather();
+    await this.sources.load();
+    await this.references.load();
 
     for (const [i, transformer] of transformers.entries()) {
       this.emit("status", { type: "running", progress: i / transformers.length });
@@ -113,7 +127,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
         return;
       }
 
-      results.config.push(await transformer.run(this.state));
+      results.config.push(await transformer.run(this));
     }
 
     this.emit("status", { type: "loading", message: "Saving data..." });
@@ -122,16 +136,16 @@ export class Runner extends EventEmitter<RunnerEvents> {
       return;
     }
 
-    await this.state.destinations.save();
-    await this.state.references.save();
+    await this.destinations.save();
+    await this.references.save();
 
-    if (this.state.settings.doTesting()) {
+    if (this.settings.doTesting()) {
       this.emit("status", { type: "loading", message: "Scoring accuracy..." });
       if (!this.running) {
         this.emit("status", { type: "idle" });
         return;
       }
-      results.discrepency = await this.compareAllRebates(this.state);
+      results.discrepency = await this.compareAllRebates();
     }
 
     this.emit("status", { type: "loading", message: "Compiling rebates..." });
@@ -139,7 +153,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
       this.emit("status", { type: "idle" });
       return;
     }
-    await this.pushRebates(this.state);
+    await this.pushRebates();
     
     this.emit("status", { type: "done", results: results });
     if (!this.running) {

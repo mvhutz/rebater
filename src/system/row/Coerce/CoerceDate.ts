@@ -1,8 +1,8 @@
 import z from "zod/v4";
 import moment, { Moment } from "moment";
 import assert from "assert";
-import { State } from "../../information/State";
 import { BaseRow } from "..";
+import { Runner } from "../../runner/Runner";
 
 /** ------------------------------------------------------------------------- */
 
@@ -35,7 +35,7 @@ export class CoerceDateRow implements BaseRow {
     this.format = format;
   }
 
-  async run(value: string, row: Row, state: State): Promise<string> {
+  async run(value: string, row: Row, runner: Runner): Promise<string> {
     const attemptInt = Number(value);
     let date: Moment;
 
@@ -50,7 +50,7 @@ export class CoerceDateRow implements BaseRow {
     }
 
     if (this.year === "assume") {
-      date.year(state.settings.getTime().year);
+      date.year(runner.settings.getTime().year);
     }
 
     assert.ok(date.isValid(), `Date ${value} could not be parsed.`);

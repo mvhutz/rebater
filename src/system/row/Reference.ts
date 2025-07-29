@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { State } from "../information/State";
 import { BaseRow } from ".";
+import { Runner } from "../runner/Runner";
 
 /** ------------------------------------------------------------------------- */
 
@@ -21,8 +21,8 @@ export class ReferenceRow implements BaseRow {
     return `For **\`${group}\`**, what is the **\`${take}\`** of this **\`${table}\`**?\n\n *\`${value}\`*`;
   }
 
-  async run(value: string, row: Row, state: State): Promise<Maybe<string>> {
-    const reference = state.references.get(this.table);
+  async run(value: string, row: Row, runner: Runner): Promise<Maybe<string>> {
+    const reference = runner.references.get(this.table);
 
     const result = reference.ask(this.match, value, this.take, this.group);
     if (result != null) {
@@ -30,7 +30,7 @@ export class ReferenceRow implements BaseRow {
     }
 
     const question = this.getQuestionFormat(this.group, this.take, this.table, value);
-    const answer = await state.asker.ask(question);
+    const answer = await runner.asker.ask(question);
     if (answer == null) return null;
     
     reference.append({

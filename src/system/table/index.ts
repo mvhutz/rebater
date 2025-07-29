@@ -1,5 +1,4 @@
 import { z } from "zod/v4";
-import { State } from "../information/State";
 import { ChopTable } from "./Chop";
 import { CoalesceTable } from "./Coalesce";
 import { DebugTable } from "./Debug";
@@ -9,11 +8,12 @@ import { PercolateTable } from "./Percolate";
 import { SelectTable } from "./Select";
 import { SetTable } from "./Set";
 import { TrimTable } from "./Trim";
+import { Runner } from "../runner/Runner";
 
 /** ------------------------------------------------------------------------- */
 
 export interface BaseTable {
-  run(table: Table, state: State): Promise<Table>;
+  run(table: Table, runner: Runner): Promise<Table>;
 }
 
 export const TABLE_SCHEMA: z.ZodType<BaseTable> = z.union([
@@ -28,9 +28,9 @@ export const TABLE_SCHEMA: z.ZodType<BaseTable> = z.union([
   TrimTable.SCHEMA
 ]);
 
-export async function runMany(rows: BaseTable[], table: Table, state: State) {
+export async function runMany(rows: BaseTable[], table: Table, runner: Runner) {
   for (const operation of rows) {
-    table = await operation.run(table, state);
+    table = await operation.run(table, runner);
   }
 
   return table;

@@ -1,5 +1,4 @@
 import { z } from "zod/v4";
-import { State } from "../information/State";
 import { ColumnRow } from "./Column";
 import { LiteralRow } from "./Literal";
 import { ReplaceRow } from "./Replace";
@@ -15,11 +14,12 @@ import { ConcatRow } from "./Concat";
 import { DivideRow } from "./Divide";
 import { SumRow } from "./Sum";
 import { getCoerceSchema } from "./Coerce";
+import { Runner } from "../runner/Runner";
 
 /** ------------------------------------------------------------------------- */
 
 export interface BaseRow {
-  run(value: string, row: Row, state: State): Promise<Maybe<string>>;
+  run(value: string, row: Row, runner: Runner): Promise<Maybe<string>>;
 }
 
 export const ROW_SCHEMA: z.ZodType<BaseRow> = z.union([
@@ -40,11 +40,11 @@ export const ROW_SCHEMA: z.ZodType<BaseRow> = z.union([
   SumRow.SCHEMA
 ]);
 
-export async function runMany(rows: BaseRow[], row: Row, state: State): Promise<Maybe<string>> {
+export async function runMany(rows: BaseRow[], row: Row, runner: Runner): Promise<Maybe<string>> {
   let value = "";
 
   for (const operation of rows) {
-    const result = await operation.run(value, row, state);
+    const result = await operation.run(value, row, runner);
     if (result == null) return result;
     value = result;
   }

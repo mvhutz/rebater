@@ -1,8 +1,8 @@
 import { z } from "zod/v4";
 import moment from "moment";
-import { State } from "../information/State";
 import path from "path";
 import { BaseRow } from ".";
+import { Runner } from "../runner/Runner";
 
 /** ------------------------------------------------------------------------- */
 
@@ -21,21 +21,21 @@ export class MetaRow implements BaseRow {
     this.value = value;
   }
 
-  async run(_v: string, row: Row, state: State): Promise<string> {
+  async run(_v: string, row: Row, runner: Runner): Promise<string> {
     switch (this.value) {
-      case "quarter.lastday": return MetaRow.getQuarterLastDay(state);
-      case "quarter.number": return MetaRow.getQuarterNumber(state);
+      case "quarter.lastday": return MetaRow.getQuarterLastDay(runner);
+      case "quarter.number": return MetaRow.getQuarterNumber(runner);
       case "row.source": return MetaRow.getRowSource(row);
     }
   }
 
-  static getQuarterLastDay(state: State): string {
-    const { year, quarter } = state.settings.getTime();
+  static getQuarterLastDay(runner: Runner): string {
+    const { year, quarter } = runner.settings.getTime();
     return moment().year(year).quarter(quarter).endOf("quarter").format("MM/DD/YYYY");
   }
 
-  static getQuarterNumber(state: State): string {
-    return state.settings.getTime().quarter.toString();
+  static getQuarterNumber(runner: Runner): string {
+    return runner.settings.getTime().quarter.toString();
   }
 
   static getRowSource(row: Row) {

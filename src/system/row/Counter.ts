@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { State } from "../information/State";
 import { BaseRow } from ".";
+import { Runner } from "../runner/Runner";
 
 /** ------------------------------------------------------------------------- */
 
@@ -9,8 +9,8 @@ export class CounterRow implements BaseRow {
     type: z.literal("counter"),
   }).transform(() => new CounterRow());
 
-  async run(_v: string, _r: Row, state: State): Promise<string> {
-    const counter = state.counters.get("counter");
+  async run(_v: string, _r: Row, runner: Runner): Promise<string> {
+    const counter = runner.counters.get("counter");
     return counter.getThenIncrement().toString();
   }
 }
