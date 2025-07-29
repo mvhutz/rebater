@@ -2,6 +2,7 @@ import path from "path";
 import { Time } from "../../../shared/time";
 import { mkdir, readdir } from "fs/promises";
 import { Destination } from "./Destination";
+import { Rebate } from "../../util";
 
 /** ------------------------------------------------------------------------- */
 
@@ -19,6 +20,16 @@ export class DestinationStore {
 
   public get(): Destination[] {
     return this.destinations.values().toArray();
+  }
+
+  public allData(): Rebate[] {
+    const results: Rebate[] = [];
+
+    for (const [, destination] of this.destinations) {
+      results.concat(destination.getData() ?? []);
+    }
+
+    return results;
   }
 
   public async save(): Promise<void> {

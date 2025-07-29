@@ -11,7 +11,6 @@ import Markdown from 'react-markdown';
 import { clearQuestions, getCurrentQuestion, popQuestion } from './store/slices/system';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { DialogActions } from '@mui/joy';
-import { killSystem } from './store/slices/thunk';
 
 /** ------------------------------------------------------------------------- */
 
@@ -37,7 +36,6 @@ function InputModal() {
     event.preventDefault();
     invoke.exitProgram();
     dispatch(clearQuestions());
-    await dispatch(killSystem());
   }, [dispatch]);
 
   const handleIgnore = React.useCallback((event: React.UIEvent) => {

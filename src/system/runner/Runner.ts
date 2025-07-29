@@ -74,7 +74,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
   }
 
   async compareAllRebates(): Promise<DiscrepencyResult[]> {
-    const actual = this.destinations.get().map(d => d.getData() ?? []).flat();
+    const actual = this.destinations.allData();
 
     const expected_glob = this.settings.getTruthPathGlob();
     const expected_files = await Array.fromAsync(glob(expected_glob));
@@ -94,6 +94,17 @@ export class Runner extends EventEmitter<RunnerEvents> {
     return results;
   }
 
+  private async load() {
+    await this.sources.gather();
+    await this.sources.load();
+    await this.references.load();
+  }
+
+  private async save() {
+    await this.destinations.save();
+    await this.references.save();
+  }
+
   private async* iterator(): AsyncIterableIterator<SystemStatus> {
     const results: RunResults = {
       config: [],
@@ -104,9 +115,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     const transformers = await Transformer.pullAll(this.settings, true);
 
     yield { type: "loading", message: "Loading sources..." };
-    await this.sources.gather();
-    await this.sources.load();
-    await this.references.load();
+    await this.load();
 
     for (const [i, transformer] of transformers.entries()) {
       yield { type: "running", progress: i / transformers.length };
@@ -114,8 +123,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     }
 
     yield { type: "loading", message: "Saving data..." };
-    await this.destinations.save();
-    await this.references.save();
+    await this.save();
 
     if (this.settings.doTesting()) {
       yield { type: "loading", message: "Scoring accuracy..." };
@@ -132,9 +140,12 @@ export class Runner extends EventEmitter<RunnerEvents> {
     this.running = true;
 
     for await (const status of this.iterator()) {
-      await new Promise(res => setImmediate(res));
+      await new Promise(setImmediate);
 
       if (!this.running) {
+        this.emit('status', { type: "loading", message: "Saving data..." });
+        await this.save();
+        
         this.emit('status', { type: "idle" });
         return;
       }
