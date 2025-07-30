@@ -15,11 +15,13 @@ import { DivideRow } from "./Divide";
 import { SumRow } from "./Sum";
 import { getCoerceSchema } from "./Coerce";
 import { Runner } from "../runner/Runner";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
 export interface BaseRow {
   run(value: string, row: Row, runner: Runner): Promise<Maybe<string>>;
+  build(from: XMLElement): void;
 }
 
 export const ROW_SCHEMA: z.ZodType<BaseRow> = z.union([

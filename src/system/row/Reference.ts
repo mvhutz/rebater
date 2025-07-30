@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { BaseRow } from ".";
 import { Runner } from "../runner/Runner";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -43,4 +44,13 @@ export class ReferenceRow implements BaseRow {
     take: z.string(),
     group: z.string(),
   }).transform(s => new ReferenceRow(s.table, s.match, s.take, s.group));
+
+  build(from: XMLElement): void {
+    from.element("reference", {
+      table: this.table,
+      match: this.match,
+      take: this.take,
+      group: this.group,
+    })
+  }
 }

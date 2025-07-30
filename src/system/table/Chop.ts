@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
-import { ExcelIndexSchema, rewire } from "../util";
+import { ExcelIndexSchema, getExcelFromIndex, rewire } from "../util";
 import { BaseTable } from ".";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -40,5 +41,14 @@ export class ChopTable implements BaseTable {
         : table.data.slice(index, undefined);
 
     return rewire({ ...table, data });
+  }
+
+  build(from: XMLElement): void {
+    from.element("select", {
+      column: getExcelFromIndex(this.column),
+      is: this.is?.join(","),
+      keep: this.keep,
+      otherwise: this.otherwise,
+    })
   }
 }

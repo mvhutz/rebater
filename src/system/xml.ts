@@ -4,7 +4,7 @@ import { JSONType } from "zod/dist/types/v4/core/util";
 
 /** ------------------------------------------------------------------------- */
 
-export type Attributes = Maybe<Record<string, JSONType>>;
+export type Attributes = Maybe<Record<string, Maybe<JSONType>>>;
 export type Children = Maybe<Element[]>;
 
 export interface NodeElement<N extends string = string, A extends Attributes = Attributes, C extends Children = Children> {

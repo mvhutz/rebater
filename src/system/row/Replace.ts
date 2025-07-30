@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { META_TYPE, MetaRow } from "./Meta";
 import { BaseRow } from ".";
 import { Runner } from "../runner/Runner";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -54,5 +55,15 @@ export class ReplaceRow implements BaseRow {
     }
 
     return result;
+  }
+
+  build(from: XMLElement): void {
+    from.element("replace", {
+      characters: this.characters,
+      substring: this.substring,
+      all: this.all,
+      put: this.put,
+      put_meta: this.put_meta?.value,
+    })
   }
 }

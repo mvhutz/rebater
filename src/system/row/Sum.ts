@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
-import { ExcelIndexSchema } from "../util";
+import { ExcelIndexSchema, getExcelFromIndex } from "../util";
 import { BaseRow } from ".";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -33,5 +34,9 @@ export class SumRow implements BaseRow {
 
     cached_table.set(this.column, sum);
     return sum.toString();
+  }
+
+  build(from: XMLElement): void {
+    from.element("sum", undefined, getExcelFromIndex(this.column));
   }
 }

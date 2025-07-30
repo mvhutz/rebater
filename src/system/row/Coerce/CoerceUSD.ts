@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { BaseRow } from "..";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -26,5 +27,12 @@ export class CoerceUSDRow implements BaseRow {
     }
 
     return value.toFixed(2);
+  }
+
+  build(from: XMLElement): void {
+    from.element("coerce", {
+      as: "usd",
+      round: this.round,
+    })
   }
 }

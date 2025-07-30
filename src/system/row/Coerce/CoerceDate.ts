@@ -3,6 +3,7 @@ import moment, { Moment } from "moment";
 import assert from "assert";
 import { BaseRow } from "..";
 import { Runner } from "../../runner/Runner";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -55,5 +56,14 @@ export class CoerceDateRow implements BaseRow {
 
     assert.ok(date.isValid(), `Date ${value} could not be parsed.`);
     return date.format(this.format);
+  }
+
+  build(from: XMLElement): void {
+    from.element("coerce", {
+      as: "date",
+      year: this.year,
+      parse: JSON.stringify(this.parse),
+      format: this.format,
+    })
   }
 }

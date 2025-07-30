@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { BaseRow } from "..";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -24,5 +25,12 @@ export class CoerceNumberRow implements BaseRow {
     } else {
       return float.toString();
     }
+  }
+
+  build(from: XMLElement): void {
+    from.element("coerce", {
+      as: "number",
+      otherwise: this.otherwise,
+    })
   }
 }

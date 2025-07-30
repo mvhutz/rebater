@@ -1,8 +1,9 @@
 import { z } from "zod/v4";
-import { ExcelIndexSchema, makeTable } from "../util";
+import { ExcelIndexSchema, getExcelFromIndex, makeTable } from "../util";
 import { BaseRow, ROW_SCHEMA, runMany } from "../row";
 import { BaseTable } from ".";
 import { Runner } from "../runner/Runner";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -32,5 +33,15 @@ export class SetTable implements BaseTable {
     }
 
     return makeTable(new_rows, table.path);
+  }
+
+  build(from: XMLElement): void {
+    const parent = from.element("set", {
+      column: getExcelFromIndex(this.column),
+    });
+
+    for (const t of this.to) {
+      t.build(parent);
+    }
   }
 }

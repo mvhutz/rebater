@@ -6,6 +6,8 @@ import { BaseSource } from ".";
 import { Runner } from "../runner/Runner";
 import path from "path";
 
+import { XMLElement } from "xmlbuilder";
+
 /** ------------------------------------------------------------------------- */
 
 export class ExcelSource implements BaseSource {
@@ -72,5 +74,13 @@ export class ExcelSource implements BaseSource {
     }
 
     return results;
+  }
+
+  build(from: XMLElement): void {
+    from.element("excel", {
+      group: this.group,
+      file: this.file,
+      sheets: this.sheets?.join(",")
+    });
   }
 }

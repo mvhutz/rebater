@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
-import { ExcelIndexSchema } from "../util";
+import { ExcelIndexSchema, getExcelFromIndex } from "../util";
 import { BaseRow } from ".";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -18,5 +19,9 @@ export class ColumnRow implements BaseRow {
 
   async run(_v: string, row: Row): Promise<string> {
     return row.data[this.index];
+  }
+
+  build(from: XMLElement): void {
+    from.element("column", undefined, getExcelFromIndex(this.index));
   }
 }

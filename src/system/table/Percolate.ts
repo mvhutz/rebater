@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
-import { ExcelIndexSchema, makeTable } from "../util";
+import { ExcelIndexSchema, getExcelFromIndex, makeTable } from "../util";
 import { BaseTable } from ".";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -38,5 +39,12 @@ export class PercolateTable implements BaseTable {
     }
 
     return makeTable(rows, table.path);
+  }
+
+  build(from: XMLElement): void {
+    from.element("percolate", {
+      columns: this.columns.map(getExcelFromIndex).join(","),
+      matches: this.matches.join(",")
+    });
   }
 }

@@ -3,6 +3,7 @@ import moment from "moment";
 import path from "path";
 import { BaseRow } from ".";
 import { Runner } from "../runner/Runner";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -15,7 +16,7 @@ export class MetaRow implements BaseRow {
     value: META_TYPE
   }).transform(s => new MetaRow(s.value));
 
-  private readonly value: MetaType;
+  public readonly value: MetaType;
 
   public constructor(value: MetaType) {
     this.value = value;
@@ -40,5 +41,9 @@ export class MetaRow implements BaseRow {
 
   static getRowSource(row: Row) {
     return path.basename(row.table.path);
+  }
+
+  build(from: XMLElement): void {
+    from.element("meta", undefined, this.value);
   }
 }

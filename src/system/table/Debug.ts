@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { CSVDestination } from "../destination/CSV";
 import { BaseTable } from ".";
 import { Runner } from "../runner/Runner";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -20,5 +21,9 @@ export class DebugTable implements BaseTable {
   async run(table: Table, runner: Runner): Promise<Table> {
     this.destination.run(table, runner);
     return table;
+  }
+
+  build(from: XMLElement): void {
+    from.element("debug");
   }
 }

@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { BaseRow } from ".";
 import { Runner } from "../runner/Runner";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -11,5 +12,9 @@ export class CounterRow implements BaseRow {
 
   async run(_v: string, _r: Row, runner: Runner): Promise<string> {
     return runner.counter.getThenIncrement("counter").toString();
+  }
+
+  build(from: XMLElement): void {
+    from.element("counter");
   }
 }

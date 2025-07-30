@@ -9,6 +9,7 @@ import { ROW_SCHEMA, runMany as runManyRows } from "./row";
 import { Settings } from "../shared/settings";
 import { TransformerResult } from "../shared/worker/response";
 import { Runner } from "./runner/Runner";
+import builder, { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -117,5 +118,64 @@ export class Transformer {
 
     const end = performance.now();
     return { start, end, name: this.name };
+  }
+
+  toXML(): XMLElement {
+    const root = builder.create("transformer");
+
+    root.element("name", undefined, this.name);
+    
+    for (const tag of this.data.tags) {
+      root.element("tag", undefined, tag);
+    }
+
+    root.txt('');
+    root.comment("These source files are extracted.");
+
+    const sources = root.element("sources");
+    for (const source of this.data.sources) {
+      source.build(sources);
+    }
+
+    if (this.data.preprocess && this.data.preprocess.length > 0) {
+      root.txt('');
+      root.comment("Before extraction is done, these operations are done on each table.");
+
+      const preprocess = root.element("preprocess");
+      for (const pre of this.data.preprocess) {
+        pre.build(preprocess);
+      }
+    }
+
+    root.txt('');
+    root.comment("Each property which is extracted from each row, of each table.");
+
+    for (const property of this.data.properties) {
+      const child = root.element("property", { name: property.name });
+      
+      for (const def of property.definition) {
+        def.build(child);
+      }
+
+      root.txt('');
+    }
+
+    if (this.data.postprocess && this.data.postprocess.length > 0) {
+      root.comment("After extraction, these operations are done to the tables.");
+
+      const postprocess = root.element("postprocess");
+      for (const post of this.data.postprocess) {
+        post.build(postprocess);
+      }
+
+      root.txt('');
+    }
+
+    root.comment("The rebates are stored in these locations.");
+
+    const destinations = root.element("destinations");
+    this.data.destination.build(destinations);
+    
+    return root;
   }
 }

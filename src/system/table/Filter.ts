@@ -3,6 +3,7 @@ import { BaseRow, ROW_SCHEMA, runMany } from "../row";
 import { rewire } from "../util";
 import { BaseTable } from ".";
 import { Runner } from "../runner/Runner";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -26,5 +27,13 @@ export class FilterTable implements BaseTable {
     }
 
     return rewire({ ...table, data: rows });
+  }
+
+  build(from: XMLElement): void {
+    const parent = from.element("filter");
+
+    for (const criterion of this.criteria) {
+      criterion.build(parent);
+    }
   }
 }

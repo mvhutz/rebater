@@ -9,11 +9,13 @@ import { SelectTable } from "./Select";
 import { SetTable } from "./Set";
 import { TrimTable } from "./Trim";
 import { Runner } from "../runner/Runner";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
 export interface BaseTable {
   run(table: Table, runner: Runner): Promise<Table>;
+  build(from: XMLElement): void;
 }
 
 export const TABLE_SCHEMA: z.ZodType<BaseTable> = z.union([

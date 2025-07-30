@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { BaseTable } from ".";
 import { rewire } from "../util";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -22,6 +23,13 @@ export class TrimTable implements BaseTable {
   async run(table: Table): Promise<Table> {
     table.data = table.data.slice(this.top, this.bottom);
     return rewire(table);
+  }
+
+  build(from: XMLElement): void {
+    from.element("trim", {
+      top: this.top,
+      bottom: this.bottom
+    })
   }
 }
 

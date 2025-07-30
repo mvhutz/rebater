@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { BaseRow } from ".";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -17,5 +18,9 @@ export class LiteralRow implements BaseRow {
 
   async run(): Promise<string> {
     return this.value;
+  }
+
+  build(from: XMLElement): void {
+    from.element("literal", undefined, this.value);
   }
 }

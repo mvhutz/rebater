@@ -1,5 +1,7 @@
 import { z } from "zod/v4";
 import { BaseRow } from ".";
+import { Element, makeNodeElement, makeTextElement } from "../xml";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -23,5 +25,19 @@ export class CharacterRow implements BaseRow {
     return characters
       .filter(c => this.select.includes(c) === (this.action === "keep"))
       .join("");
+  }
+
+  toXML(): Element {
+    return makeNodeElement("character", {
+      action: this.action
+    }, [
+      makeTextElement(this.select)
+    ]); 
+  }
+
+  build(from: XMLElement): void {
+    from.element("character", {
+      action: this.action
+    }, this.select);
   }
 }

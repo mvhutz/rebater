@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
-import { ExcelIndexSchema, rewire } from "../util";
+import { ExcelIndexSchema, getExcelFromIndex, rewire } from "../util";
 import { BaseTable } from ".";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -32,5 +33,14 @@ export class SelectTable implements BaseTable {
     });
 
     return rewire({ ...table, data: rows });
+  }
+
+  build(from: XMLElement): void {
+    from.element("select", {
+      column: getExcelFromIndex(this.column),
+      is: this.is?.join(","),
+      isnt: this.isnt?.join(","),
+      action: this.action,
+    })
   }
 }

@@ -1,7 +1,8 @@
 import { z } from "zod/v4";
-import { ExcelIndexSchema, rewire } from "../util";
+import { ExcelIndexSchema, getExcelFromIndex, rewire } from "../util";
 import { BaseTable } from ".";
 import assert from "assert";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -53,5 +54,12 @@ export class CoalesceTable implements BaseTable {
 
     const combined = [...matched.values()].map(r => this.combineRows(r));
     return rewire({ ...table, data: combined });
+  }
+
+  build(from: XMLElement): void {
+    from.element("coalesce", {
+      match: this.match.map(getExcelFromIndex).join(","),
+      combine: this.combine.map(getExcelFromIndex).join(",")
+    });
   }
 }

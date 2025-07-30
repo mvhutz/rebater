@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { BaseRow, ROW_SCHEMA, runMany } from ".";
 import { Runner } from "../runner/Runner";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -19,5 +20,12 @@ export class AddRow implements BaseRow {
   async run(value: string, row: Row, runner: Runner): Promise<string> {
     const other_value = await runMany(this.other, row, runner);
     return (Number(value) + Number(other_value)).toString();
+  }
+
+  build(from: XMLElement): void {
+    const element = from.element("add");
+    for (const child of this.other) {
+      child.build(element);
+    }
   }
 }

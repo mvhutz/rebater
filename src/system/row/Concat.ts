@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { BaseRow, ROW_SCHEMA, runMany } from ".";
 import { Runner } from "../runner/Runner";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -22,5 +23,12 @@ export class ConcatRow implements BaseRow {
   async run(value: string, row: Row, runner: Runner): Promise<string> {
     const other_value = await runMany(this.other, row, runner);
     return other_value + this.separator + value;
+  }
+
+  build(from: XMLElement): void {
+    const element = from.element("concat");
+    for (const child of this.other) {
+      child.build(element);
+    }
   }
 }

@@ -14,6 +14,24 @@ function getIndexFromExcel(letters: string): number {
   return letters.split("").reduce((s, c) => c.charCodeAt(0) - 64 + s * 26, 0) - 1;
 }
 
+export function getExcelFromIndex(n: number) {
+  let res = "";
+
+  while (n > 0) {
+    const rem = n % 26;
+
+    if (rem === 0) {
+      res += 'Z';
+      n = Math.floor(n / 26) - 1;
+    } else {
+      res += String.fromCharCode((rem - 1) + 'A'.charCodeAt(0));
+      n = Math.floor(n / 26);
+    }
+  }
+
+  return res.split("").reverse().join("");
+}
+
 export function getTrueIndex(index: string | number): number {
   if (typeof index === "number") return index;
   return getIndexFromExcel(index);
