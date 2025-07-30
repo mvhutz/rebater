@@ -8,12 +8,12 @@ import * as XLSX from 'xlsx';
 
 /** ------------------------------------------------------------------------- */
 
-export abstract class AbstractRebateFile<T = undefined> extends AbstractItem<Rebate[]> {
+export abstract class AbstractFile<T, M> extends AbstractItem<T> {
   public readonly path: string;
-  public readonly meta: T;
+  public readonly meta: M;
 
-  public constructor(path: string, meta: T) {
-    super([]);
+  public constructor(path: string, initial: T, meta: M) {
+    super(initial);
 
     this.path = path;
     this.meta = meta;
@@ -24,7 +24,7 @@ export abstract class AbstractRebateFile<T = undefined> extends AbstractItem<Reb
   }
 
   abstract serialize(): Buffer;
-  abstract deserialize(data: Buffer): unknown;
+  abstract deserialize(data: Buffer): T;
 
   async save(): Promise<void> {
     const csv = this.serialize();
@@ -32,14 +32,23 @@ export abstract class AbstractRebateFile<T = undefined> extends AbstractItem<Reb
     await writeFile(this.path, csv);
   }
 
-  insert(datum: Rebate[]): void {
-    this.data.push(...datum);
+  abstract insert(datum: T): void;
+
+  protected async fetch(): Promise<T> {
+    const file = await readFile(this.path);
+    return this.deserialize(file);
+  }
+}
+
+/** ------------------------------------------------------------------------- */
+
+export abstract class AbstractRebateFile<M> extends AbstractFile<Rebate[], M> {
+  public constructor(path: string, meta: M) {
+    super(path, [], meta);
   }
 
-  protected async fetch(): Promise<Rebate[]> {
-    const file = await readFile(this.path);
-    const objects = this.deserialize(file);
-    return z.array(RebateSchema).parse(objects);
+  insert(datum: Rebate[]): void {
+    this.data.push(...datum);
   }
 }
 
@@ -50,11 +59,13 @@ export class CSVRebateFile<T> extends AbstractRebateFile<T> {
     return Buffer.from(Papa.unparse(this.data));
   }
 
-  deserialize(data: Buffer): unknown {
-    return Papa.parse(data.toString("utf-8"), {
+  deserialize(raw: Buffer): Rebate[] {
+    const { data } = Papa.parse(raw.toString("utf-8"), {
       header: true,
       skipEmptyLines: true,
-    }).data;
+    });
+
+    return z.array(RebateSchema).parse(data);
   }
 }
 
@@ -68,7 +79,7 @@ export class ExcelRebateFile<T> extends AbstractRebateFile<T> {
     return XLSX.write(book, { type: "buffer" });
   }
 
-  deserialize(): unknown {
+  deserialize(): Rebate[] {
     throw new Error("Cannot deserialize Excel files.");
   }
 }
