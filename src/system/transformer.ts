@@ -73,6 +73,21 @@ export class Transformer {
     return transformers;
   }
 
+  public async runRow(runner: Runner, row: Row) {
+    const result = new Array<string>();
+
+    for (const { definition } of this.data.properties) {
+      const output = await runManyRows(definition, row, runner);
+      if (output == null) {
+        return null;
+      }
+
+      result.push(output);
+    }
+
+    return result;
+  }
+
   public async run(runner: Runner): Promise<TransformerResult> {
     const start = performance.now();
     const { preprocess = [], postprocess = [], sources, destination, properties } = this.data;
@@ -90,23 +105,11 @@ export class Transformer {
     const rows = preprocessed_data.map(table => table.data).flat(1);
 
     for (const row of rows) {
-      const result = new Array<string>();
-      let bad = false;
-
-      for (const { definition } of properties) {
-        const output = await runManyRows(definition, row, runner);
-        if (output == null) {
-          bad = true;
-          break;
-        }
-        result.push(output);
+      const transformed = await this.runRow(runner, row);
+      
+      if (transformed != null) {
+        recombined.data.push({ data: transformed, table: recombined });
       }
-
-      if (bad) {
-        continue;
-      }
-
-      recombined.data.push({ data: result, table: recombined });
     }
 
     const postprocessed_data = await runManyTables(postprocess, recombined, runner);
