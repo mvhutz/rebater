@@ -39,18 +39,11 @@ class Source extends AbstractItem<Buffer> {
 
 /** ------------------------------------------------------------------------- */
 
-export class SourceStore extends AbstractStore<Source, Buffer> {
-  public sources = new Map<string, Source>();
-  private directory: string;
+interface Meta { directory: string };
 
-  public constructor(directory: string) {
-    super();
-
-    this.directory = directory;
-  }
-
+export class SourceStore extends AbstractStore<Source, Buffer, Meta> {
   public async gather() {
-    for (const [time_path, time_str] of await getSubFolders(this.directory)) {
+    for (const [time_path, time_str] of await getSubFolders(this.meta.directory)) {
       const time = Time.parse(time_str);
       if (time == null) continue;
 

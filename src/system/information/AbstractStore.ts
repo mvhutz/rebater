@@ -34,8 +34,13 @@ export abstract class AbstractItem<T> {
 
 /** ------------------------------------------------------------------------- */
 
-export abstract class AbstractStore<I extends AbstractItem<J>, J> {
+export abstract class AbstractStore<I extends AbstractItem<J>, J, T> {
   protected items = new Map<string, I>();
+  public readonly meta: T;
+
+  public constructor(meta: T) {
+    this.meta = meta;
+  }
 
   public wipe(): void {
     this.items.clear();

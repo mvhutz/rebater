@@ -49,17 +49,11 @@ export class Reference extends AbstractItem<ReferenceData> {
 
 /** ------------------------------------------------------------------------- */
 
-export class ReferenceStore extends AbstractStore<Reference, ReferenceData> {
-  private directory: string;
+interface Meta { directory: string };
 
-  public constructor(directory: string) {
-    super();
-
-    this.directory = directory;
-  }
-
+export class ReferenceStore extends AbstractStore<Reference, ReferenceData, Meta> {
   public async gather(): Promise<void> {
-    for (const [filepath, name] of await getSubFiles(this.directory)) {
+    for (const [filepath, name] of await getSubFiles(this.meta.directory)) {
       const reference = new Reference(filepath, path.parse(name).name);
       this.add(reference);
     }
@@ -76,7 +70,7 @@ export class ReferenceStore extends AbstractStore<Reference, ReferenceData> {
   public answer(table: string, property: string, matches: string, take: string, group: string, answer: string): void {
     let reference = this.items.values().find(r => r.name === table);
     if (reference == null) {
-      reference = new Reference(path.join(this.directory, `${table}.csv`), table);
+      reference = new Reference(path.join(this.meta.directory, `${table}.csv`), table);
       this.add(reference);
     }
 

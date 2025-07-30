@@ -35,11 +35,11 @@ export class Runner extends EventEmitter<RunnerEvents> {
 
     this.settings = settings;
     this.counter = new Counter();
-    this.references = new ReferenceStore(settings.getReferencePath());
-    this.sources = new SourceStore(settings.getAllSourcePath());
-    this.destinations = new DestinationStore(settings.getAllDestinationPath());
-    this.outputs = new OutputStore(settings.getAllOutputPath());
-    this.truths = new TruthStore(settings.getAllTruthPath());
+    this.references = new ReferenceStore({ directory: settings.getReferencePath() });
+    this.sources = new SourceStore({ directory: settings.getAllSourcePath() });
+    this.destinations = new DestinationStore({ directory: settings.getAllDestinationPath() });
+    this.outputs = new OutputStore({ directory: settings.getAllOutputPath() });
+    this.truths = new TruthStore({ directory: settings.getAllTruthPath() });
     this.running = false;
 
     this.emit("status", { type: "idle" });

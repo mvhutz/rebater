@@ -6,17 +6,12 @@ import { ExcelRebateFile } from "./RebateFile";
 
 /** ------------------------------------------------------------------------- */
 
-export class OutputStore extends AbstractStore<ExcelRebateFile<{ quarter: Time }>, Rebate[]> {
-  private directory: string;
+type Item = ExcelRebateFile<{ quarter: Time }>;
+interface Meta { directory: string };
 
-  public constructor(directory: string) {
-    super();
-
-    this.directory = directory;
-  }
-
+export class OutputStore extends AbstractStore<Item, Rebate[], Meta> {
   public async gather(): Promise<void> {
-    for (const [time_path, time_str] of await getSubFolders(this.directory)) {
+    for (const [time_path, time_str] of await getSubFolders(this.meta.directory)) {
       const time = Time.parse(time_str);
       if (time == null) continue;
 

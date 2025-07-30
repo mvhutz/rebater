@@ -6,17 +6,12 @@ import { CSVRebateFile } from "./RebateFile";
 
 /** ------------------------------------------------------------------------- */
 
-export class DestinationStore extends AbstractStore<CSVRebateFile<{ group: string, quarter: Time }>, Rebate[]> {
-  private directory: string;
+type Item = CSVRebateFile<{ group: string, quarter: Time }>;
+interface Meta { directory: string };
 
-  public constructor(directory: string) {
-    super();
-
-    this.directory = directory;
-  }
-
+export class DestinationStore extends AbstractStore<Item, Rebate[], Meta> {
   public async gather(): Promise<void> {
-    for (const [time_path, time_str] of await getSubFolders(this.directory)) {
+    for (const [time_path, time_str] of await getSubFolders(this.meta.directory)) {
       const time = Time.parse(time_str);
       if (time == null) continue;
 
