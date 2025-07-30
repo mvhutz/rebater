@@ -6,19 +6,7 @@ import { ExcelRebateFile } from "./RebateFile";
 
 /** ------------------------------------------------------------------------- */
 
-export class Output extends ExcelRebateFile {
-  public readonly quarter: Time;
-
-  public constructor(quarter: Time, path: string) {
-    super(path);
-
-    this.quarter = quarter;
-  }
-}
-
-/** ------------------------------------------------------------------------- */
-
-export class OutputStore extends AbstractStore<Output, Rebate[]> {
+export class OutputStore extends AbstractStore<ExcelRebateFile<{ quarter: Time }>, Rebate[]> {
   private directory: string;
 
   public constructor(directory: string) {
@@ -33,7 +21,7 @@ export class OutputStore extends AbstractStore<Output, Rebate[]> {
       if (time == null) continue;
 
       for (const [file_path] of await getSubFiles(time_path)) {
-        this.add(new Output(time, file_path));
+        this.add(new ExcelRebateFile(file_path, { quarter: time }));
       }
     }
   }

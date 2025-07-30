@@ -6,19 +6,7 @@ import { CSVRebateFile } from "./RebateFile";
 
 /** ------------------------------------------------------------------------- */
 
-export class Truth extends CSVRebateFile {
-  public readonly quarter: Time;
-
-  public constructor(quarter: Time, path: string) {
-    super(path);
-
-    this.quarter = quarter;
-  }
-}
-
-/** ------------------------------------------------------------------------- */
-
-export class TruthStore extends AbstractStore<Truth, Rebate[]> {
+export class TruthStore extends AbstractStore<CSVRebateFile<{ quarter: Time }>, Rebate[]> {
   private directory: string;
 
   public constructor(directory: string) {
@@ -33,7 +21,7 @@ export class TruthStore extends AbstractStore<Truth, Rebate[]> {
       if (time == null) continue;
 
       for (const [file_path] of await getSubFiles(time_path)) {
-        this.add(new Truth(time, file_path));
+        this.add(new CSVRebateFile(file_path, { quarter: time }));
       }
     }
   }

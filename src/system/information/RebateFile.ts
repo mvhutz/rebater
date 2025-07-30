@@ -8,13 +8,15 @@ import * as XLSX from 'xlsx';
 
 /** ------------------------------------------------------------------------- */
 
-export abstract class AbstractRebateFile extends AbstractItem<Rebate[]> {
+export abstract class AbstractRebateFile<T = undefined> extends AbstractItem<Rebate[]> {
   public readonly path: string;
+  public readonly meta: T;
 
-  public constructor(path: string) {
+  public constructor(path: string, meta: T) {
     super([]);
 
     this.path = path;
+    this.meta = meta;
   }
 
   hash(): string {
@@ -43,7 +45,7 @@ export abstract class AbstractRebateFile extends AbstractItem<Rebate[]> {
 
 /** ------------------------------------------------------------------------- */
 
-export class CSVRebateFile extends AbstractRebateFile {
+export class CSVRebateFile<T> extends AbstractRebateFile<T> {
   serialize(): Buffer {
     return Buffer.from(Papa.unparse(this.data));
   }
@@ -58,7 +60,7 @@ export class CSVRebateFile extends AbstractRebateFile {
 
 /** ------------------------------------------------------------------------- */
 
-export class ExcelRebateFile extends AbstractRebateFile {
+export class ExcelRebateFile<T> extends AbstractRebateFile<T> {
   serialize(): Buffer {
     const sheet = XLSX.utils.json_to_sheet(this.data);
     const book = XLSX.utils.book_new();
