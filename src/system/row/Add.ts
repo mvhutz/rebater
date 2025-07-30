@@ -22,10 +22,10 @@ export class AddRow implements BaseRow {
     return (Number(value) + Number(other_value)).toString();
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     const element = from.element("add");
     for (const child of this.other) {
-      child.build(element);
+      child.buildXML(element);
     }
   }
 }

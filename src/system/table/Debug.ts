@@ -23,7 +23,7 @@ export class DebugTable implements BaseTable {
     return table;
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     from.element("debug");
   }
 }

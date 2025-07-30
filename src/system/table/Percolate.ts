@@ -41,7 +41,7 @@ export class PercolateTable implements BaseTable {
     return makeTable(rows, table.path);
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     from.element("percolate", {
       columns: this.columns.map(getExcelFromIndex).join(","),
       matches: this.matches.join(",")

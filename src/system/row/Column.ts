@@ -21,7 +21,7 @@ export class ColumnRow implements BaseRow {
     return row.data[this.index];
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     from.element("column", undefined, getExcelFromIndex(this.index));
   }
 }

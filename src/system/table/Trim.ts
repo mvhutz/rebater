@@ -25,7 +25,7 @@ export class TrimTable implements BaseTable {
     return rewire(table);
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     from.element("trim", {
       top: this.top,
       bottom: this.bottom == null ? undefined : -this.bottom

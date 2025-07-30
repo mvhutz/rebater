@@ -36,7 +36,7 @@ export class CSVDestination implements BaseDestination {
     runner.destinations.add(destination);
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     from.element("csv", {
       group: this.name
     });

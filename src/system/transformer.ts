@@ -134,7 +134,7 @@ export class Transformer {
 
     const sources = root.element("sources");
     for (const source of this.data.sources) {
-      source.build(sources);
+      source.buildXML(sources);
     }
 
     if (this.data.preprocess && this.data.preprocess.length > 0) {
@@ -143,7 +143,7 @@ export class Transformer {
 
       const preprocess = root.element("preprocess");
       for (const pre of this.data.preprocess) {
-        pre.build(preprocess);
+        pre.buildXML(preprocess);
       }
     }
 
@@ -154,7 +154,7 @@ export class Transformer {
       const child = root.element("property", { name: property.name });
       
       for (const def of property.definition) {
-        def.build(child);
+        def.buildXML(child);
       }
 
       root.txt('');
@@ -165,7 +165,7 @@ export class Transformer {
 
       const postprocess = root.element("postprocess");
       for (const post of this.data.postprocess) {
-        post.build(postprocess);
+        post.buildXML(postprocess);
       }
 
       root.txt('');
@@ -174,7 +174,7 @@ export class Transformer {
     root.comment("The rebates are stored in these locations.");
 
     const destinations = root.element("destinations");
-    this.data.destination.build(destinations);
+    this.data.destination.buildXML(destinations);
     
     return root.end({ pretty: true, spaceBeforeSlash: " " });
   }

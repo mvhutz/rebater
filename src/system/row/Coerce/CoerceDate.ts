@@ -58,7 +58,7 @@ export class CoerceDateRow implements BaseRow {
     return date.format(this.format);
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     from.element("coerce", {
       as: "date",
       year: this.year,

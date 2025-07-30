@@ -22,10 +22,10 @@ export class MultiplyRow implements BaseRow {
     return (Number(value) * Number(other_value)).toString();
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     const element = from.element("multiply");
     for (const child of this.other) {
-      child.build(element);
+      child.buildXML(element);
     }
   }
 }

@@ -27,7 +27,7 @@ export class CoerceNumberRow implements BaseRow {
     }
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     from.element("coerce", {
       as: "number",
       otherwise: this.otherwise,

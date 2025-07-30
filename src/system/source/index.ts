@@ -7,7 +7,7 @@ import { XMLElement } from "xmlbuilder";
 
 export interface BaseSource {
   run(runner: Runner): Table[];
-  build(from: XMLElement): void;
+  buildXML(from: XMLElement): void;
 }
 
 export const SOURCE_SCHEMA: z.ZodType<BaseSource> = z.union([

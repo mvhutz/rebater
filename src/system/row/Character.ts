@@ -35,7 +35,7 @@ export class CharacterRow implements BaseRow {
     ]); 
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     from.element("character", {
       action: this.action
     }, this.select);

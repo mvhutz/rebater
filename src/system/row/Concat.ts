@@ -25,10 +25,10 @@ export class ConcatRow implements BaseRow {
     return other_value + this.separator + value;
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     const element = from.element("concat");
     for (const child of this.other) {
-      child.build(element);
+      child.buildXML(element);
     }
   }
 }

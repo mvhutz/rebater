@@ -43,7 +43,7 @@ export class ChopTable implements BaseTable {
     return rewire({ ...table, data });
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     from.element("select", {
       column: getExcelFromIndex(this.column),
       is: this.is?.join(","),

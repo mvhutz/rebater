@@ -36,7 +36,7 @@ export class SumRow implements BaseRow {
     return sum.toString();
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     from.element("sum", undefined, getExcelFromIndex(this.column));
   }
 }

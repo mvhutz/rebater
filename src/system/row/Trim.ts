@@ -13,7 +13,7 @@ export class TrimRow implements BaseRow {
     return value.trim();
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     from.element("trim");
   }
 }

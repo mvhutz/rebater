@@ -76,7 +76,7 @@ export class ExcelSource implements BaseSource {
     return results;
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     from.element("excel", {
       group: this.group,
       file: this.file,

@@ -29,7 +29,7 @@ export class CoerceUSDRow implements BaseRow {
     return value.toFixed(2);
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     from.element("coerce", {
       as: "usd",
       round: this.round,

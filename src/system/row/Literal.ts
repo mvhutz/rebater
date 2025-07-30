@@ -20,7 +20,7 @@ export class LiteralRow implements BaseRow {
     return this.value;
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     from.element("literal", undefined, this.value);
   }
 }

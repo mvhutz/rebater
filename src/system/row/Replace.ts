@@ -57,7 +57,7 @@ export class ReplaceRow implements BaseRow {
     return result;
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     from.element("replace", {
       characters: this.characters,
       substring: this.substring,

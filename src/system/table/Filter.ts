@@ -29,11 +29,11 @@ export class FilterTable implements BaseTable {
     return rewire({ ...table, data: rows });
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     const parent = from.element("filter");
 
     for (const criterion of this.criteria) {
-      criterion.build(parent);
+      criterion.buildXML(parent);
     }
   }
 }

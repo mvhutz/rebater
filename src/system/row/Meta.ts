@@ -43,7 +43,7 @@ export class MetaRow implements BaseRow {
     return path.basename(row.table.path);
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     from.element("meta", undefined, this.value);
   }
 }

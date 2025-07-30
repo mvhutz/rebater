@@ -35,13 +35,13 @@ export class SetTable implements BaseTable {
     return makeTable(new_rows, table.path);
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     const parent = from.element("set", {
       column: getExcelFromIndex(this.column),
     });
 
     for (const t of this.to) {
-      t.build(parent);
+      t.buildXML(parent);
     }
   }
 }

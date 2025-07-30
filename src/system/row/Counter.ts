@@ -14,7 +14,7 @@ export class CounterRow implements BaseRow {
     return runner.counter.getThenIncrement("counter").toString();
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     from.element("counter");
   }
 }

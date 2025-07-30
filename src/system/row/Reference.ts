@@ -45,7 +45,7 @@ export class ReferenceRow implements BaseRow {
     group: z.string(),
   }).transform(s => new ReferenceRow(s.table, s.match, s.take, s.group));
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     from.element("reference", {
       table: this.table,
       match: this.match,

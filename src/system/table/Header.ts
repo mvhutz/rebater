@@ -32,7 +32,7 @@ export class HeaderTable implements BaseTable {
     return rewire({ ...table, data: rows });
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     from.element("header", {
       name: this.name,
       action: this.action,

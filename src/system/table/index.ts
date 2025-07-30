@@ -15,7 +15,7 @@ import { XMLElement } from "xmlbuilder";
 
 export interface BaseTable {
   run(table: Table, runner: Runner): Promise<Table>;
-  build(from: XMLElement): void;
+  buildXML(from: XMLElement): void;
 }
 
 export const TABLE_SCHEMA: z.ZodType<BaseTable> = z.union([

@@ -7,7 +7,7 @@ import { XMLElement } from "xmlbuilder";
 
 export interface BaseDestination {
   run(table: Table, runner: Runner): void;
-  build(from: XMLElement): void;
+  buildXML(from: XMLElement): void;
 }
 
 export const DESTINATION_SCHEMA: z.ZodType<BaseDestination> = z.union([

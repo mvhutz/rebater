@@ -56,7 +56,7 @@ export class CoalesceTable implements BaseTable {
     return rewire({ ...table, data: combined });
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
     from.element("coalesce", {
       match: this.match.map(getExcelFromIndex).join(","),
       combine: this.combine.map(getExcelFromIndex).join(",")

@@ -1,7 +1,8 @@
 import dotenv from "dotenv";
 import { Settings } from "./shared/settings";
-import { mkdir, writeFile } from "fs/promises";
-import { Transformer } from "./system/transformer";
+// import { mkdir, writeFile } from "fs/promises";
+// import { Transformer } from "./system/transformer";
+import { Runner } from "./system/runner/Runner";
 dotenv.config({ quiet: true });
 
 const DATA = {
@@ -34,27 +35,27 @@ async function main() {
     throw Error(settings_parse.reason);
   }
 
-  const transformers = await Transformer.pullAll(settings_parse.data);
-  await mkdir("./__data__/new_transformers", { recursive: true });
+  // const transformers = await Transformer.pullAll(settings_parse.data);
+  // await mkdir("./__data__/new_transformers", { recursive: true });
   
-  for (const transformer of transformers) {
-    await writeFile(`./__data__/new_transformers/${transformer.name}.xml`, transformer.toXML());
-  }
+  // for (const transformer of transformers) {
+  //   await writeFile(`./__data__/new_transformers/${transformer.name}.xml`, transformer.toXML());
+  // }
 
-  // const runner = new Runner(settings_parse.data);
-  // runner.asker.on("ask", question => {
-  //   console.log(question);
+  const runner = new Runner(settings_parse.data);
+  runner.asker.on("ask", question => {
+    console.log(question);
 
-  //   process.stdin.once("data", (data) => {
-  //     runner.asker.answer(question, data.toString().trim());
-  //   });
-  // })
+    process.stdin.once("data", (data) => {
+      runner.asker.answer(question, data.toString().trim());
+    });
+  })
 
-  // runner.on("status", status => {
-  //   console.log(JSON.stringify(status));
-  // })
+  runner.on("status", status => {
+    console.log(JSON.stringify(status));
+  })
 
-  // await runner.run();
+  await runner.run();
 }
 
 main();

@@ -22,10 +22,10 @@ export class EqualsRow implements BaseRow {
     return (value === other_value).toString();
   }
 
-  build(from: XMLElement): void {
+  buildXML(from: XMLElement): void {
       const element = from.element("equals");
       for (const child of this.other) {
-        child.build(element);
+        child.buildXML(element);
       }
     }
 }
