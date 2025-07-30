@@ -28,7 +28,7 @@ export class TrimTable implements BaseTable {
   build(from: XMLElement): void {
     from.element("trim", {
       top: this.top,
-      bottom: this.bottom
+      bottom: this.bottom == null ? undefined : -this.bottom
     })
   }
 }

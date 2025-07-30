@@ -9,7 +9,7 @@ import { ROW_SCHEMA, runMany as runManyRows } from "./row";
 import { Settings } from "../shared/settings";
 import { TransformerResult } from "../shared/worker/response";
 import { Runner } from "./runner/Runner";
-import builder, { XMLElement } from "xmlbuilder";
+import builder from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
@@ -120,7 +120,7 @@ export class Transformer {
     return { start, end, name: this.name };
   }
 
-  toXML(): XMLElement {
+  toXML(): string {
     const root = builder.create("transformer");
 
     root.element("name", undefined, this.name);
@@ -176,6 +176,6 @@ export class Transformer {
     const destinations = root.element("destinations");
     this.data.destination.build(destinations);
     
-    return root;
+    return root.end({ pretty: true, spaceBeforeSlash: " " });
   }
 }

@@ -15,6 +15,7 @@ function getIndexFromExcel(letters: string): number {
 }
 
 export function getExcelFromIndex(n: number) {
+  n++;
   let res = "";
 
   while (n > 0) {

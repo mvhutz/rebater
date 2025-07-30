@@ -37,7 +37,7 @@ export class CSVDestination implements BaseDestination {
   }
 
   build(from: XMLElement): void {
-    from.element("excel", {
+    from.element("csv", {
       group: this.name
     });
   }

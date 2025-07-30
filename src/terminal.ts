@@ -1,8 +1,6 @@
 import dotenv from "dotenv";
 import { Settings } from "./shared/settings";
-import { Runner } from "./system/runner/Runner";
-import { readFile, writeFile } from "fs/promises";
-import { fromText } from "./system/xml";
+import { mkdir, writeFile } from "fs/promises";
 import { Transformer } from "./system/transformer";
 dotenv.config({ quiet: true });
 
@@ -31,10 +29,17 @@ const DATA = {
 /** ------------------------------------------------------------------------- */
 
 async function main() {
-  // const settings_parse = Settings.from(DATA);
-  // if (!settings_parse.ok) {
-  //   throw Error(settings_parse.reason);
-  // }
+  const settings_parse = Settings.from(DATA);
+  if (!settings_parse.ok) {
+    throw Error(settings_parse.reason);
+  }
+
+  const transformers = await Transformer.pullAll(settings_parse.data);
+  await mkdir("./__data__/new_transformers", { recursive: true });
+  
+  for (const transformer of transformers) {
+    await writeFile(`./__data__/new_transformers/${transformer.name}.xml`, transformer.toXML());
+  }
 
   // const runner = new Runner(settings_parse.data);
   // runner.asker.on("ask", question => {
@@ -50,11 +55,6 @@ async function main() {
   // })
 
   // await runner.run();
-
-  const transformer = await Transformer.fromFile("__data__/transformers/[CA] American Olean.json");
-  const xml = transformer.toXML();
-  const serialized = xml.end({ pretty: true, spaceBeforeSlash: " " });
-  await writeFile("./out.xml", serialized);
 }
 
 main();
