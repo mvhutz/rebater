@@ -3,7 +3,7 @@ import { z } from "zod/v4";
 import { BaseDestination } from ".";
 import { RebateSchema } from "../../shared/worker/response";
 import { Runner } from "../runner/Runner";
-import { Destination } from "../information/DestinationStore";
+import { CSVRebateFile } from "../information/RebateFile";
 
 /** ------------------------------------------------------------------------- */
 
@@ -29,7 +29,11 @@ export class CSVDestination implements BaseDestination {
     const { data: raw } = Papa.parse(Papa.unparse(data), { header: true });
     const rebates = z.array(RebateSchema).parse(raw);
 
-    const destination = new Destination(this.name, runner.settings.time, this.getDestinationFile(runner));
+    const destination = new CSVRebateFile(this.getDestinationFile(runner), {
+      group: this.name,
+      quarter: runner.settings.time
+    });
+
     destination.push(rebates);
     runner.destinations.add(destination);
   }

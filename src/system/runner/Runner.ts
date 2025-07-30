@@ -7,9 +7,10 @@ import { ReferenceStore } from "../information/ReferenceStore";
 import { SourceStore } from "../information/SourceStore";
 import { DestinationStore } from "../information/DestinationStore";
 import { Asker } from "./Asker";
-import { Output, OutputStore } from "../information/OutputStore";
+import { OutputStore } from "../information/OutputStore";
 import { TruthStore } from "../information/TruthStore";
 import { Counter } from "../information/Counter";
+import { ExcelRebateFile } from "../information/RebateFile";
 
 /** ------------------------------------------------------------------------- */
 
@@ -113,7 +114,9 @@ export class Runner extends EventEmitter<RunnerEvents> {
     }
 
     yield { type: "loading", message: "Compiling rebates..." };
-    const output = new Output(this.settings.time, this.settings.getOutputFile("xlsx"));
+    const output = new ExcelRebateFile(this.settings.getOutputFile("xlsx"), {
+      quarter: this.settings.time
+    });
     output.add(...this.destinations.getItems());
     this.outputs.add(output);
 

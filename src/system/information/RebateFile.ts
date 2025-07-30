@@ -54,7 +54,7 @@ export class CSVRebateFile<T> extends AbstractRebateFile<T> {
     return Papa.parse(data.toString("utf-8"), {
       header: true,
       skipEmptyLines: true,
-    });
+    }).data;
   }
 }
 
