@@ -1,45 +1,20 @@
 import { Time } from "../../shared/time";
-import { mkdir, readFile, writeFile } from "fs/promises";
 import { getSubFiles, getSubFolders } from "../util";
-import { AbstractItem, AbstractStore } from "./AbstractStore";
-import Papa from 'papaparse';
-import z from "zod/v4";
-import { Rebate, RebateSchema } from "../../shared/worker/response";
-import path from "path";
+import { AbstractStore } from "./AbstractStore";
+import { Rebate } from "../../shared/worker/response";
+import { CSVRebateFile } from "./RebateFile";
 
 /** ------------------------------------------------------------------------- */
 
-export class Destination extends AbstractItem<Rebate[]> {
+export class Destination extends CSVRebateFile {
   public readonly group: string;
   public readonly quarter: Time;
-  public readonly path: string;
 
   public constructor(group: string, quarter: Time, path: string) {
-    super([]);
+    super(path);
 
     this.group = group;
     this.quarter = quarter;
-    this.path = path;
-  }
-
-  hash(): string {
-    return this.path;
-  }
-
-  async save(): Promise<void> {
-    const csv = Papa.unparse(this.data);
-    await mkdir(path.dirname(this.path), { recursive: true });
-    await writeFile(this.path, csv);
-  }
-
-  insert(datum: Rebate[]): void {
-    this.data.push(...datum);
-  }
-
-  protected async fetch(): Promise<Rebate[]> {
-    const file = await readFile(this.path, 'utf-8');
-    const { data } = Papa.parse(file, { header: true, skipEmptyLines: true });
-    return z.array(RebateSchema).parse(data);
   }
 }
 
