@@ -1,28 +1,34 @@
 export abstract class AbstractItem<T> {
   protected data: T;
-  protected loaded: boolean;
   
   protected constructor(initial: T) {
     this.data = initial;
-    this.loaded = false;
   }
 
   abstract hash(): string;
   abstract save(): Promise<void>;
-  abstract append(o: AbstractItem<T>): void;
+  abstract insert(datum: T): void;
+
+  public push(...data: T[]) {
+    for (const datum of data) {
+      this.insert(datum);
+    }
+  }
+
+  public add(...others: AbstractItem<T>[]) {
+    for (const other of others) {
+      this.push(other.data);
+    }
+  }
+
   protected abstract fetch(): Promise<T>;
 
   public async load(): Promise<void> {
     this.data = await this.fetch();
-    this.loaded = true;
   }
 
-  public getData(): Maybe<T> {
-    if (this.loaded) {
-      return this.data;
-    } else {
-      return null;
-    }
+  public getData(): T {
+    return this.data;
   }
 }
 
@@ -49,25 +55,16 @@ export abstract class AbstractStore<I extends AbstractItem<J>, J> {
     return this.getItems().filter(fn);
   }
 
-  public async add(item: I) {
+  public add(item: I): boolean {
     const current = this.items.get(item.hash());
 
     if (current != null) {
-      current.append(item);
+      return false;
     } else {
       this.items.set(item.hash(), item);
     }
-  }
 
-  public byHash(hash: string) {
-    const reference = this.items.get(hash);
-    if (reference != null) {
-      return reference;
-    }
-
-    const new_item = this.generate(hash);
-    this.items.set(hash, this.generate(hash));
-    return new_item;
+    return true;
   }
 
   public async load(): Promise<void> {
@@ -77,5 +74,4 @@ export abstract class AbstractStore<I extends AbstractItem<J>, J> {
   }
 
   public abstract gather(): Promise<void>;
-  protected abstract generate(hash: string): I;
 }

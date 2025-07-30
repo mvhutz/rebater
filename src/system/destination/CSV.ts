@@ -1,9 +1,9 @@
 import Papa from "papaparse";
 import { z } from "zod/v4";
 import { BaseDestination } from ".";
-import { Destination } from "../information/destination/Destination";
 import { RebateSchema } from "../../shared/worker/response";
 import { Runner } from "../runner/Runner";
+import { Destination } from "../information/DestinationStore";
 
 /** ------------------------------------------------------------------------- */
 
@@ -30,7 +30,7 @@ export class CSVDestination implements BaseDestination {
     const rebates = z.array(RebateSchema).parse(raw);
 
     const destination = new Destination(this.name, runner.settings.time, this.getDestinationFile(runner));
-    destination.append(rebates);
+    destination.push(rebates);
     runner.destinations.add(destination);
   }
 }

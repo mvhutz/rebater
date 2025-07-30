@@ -10,7 +10,6 @@ export class CounterRow implements BaseRow {
   }).transform(() => new CounterRow());
 
   async run(_v: string, _r: Row, runner: Runner): Promise<string> {
-    const counter = runner.counters.get("counter");
-    return counter.getThenIncrement().toString();
+    return runner.counter.getThenIncrement("counter").toString();
   }
 }

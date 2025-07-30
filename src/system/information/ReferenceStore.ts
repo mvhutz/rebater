@@ -1,9 +1,9 @@
-import { readFile, writeFile } from "fs/promises";
+import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import { AbstractItem, AbstractStore } from "./AbstractStore";
 import z from "zod/v4";
 import Papa from 'papaparse';
-import { getSubFiles } from "../../util";
+import { getSubFiles } from "../util";
 
 /** ------------------------------------------------------------------------- */
 
@@ -22,19 +22,16 @@ export class Reference extends AbstractItem<ReferenceData> {
   }
 
   hash(): string {
-    return this.name;
+    return this.path;
   }
 
   async save(): Promise<void> {
+    await mkdir(path.dirname(this.path), { recursive: true });
     await writeFile(this.path, Papa.unparse(this.data));
   }
 
-  push(r: ReferenceData[number]) {
-    this.data.push(r);
-  }
-
-  append(o: Reference): void {
-    this.data.concat(o.data);
+  insert(datum: ReferenceData): void {
+    this.data.push(...datum);
   }
 
   protected async fetch(): Promise<ReferenceData> {
@@ -63,13 +60,30 @@ export class ReferenceStore extends AbstractStore<Reference, ReferenceData> {
 
   public async gather(): Promise<void> {
     for (const [filepath, name] of await getSubFiles(this.directory)) {
-      console.log(filepath, path.parse(name).name);
       const reference = new Reference(filepath, path.parse(name).name);
       this.add(reference);
     }
   }
 
-  protected generate(hash: string): Reference {
-    return new Reference(path.join(this.directory, `${hash}.csv`), hash);
+  public ask(table: string, property: string, matches: string, take: string, group: string): Maybe<string> {
+    for (const [, reference] of this.items) {
+      if (reference.name !== table) continue;
+      const answer = reference.ask(property, matches, take, group);
+      if (answer != null) return answer;
+    }
+  }
+
+  public answer(table: string, property: string, matches: string, take: string, group: string, answer: string): void {
+    let reference = this.items.values().find(r => r.name === table);
+    if (reference == null) {
+      reference = new Reference(path.join(this.directory, `${table}.csv`), table);
+      this.add(reference);
+    }
+
+    reference.insert([{
+      [property]: matches,
+      [take]: answer,
+      group: group,
+    }]);
   }
 }

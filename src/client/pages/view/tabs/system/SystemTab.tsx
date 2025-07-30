@@ -67,7 +67,7 @@ function SystemTab() {
   }, [dispatch]);
 
   const handleCancel = React.useCallback(async () => {
-    console.log(await invoke.exitProgram());
+    await invoke.exitProgram();
   }, []);
 
   const handleOutput = React.useCallback(async () => {

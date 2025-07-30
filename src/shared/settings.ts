@@ -118,6 +118,10 @@ export class Settings {
     return path.join(this.directory, "rebates", this.time.toString(), `**/*.csv`);
   }
 
+  getAllTruthPath() {
+    return path.join(this.directory, "truth");
+  }
+
   getTruthPathGlob() {
     return path.join(this.directory, "truth", this.time.toString(), `**/*.csv`);
   }
@@ -128,6 +132,10 @@ export class Settings {
 
   getTransformerPath(name: string) {
     return path.join(this.directory, "transformer", `${name}.json`);
+  }
+
+  getAllOutputPath() {
+    return path.join(this.directory, "upload");
   }
 
   getOutputFile(extension: string) {

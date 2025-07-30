@@ -1,8 +1,7 @@
 import { z } from "zod/v4";
-import fs, { readdir } from 'fs/promises';
-import Papa from 'papaparse';
-import assert from "assert";
+import { readdir } from 'fs/promises';
 import path from "path";
+import { Rebate } from "../shared/worker/response";
 
 /** ------------------------------------------------------------------------- */
 
@@ -22,20 +21,6 @@ export function getTrueIndex(index: string | number): number {
 
 /** ------------------------------------------------------------------------- */
 
-const RebateSchema = z.strictObject({
-  purchaseId: z.coerce.string(),
-  transactionDate: z.coerce.string(),
-  supplierId: z.coerce.string(),
-  memberId: z.coerce.string(),
-  distributorName: z.coerce.string(),
-  purchaseAmount: z.coerce.number(),
-  rebateAmount: z.coerce.number(),
-  invoiceId: z.coerce.string(),
-  invoiceDate: z.coerce.string(),
-});
-
-export type Rebate = z.infer<typeof RebateSchema>;
-
 export function getRebateHash(rebate: Rebate): string {
   const { transactionDate, supplierId, memberId, distributorName, purchaseAmount, rebateAmount, invoiceId, invoiceDate } = rebate;
   return `${transactionDate},${supplierId},${memberId},${distributorName},${purchaseAmount},${rebateAmount},${invoiceId},${invoiceDate}`;
@@ -50,17 +35,6 @@ export function areRebatesEqual(a: Rebate, b: Rebate) {
     && a.supplierId === b.supplierId
     && a.memberId === b.memberId
     && a.distributorName === b.distributorName;
-}
-
-export async function parseRebateFile(path: string): Promise<Rebate[]> {
-  try {
-    const file = await fs.readFile(path, 'utf-8');
-    const { data } = Papa.parse(file, { header: true, skipEmptyLines: true });
-    return z.array(RebateSchema).parse(data);
-  } catch (error) {
-    assert.ok(error instanceof z.ZodError);
-    throw new Error(`Error processing '${path}': ${z.prettifyError(error)}`)
-  }
 }
 
 export function getPartition<O extends object, K extends keyof O>(objects: O[], key: K): Map<O[K], O[]> {
