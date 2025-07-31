@@ -3,6 +3,7 @@ import { CSVDestination } from "../destination/CSV";
 import { BaseTable } from ".";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
+import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -26,4 +27,11 @@ export class DebugTable implements BaseTable {
   buildXML(from: XMLElement): void {
     from.element("debug");
   }
+
+  public static readonly XML_SCHEMA = makeNodeElementSchema("debug",
+    z.strictObject({
+      name: z.string().default("default")
+    }),
+    z.undefined())
+    .transform(({ attributes: a }) => new DebugTable(a.name));
 }

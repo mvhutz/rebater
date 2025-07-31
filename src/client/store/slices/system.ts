@@ -4,16 +4,16 @@ import { DEFAULT_SETTINGS, type SettingsData } from '../../../shared/settings';
 import { resource, Resource, ResourceStatus } from '../../../shared/resource';
 import { killSystem, pullAllQuarters, pullSystemSettings, pullTransformers, pushSystemSettings, startSystem } from './thunk';
 import { bad, Reply } from '../../../shared/reply';
-import { TransformerData } from '../../../system/transformer';
 import { TimeData } from '../../../shared/time';
 import { SystemStatus } from '../../../shared/worker/response';
+import { TransformerInfo } from '../../../system/transformer';
 
 /** ------------------------------------------------------------------------- */
 
 interface SystemState {
   status: SystemStatus;
   settings: Resource<SettingsData>;
-  transformers: Reply<TransformerData[]>;
+  transformers: Reply<TransformerInfo[]>;
   quarters: Resource<TimeData[]>;
   questions: string[];
 }

@@ -3,6 +3,7 @@ import { META_TYPE, MetaRow } from "./Meta";
 import { BaseRow } from ".";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
+import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -66,4 +67,15 @@ export class ReplaceRow implements BaseRow {
       put_meta: this.put_meta?.value,
     })
   }
+
+  public static readonly XML_SCHEMA = makeNodeElementSchema("replace",
+    z.strictObject({
+      characters: z.string().min(1).optional(),
+      substring: z.string().min(1).optional(),
+      all: z.string().optional(),
+      put: z.string().default(""),
+      put_meta: META_TYPE.optional(),
+    }),
+    z.undefined())
+    .transform(({ attributes: a }) => new ReplaceRow(a.put, a.put_meta, a.all, a.substring, a.characters))
 }

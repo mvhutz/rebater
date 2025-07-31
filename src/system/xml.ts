@@ -24,11 +24,11 @@ export type Element = NodeElement | TextElement;
 /** ------------------------------------------------------------------------- */
 
 export function makeNodeElementSchema
-  <N extends string, A extends Attributes, C extends Children>
-  (name: z.ZodType<N>, attributes: z.ZodType<A>, children: z.ZodType<C>) {
+  <N extends string, A extends Attributes, C>
+  (name: N, attributes: z.ZodType<A>, children: z.ZodType<C>) {
     return z.strictObject({
       type: z.literal("element"),
-      name,
+      name: z.literal(name),
       attributes,
       children
     });
@@ -50,19 +50,6 @@ export function makeTextElementSchema<T extends string | number>(text: z.ZodType
 export function makeTextElement<T extends string>(text: T): TextElement<T> {
   return { type: "text", text };
 }
-
-export const NodeElementSchema = makeNodeElementSchema(
-  z.string(),
-  z.record(z.string(), z.any()).optional(),
-  z.lazy(() => z.array(ElementSchema).optional())
-);
-
-export const TextElementSchema = makeTextElementSchema(z.string());
-
-export const ElementSchema: z.ZodType<Element> = z.discriminatedUnion("type", [
-  TextElementSchema,
-  NodeElementSchema
-])
 
 /** ------------------------------------------------------------------------- */
 

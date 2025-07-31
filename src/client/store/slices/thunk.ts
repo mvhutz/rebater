@@ -3,7 +3,7 @@ import { Reply } from "../../../shared/reply";
 import { RootState } from "..";
 import { ResourceStatus } from "../../../shared/resource";
 import { SettingsData } from "../../../shared/settings";
-import { TransformerData } from "../../../system/transformer";
+import { TransformerInfo } from "../../../system/transformer";
 import { TimeData } from "../../../shared/time";
 
 /** ------------------------------------------------------------------------- */
@@ -69,7 +69,7 @@ export const killSystem = createAsyncThunk(
 
 export const pullTransformers = createAsyncThunk(
   'system/pullTransformers',
-  async (): Promise<Reply<TransformerData[]>> => {
+  async (): Promise<Reply<TransformerInfo[]>> => {
     return await invoke.getTransformers();
   }
 );

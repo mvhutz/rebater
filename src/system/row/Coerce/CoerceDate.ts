@@ -4,6 +4,7 @@ import assert from "assert";
 import { BaseRow } from "..";
 import { Runner } from "../../runner/Runner";
 import { XMLElement } from "xmlbuilder";
+import { makeNodeElementSchema } from "../../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -62,8 +63,18 @@ export class CoerceDateRow implements BaseRow {
     from.element("coerce", {
       as: "date",
       year: this.year,
-      parse: JSON.stringify(this.parse),
+      parse: Array.isArray(this.parse) ? this.parse.join(",") : this.parse,
       format: this.format,
     })
   }
+
+  public static readonly XML_SCHEMA = makeNodeElementSchema("coerce",
+    z.strictObject({
+      as: z.literal("date"),
+      year: z.union([z.literal("assume")]).optional(),
+      parse: z.string().default("").transform(s => s.split(",").filter(Boolean)),
+      format: z.string().default("M/D/YYYY")
+    }),
+    z.undefined())
+    .transform(({ attributes: a }) => new CoerceDateRow(a.format, a.year, a.parse))
 }

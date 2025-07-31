@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { rewire } from "../util";
 import { BaseTable } from ".";
 import { XMLElement } from "xmlbuilder";
+import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -38,4 +39,12 @@ export class HeaderTable implements BaseTable {
       action: this.action,
     })
   }
+
+  public static readonly XML_SCHEMA = makeNodeElementSchema("header",
+    z.strictObject({
+      name: z.string(),
+      action: z.union([z.literal("drop")]),
+    }),
+    z.undefined())
+    .transform(({ attributes: a }) => new HeaderTable(a.name, a.action));
 }

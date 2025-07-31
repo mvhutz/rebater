@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { ExcelIndexSchema, getExcelFromIndex, rewire } from "../util";
 import { BaseTable } from ".";
 import { XMLElement } from "xmlbuilder";
+import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -51,4 +52,14 @@ export class ChopTable implements BaseTable {
       otherwise: this.otherwise,
     })
   }
+
+  public static readonly XML_SCHEMA = makeNodeElementSchema("chop",
+    z.strictObject({
+      column: ExcelIndexSchema,
+      is: z.string().default("").transform(s => s.split(",").filter(Boolean)),
+      keep: z.union([z.literal("top"), z.literal("bottom")]).default("bottom"),
+      otherwise: z.union([z.literal("drop"), z.literal("take")]).default("drop")
+    }),
+    z.undefined())
+    .transform(({ attributes: a }) => new ChopTable(a.column, a.is, a.keep, a.otherwise))
 }

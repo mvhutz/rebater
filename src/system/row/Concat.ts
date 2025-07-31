@@ -1,7 +1,8 @@
 import { z } from "zod/v4";
-import { BaseRow, ROW_SCHEMA, runMany } from ".";
+import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, runMany } from ".";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
+import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -31,4 +32,11 @@ export class ConcatRow implements BaseRow {
       child.buildXML(element);
     }
   }
+
+  public static readonly XML_SCHEMA = makeNodeElementSchema("concat",
+    z.strictObject({
+      separator: z.string().default("")
+    }),
+    z.array(z.lazy(() => ROW_XML_SCHEMA)))
+    .transform(x => new ConcatRow(x.children, x.attributes.separator))
 }

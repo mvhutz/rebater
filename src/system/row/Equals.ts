@@ -1,7 +1,8 @@
 import { z } from "zod/v4";
-import { BaseRow, ROW_SCHEMA, runMany } from ".";
+import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, runMany } from ".";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
+import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -23,9 +24,14 @@ export class EqualsRow implements BaseRow {
   }
 
   buildXML(from: XMLElement): void {
-      const element = from.element("equals");
-      for (const child of this.other) {
-        child.buildXML(element);
-      }
+    const element = from.element("equals");
+    for (const child of this.other) {
+      child.buildXML(element);
     }
+  }
+
+  public static readonly XML_SCHEMA = makeNodeElementSchema("equals",
+    z.undefined(),
+    z.array(z.lazy(() => ROW_XML_SCHEMA)))
+    .transform(x => new EqualsRow(x.children))
 }

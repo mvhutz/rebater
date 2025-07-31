@@ -1,6 +1,6 @@
 import path from "path";
 import { bad, good, Reply } from "./reply";
-import { TransformerData } from "../system/transformer";
+import { type TransformerInfo } from "../system/transformer";
 import z from "zod/v4";
 import { Time } from "./time";
 
@@ -55,7 +55,7 @@ export class Settings {
     this.data = data
   }
 
-  willRun(transformer: TransformerData): boolean {
+  willRun(transformer: TransformerInfo): boolean {
     const {
       names: { include: names = [] },
       tags: { include: tags = [] }
@@ -128,6 +128,10 @@ export class Settings {
 
   getTransformerPathGlob() {
     return path.join(this.directory, 'transformers', '**/*.json');
+  }
+
+  getTransformerPathXMLGlob() {
+    return path.join(this.directory, 'transformers', '**/*.xml');
   }
 
   getTransformerPath(name: string) {

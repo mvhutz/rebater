@@ -1,9 +1,10 @@
 import { z } from "zod/v4";
 import { ExcelIndexSchema, getExcelFromIndex, makeTable } from "../util";
-import { BaseRow, ROW_SCHEMA, runMany } from "../row";
+import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, runMany } from "../row";
 import { BaseTable } from ".";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
+import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -44,4 +45,11 @@ export class SetTable implements BaseTable {
       t.buildXML(parent);
     }
   }
+
+  public static readonly XML_SCHEMA = makeNodeElementSchema("set",
+    z.strictObject({
+      column: ExcelIndexSchema,
+    }),
+    z.array(z.lazy(() => ROW_XML_SCHEMA)))
+    .transform(({ children: c, attributes: a }) => new SetTable(a.column, c))
 }

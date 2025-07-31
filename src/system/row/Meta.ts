@@ -4,6 +4,7 @@ import path from "path";
 import { BaseRow } from ".";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
+import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -46,4 +47,9 @@ export class MetaRow implements BaseRow {
   buildXML(from: XMLElement): void {
     from.element("meta", undefined, this.value);
   }
+
+  public static readonly XML_SCHEMA = makeNodeElementSchema("meta",
+    z.undefined(),
+    z.tuple([makeTextElementSchema(META_TYPE)]))
+    .transform(({ children: c }) => new MetaRow(c[0].text))
 }

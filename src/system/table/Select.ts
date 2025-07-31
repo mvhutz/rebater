@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { ExcelIndexSchema, getExcelFromIndex, rewire } from "../util";
 import { BaseTable } from ".";
 import { XMLElement } from "xmlbuilder";
+import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -43,4 +44,14 @@ export class SelectTable implements BaseTable {
       action: this.action,
     })
   }
+
+  public static readonly XML_SCHEMA = makeNodeElementSchema("select",
+    z.strictObject({
+      column: ExcelIndexSchema,
+      is: z.string().default("").transform(s => s.split(",").filter(Boolean)),
+      isnt: z.string().default("").transform(s => s.split(",").filter(Boolean)),
+      action: z.union([z.literal("drop"), z.literal("keep")]).default("keep"),
+    }),
+    z.undefined())
+    .transform(({ attributes: a }) => new SelectTable(a.column, a.action, a.is, a.isnt))
 }

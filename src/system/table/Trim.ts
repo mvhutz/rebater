@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { BaseTable } from ".";
 import { rewire } from "../util";
 import { XMLElement } from "xmlbuilder";
+import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -31,5 +32,13 @@ export class TrimTable implements BaseTable {
       bottom: this.bottom == null ? undefined : -this.bottom
     })
   }
+
+  public static readonly XML_SCHEMA = makeNodeElementSchema("trim",
+    z.strictObject({
+      top: z.number().optional(),
+      bottom: z.number().optional(),
+    }),
+    z.undefined())
+    .transform(({ attributes: a }) => new TrimTable(a.top, a.bottom));
 }
 

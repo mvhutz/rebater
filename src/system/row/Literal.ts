@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { BaseRow } from ".";
 import { XMLElement } from "xmlbuilder";
+import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -23,4 +24,9 @@ export class LiteralRow implements BaseRow {
   buildXML(from: XMLElement): void {
     from.element("literal", undefined, this.value);
   }
+
+  public static readonly XML_SCHEMA = makeNodeElementSchema("literal",
+    z.undefined(),
+    z.tuple([makeTextElementSchema(z.string())]))
+    .transform(({ children: c }) => new LiteralRow(c[0].text))
 }

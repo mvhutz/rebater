@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { BaseRow } from ".";
-import { Element, makeNodeElement, makeTextElement } from "../xml";
+import { Element, makeNodeElement, makeNodeElementSchema, makeTextElement, makeTextElementSchema } from "../xml";
 import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
@@ -40,4 +40,11 @@ export class CharacterRow implements BaseRow {
       action: this.action
     }, this.select);
   }
+
+  public static readonly XML_SCHEMA = makeNodeElementSchema("character",
+    z.strictObject({
+      action: z.union([z.literal("keep"), z.literal("drop")]).default("keep")
+    }),
+    z.tuple([makeTextElementSchema(z.string())]))
+    .transform(({ attributes: a, children: c }) => new CharacterRow(c[0].text, a.action))
 }
