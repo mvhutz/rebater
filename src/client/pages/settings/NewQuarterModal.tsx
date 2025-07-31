@@ -14,10 +14,11 @@ import { DialogActions, Option, Select, Switch } from '@mui/joy';
 import { FormHelperText } from '@mui/material';
 import { getSystemSettings } from '../../store/slices/system';
 import z from 'zod/v4';
+import { TimeData } from '../../../shared/time';
 
 /** ------------------------------------------------------------------------- */
 
-const TimeSchema: z.ZodType<Time> = z.strictObject({
+const TimeSchema: z.ZodType<TimeData> = z.strictObject({
   year: z.coerce.number(),
   quarter: z.literal([1, 2, 3, 4]),
 });
@@ -51,8 +52,6 @@ function NewQuarterModal() {
 
   const handleCreate = React.useCallback(async () => {
     if (!new_ready || (currentStructure && !old_ready)) return;
-
-    console.log(old_time);
 
     const reply = await invoke.createQuarter({
       createStructureFrom: currentStructure ? old_time : undefined,

@@ -1,14 +1,19 @@
 import { z } from "zod/v4";
 import { ExcelSource } from "./Excel";
-import { State } from "../information/State";
+import { Runner } from "../runner/Runner";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
 export interface BaseSource {
-  getSourceFileGlob(state: State): string;
-  run(state: State): Table[];
+  run(runner: Runner): Table[];
+  buildXML(from: XMLElement): void;
 }
 
 export const SOURCE_SCHEMA: z.ZodType<BaseSource> = z.union([
   ExcelSource.SCHEMA
+]);
+
+export const SOURCE_XML_SCHEMA: z.ZodType<BaseSource> = z.union([
+  ExcelSource.XML_SCHEMA
 ]);

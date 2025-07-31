@@ -1,26 +1,21 @@
-export interface State {
-  amount: number;
-}
+export class Counter {
+  public static readonly INITIAL_COUNTER_VALUE = 0;
+  private values: Record<string, number> = {};
 
-export abstract class Counter {
-  public abstract get(): number;
-  public abstract increment(): void;
-}
-
-export class BasicCounter extends Counter {
-  private amount: number;
-
-  constructor(initial: number) {
-    super();
-
-    this.amount = initial;
+  public getValue(name: string): number {
+    this.values[name] ??= Counter.INITIAL_COUNTER_VALUE;
+    return this.values[name];
   }
 
-  public get(): number {
-    return this.amount;
+  public increment(name: string): void {
+    this.values[name] ??= Counter.INITIAL_COUNTER_VALUE
+    this.values[name]++;
   }
 
-  public increment(): void {
-    this.amount++;
+  public getThenIncrement(name: string): number {
+    const n = this.getValue(name);
+    this.increment(name);
+
+    return n;
   }
 }

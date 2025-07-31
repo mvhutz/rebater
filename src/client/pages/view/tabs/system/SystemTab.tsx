@@ -3,7 +3,7 @@ import SupplierResultsTable from './SupplierResultsTable';
 import CircularProgress from '@mui/joy/CircularProgress';
 import Stack from '@mui/joy/Stack';
 import Typography from '@mui/joy/Typography';
-import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
+// import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
 import NightsStayRoundedIcon from '@mui/icons-material/NightsStayRounded';
 import DoneRoundedIcon from '@mui/icons-material/DoneRounded';
 import PriorityHighRoundedIcon from '@mui/icons-material/PriorityHighRounded';
@@ -13,16 +13,16 @@ import { type SvgIconOwnProps } from '@mui/material';
 import AccordionGroup from '@mui/joy/AccordionGroup';
 import UpdateRoundedIcon from '@mui/icons-material/UpdateRounded';
 import ErrorCard from './ErrorCard';
-import { SystemStatus } from '../../../../../shared/system_status';
 import DiscrepancyTable from './DiscrepancyTable';
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded';
 import TabMenu from '../../TabMenu';
 import { getDisplayTab } from '../../../../../client/store/slices/ui';
-import { Button } from '@mui/joy';
+import { Button, IconButton } from '@mui/joy';
 import FileOpenRoundedIcon from '@mui/icons-material/FileOpenRounded';
 import { killSystem, pushSystemSettings, startSystem } from '../../../../../client/store/slices/thunk';
 import BlockRounded from '@mui/icons-material/BlockRounded';
-import { PlayArrowRounded } from '@mui/icons-material';
+import { ClearRounded, PlayArrowRounded } from '@mui/icons-material';
+import { SystemStatus } from '../../../../../shared/worker/response';
 
 /** ------------------------------------------------------------------------- */
 
@@ -35,7 +35,7 @@ function InnerText({ status }: { status: SystemStatus }) {
     case "done": return <DoneRoundedIcon sx={INNER_TEXT_ICON_SX} />;
     case "idle": return <NightsStayRoundedIcon sx={INNER_TEXT_ICON_SX} />;
     case "loading": return <HourglassEmptyRoundedIcon sx={INNER_TEXT_ICON_SX} />;
-    case "asking": return <QuestionMarkRoundedIcon sx={INNER_TEXT_ICON_SX} />;
+    // case "asking": return <QuestionMarkRoundedIcon sx={INNER_TEXT_ICON_SX} />;
     case "running": return `${(Math.round(100 * status.progress))}%`;
     case "error": return <PriorityHighRoundedIcon sx={INNER_TEXT_ICON_SX} />;
   }
@@ -62,9 +62,13 @@ function SystemTab() {
     await dispatch(startSystem());
   }, [dispatch]);
 
-  const handleCancel = React.useCallback(async () => {
+  const handleExit = React.useCallback(async () => {
     await dispatch(killSystem());
   }, [dispatch]);
+
+  const handleCancel = React.useCallback(async () => {
+    await invoke.exitProgram();
+  }, []);
 
   const handleOutput = React.useCallback(async () => {
     await invoke.openOutputFile();
@@ -87,8 +91,12 @@ function SystemTab() {
                 <Button fullWidth size="sm" variant="soft" color="neutral" onClick={handleRun} sx={{ borderRadius: 100 }} startDecorator={<UpdateRoundedIcon/>}>Redo</Button>
               </Stack>
               : active
-                ? <Button fullWidth size="lg" variant="outlined" color="neutral" onClick={handleCancel} sx={{ borderRadius: 100 }} startDecorator={<BlockRounded/>}>Cancel</Button>
-                : <Button fullWidth size="lg" onClick={handleRun} sx={{ borderRadius: 100 }} startDecorator={<PlayArrowRounded/>}>Start</Button>
+                ? (
+                  <Stack spacing={1} width={1} direction="row">
+                    <IconButton onClick={handleExit} variant="outlined" color="danger" size="lg" sx={{ borderRadius: 100 }}><ClearRounded/></IconButton>
+                    <Button fullWidth size="lg" variant="outlined" color="neutral" onClick={handleCancel} sx={{ borderRadius: 100 }} startDecorator={<BlockRounded/>}>Cancel</Button>
+                  </Stack>
+                ) : <Button fullWidth size="lg" onClick={handleRun} sx={{ borderRadius: 100 }} startDecorator={<PlayArrowRounded/>}>Start</Button>
             }
           </Stack>
         </Stack>

@@ -1,9 +1,10 @@
 import { z } from "zod/v4";
-import { ExcelIndexSchema, rewire } from "../util";
-import { ROW_SCHEMA, runMany } from "../row";
-import { State } from "../information/State";
+import { ExcelIndexSchema, getExcelFromIndex, makeTable } from "../util";
+import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, runMany } from "../row";
 import { BaseTable } from ".";
-import { BaseRow } from "../row/base";
+import { Runner } from "../runner/Runner";
+import { XMLElement } from "xmlbuilder";
+import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -22,12 +23,33 @@ export class SetTable implements BaseTable {
     this.to = to;
   }
 
-  async run(table: Table, state: State): Promise<Table> {
+  async run(table: Table, runner: Runner): Promise<Table> {
+    const new_rows = [];
     for (const row of table.data) {
-      const value = await runMany(this.to, row, state);
-      row.data[this.column] = value;
+      const value = await runMany(this.to, row, runner);
+      if (value != null) {
+        row.data[this.column] = value;
+        new_rows.push(row.data);
+      }
     }
 
-    return rewire(table);
+    return makeTable(new_rows, table.path);
   }
+
+  buildXML(from: XMLElement): void {
+    const parent = from.element("set", {
+      column: getExcelFromIndex(this.column),
+    });
+
+    for (const t of this.to) {
+      t.buildXML(parent);
+    }
+  }
+
+  public static readonly XML_SCHEMA = makeNodeElementSchema("set",
+    z.strictObject({
+      column: ExcelIndexSchema,
+    }),
+    z.array(z.lazy(() => ROW_XML_SCHEMA)))
+    .transform(({ children: c, attributes: a }) => new SetTable(a.column, c))
 }

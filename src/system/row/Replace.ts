@@ -1,7 +1,9 @@
 import { z } from "zod/v4";
 import { META_TYPE, MetaRow } from "./Meta";
-import { State } from "../information/State";
 import { BaseRow } from ".";
+import { Runner } from "../runner/Runner";
+import { XMLElement } from "xmlbuilder";
+import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -29,12 +31,12 @@ export class ReplaceRow implements BaseRow {
     this.put_meta = put_meta && new MetaRow(put_meta);
   }
 
-  async run(value: string, row: Row, state: State): Promise<string> {
+  async run(value: string, row: Row, runner: Runner): Promise<string> {
     let result = value;
 
     let truePut = this.put;
     if (this.put_meta) {
-      truePut = await this.put_meta.run("", row, state);
+      truePut = await this.put_meta.run("", row, runner);
     }
 
     if (this.characters != null) {
@@ -55,4 +57,25 @@ export class ReplaceRow implements BaseRow {
 
     return result;
   }
+
+  buildXML(from: XMLElement): void {
+    from.element("replace", {
+      characters: this.characters,
+      substring: this.substring,
+      all: this.all,
+      put: this.put,
+      put_meta: this.put_meta?.value,
+    })
+  }
+
+  public static readonly XML_SCHEMA = makeNodeElementSchema("replace",
+    z.strictObject({
+      characters: z.string().min(1).optional(),
+      substring: z.string().min(1).optional(),
+      all: z.string().optional(),
+      put: z.string().default(""),
+      put_meta: META_TYPE.optional(),
+    }),
+    z.undefined())
+    .transform(({ attributes: a }) => new ReplaceRow(a.put, a.put_meta, a.all, a.substring, a.characters))
 }

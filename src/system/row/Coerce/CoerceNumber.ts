@@ -1,5 +1,7 @@
 import { z } from "zod/v4";
 import { BaseRow } from "..";
+import { XMLElement } from "xmlbuilder";
+import { makeNodeElementSchema } from "../../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -25,4 +27,19 @@ export class CoerceNumberRow implements BaseRow {
       return float.toString();
     }
   }
+
+  buildXML(from: XMLElement): void {
+    from.element("coerce", {
+      as: "number",
+      otherwise: this.otherwise,
+    })
+  }
+
+  public static readonly XML_SCHEMA = makeNodeElementSchema("coerce",
+    z.strictObject({
+      as: z.literal("number"),
+      otherwise: z.string().optional(),
+    }),
+    z.undefined())
+    .transform(({ attributes: a }) => new CoerceNumberRow(a.otherwise))
 }

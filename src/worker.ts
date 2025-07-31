@@ -1,21 +1,10 @@
 import { parentPort, workerData } from "node:worker_threads";
-import { Runner } from "./system/Runner";
+import { Runner } from "./system/runner/Runner";
 import { z } from "zod/v4";
-import { makeSettingsInterface } from "./shared/settings_interface";
-import { SettingsSchema } from "./shared/settings";
 import assert from "node:assert";
-import { WorkerRequestSchema } from "./shared/worker_message";
-import { SystemStatus } from "./shared/system_status";
-
-/** ------------------------------------------------------------------------- */
-
-interface WorkerState {
-  answerer?: (answer?: string) => void;
-}
-
-const STATE: WorkerState = {
-  answerer: undefined
-};
+import { Settings } from "./shared/settings";
+import { WorkerResponse } from "./shared/worker/response";
+import { WorkerRequest, WorkerRequestSchema } from "./shared/worker/request";
 
 /** ------------------------------------------------------------------------- */
 
@@ -24,79 +13,63 @@ const parent = parentPort;
 
 /** ------------------------------------------------------------------------- */
 
-function send(status: SystemStatus) {
-  parent.postMessage(status);
+function send(response: WorkerResponse) {
+  parent.postMessage(response);
 }
 
-function onQuestion(question: string): Promise<Maybe<string>> {
-  return new Promise((res, rej) => {
-    if (STATE.answerer != null) {
-      rej("The system cannot answer two questions at once.");
+function sendError(message?: string) {
+  send({ type: "status", status: { type: "error", message } });
+}
+
+function onReceive(fn: (message: WorkerRequest) => Promise<void>) {
+  parent.on("message", message => {
+    const request_parse = WorkerRequestSchema.safeParse(message);
+    if (!request_parse.success) {
+      return sendError(z.prettifyError(request_parse.error));
     }
 
-    STATE.answerer = answer => {
-      STATE.answerer = undefined;
-
-      res(answer);
-    }
-
-    send({ type: "asking", question });
-  })
+    fn(request_parse.data);
+  });
 }
 
-async function onAnswer(answer?: string) {
-  if (STATE.answerer == null) {
-    return send({ type: "error", message: "The system didn't ask." });
-  }
+/** ------------------------------------------------------------------------- */
 
-  STATE.answerer(answer);
-  STATE.answerer = undefined;
-}
+function main() {
+  const settings_reply = Settings.from(workerData);
+  if (!settings_reply.ok) return sendError(settings_reply.reason);
 
-parent.on("message", async message => {
-  try {
-    const request = WorkerRequestSchema.parse(message);
+  const runner = new Runner(settings_reply.data);
+
+  runner.on("status", status => send({ type: "status", status }));
+  runner.asker.on("ask", question => send({ type: "question", question }));
+
+  onReceive(async request => {
     switch (request.type) {
-      case "answer": await onAnswer(request.answer);
+      case "answer":
+        runner.asker.answer(request.question, request.answer);
+        break;
+      case "exit":
+        runner.asker.ignoreAll();
+        runner.stop();
+        break;
+      case "ignore_all":
+        runner.asker.ignoreAll();
+        break;
     }
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return send({ type: "error", message: z.prettifyError(error) });
-    } else if (error instanceof Error) {
-      return send({ type: "error", message: error.message });
-    } else {
-      return send({ type: "error", message: `${error}` });
-    }
-  }
-});
+  })
 
-async function main() {
-  try {
-    const { success, data: settings, error } = SettingsSchema.safeParse(workerData);
-    if (!success) {
-      return send({ type: "error", message: z.prettifyError(error) });
-    }
-
-    const settings_interface = makeSettingsInterface(settings);
-    if (!settings_interface.ok) {
-      return send({ type: "error", message: settings_interface.reason });
-    }
-
-    const runner = new Runner({
-      onStatus: s => parent.postMessage(s),
-      onQuestion
+  runner.run()
+    .catch(error => {
+      if (error instanceof z.ZodError) {
+        return sendError(z.prettifyError(error));
+      } else if (error instanceof Error) {
+        return sendError(error.message);
+      } else {
+        return error(`${error}`);
+      }
     });
-
-    await runner.run(settings_interface.data);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return send({ type: "error", message: z.prettifyError(error) });
-    } else if (error instanceof Error) {
-      return send({ type: "error", message: error.message });
-    } else {
-      return send({ type: "error", message: `${error}` });
-    }
-  }
 }
+
+/** ------------------------------------------------------------------------- */
 
 main();

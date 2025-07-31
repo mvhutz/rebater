@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
-import fs from 'fs/promises';
-import Papa from 'papaparse';
-import assert from "assert";
+import { readdir } from 'fs/promises';
+import path from "path";
+import { Rebate } from "../shared/worker/response";
 
 /** ------------------------------------------------------------------------- */
 
@@ -14,26 +14,31 @@ function getIndexFromExcel(letters: string): number {
   return letters.split("").reduce((s, c) => c.charCodeAt(0) - 64 + s * 26, 0) - 1;
 }
 
+export function getExcelFromIndex(n: number) {
+  n++;
+  let res = "";
+
+  while (n > 0) {
+    const rem = n % 26;
+
+    if (rem === 0) {
+      res += 'Z';
+      n = Math.floor(n / 26) - 1;
+    } else {
+      res += String.fromCharCode((rem - 1) + 'A'.charCodeAt(0));
+      n = Math.floor(n / 26);
+    }
+  }
+
+  return res.split("").reverse().join("");
+}
+
 export function getTrueIndex(index: string | number): number {
   if (typeof index === "number") return index;
   return getIndexFromExcel(index);
 }
 
 /** ------------------------------------------------------------------------- */
-
-const RebateSchema = z.strictObject({
-  purchaseId: z.coerce.string(),
-  transactionDate: z.coerce.string(),
-  supplierId: z.coerce.string(),
-  memberId: z.coerce.string(),
-  distributorName: z.coerce.string(),
-  purchaseAmount: z.coerce.number(),
-  rebateAmount: z.coerce.number(),
-  invoiceId: z.coerce.string(),
-  invoiceDate: z.coerce.string(),
-});
-
-export type Rebate = z.infer<typeof RebateSchema>;
 
 export function getRebateHash(rebate: Rebate): string {
   const { transactionDate, supplierId, memberId, distributorName, purchaseAmount, rebateAmount, invoiceId, invoiceDate } = rebate;
@@ -49,17 +54,6 @@ export function areRebatesEqual(a: Rebate, b: Rebate) {
     && a.supplierId === b.supplierId
     && a.memberId === b.memberId
     && a.distributorName === b.distributorName;
-}
-
-export async function parseRebateFile(path: string): Promise<Rebate[]> {
-  try {
-    const file = await fs.readFile(path, 'utf-8');
-    const { data } = Papa.parse(file, { header: true, skipEmptyLines: true });
-    return z.array(RebateSchema).parse(data);
-  } catch (error) {
-    assert.ok(error instanceof z.ZodError);
-    throw new Error(`Error processing '${path}': ${z.prettifyError(error)}`)
-  }
 }
 
 export function getPartition<O extends object, K extends keyof O>(objects: O[], key: K): Map<O[K], O[]> {
@@ -131,6 +125,16 @@ export function makeTable(rows: string[][], path = "") {
   table.data = rows.map(r => ({ data: r, table }));
 
   return table;
+}
+
+export async function getSubFiles(directory: string): Promise<[string, string][]> {
+  const entries = await readdir(directory, { withFileTypes: true, recursive: true });
+  return entries.filter(e => e.isFile()).map(e => [path.join(e.parentPath, e.name), e.name]);
+}
+
+export async function getSubFolders(directory: string): Promise<[string, string][]> {
+  const entries = await readdir(directory, { withFileTypes: true });
+  return entries.filter(e => e.isDirectory()).map(e => [path.join(e.parentPath, e.name), e.name]);
 }
 
 /** ------------------------------------------------------------------------- */

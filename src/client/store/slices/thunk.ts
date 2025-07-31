@@ -2,8 +2,9 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import { Reply } from "../../../shared/reply";
 import { RootState } from "..";
 import { ResourceStatus } from "../../../shared/resource";
-import { Settings } from "../../../shared/settings";
-import { TransformerData } from "../../../system/transformer";
+import { SettingsData } from "../../../shared/settings";
+import { TransformerInfo } from "../../../system/transformer";
+import { TimeData } from "../../../shared/time";
 
 /** ------------------------------------------------------------------------- */
 
@@ -11,7 +12,7 @@ const { invoke } = window.api;
 
 export const pullAllQuarters = createAsyncThunk(
   'system/getAllQuarters',
-  async (): Promise<Reply<Time[]>> => {
+  async (): Promise<Reply<TimeData[]>> => {
     return await invoke.getAllQuarters();
   }
 );
@@ -33,7 +34,7 @@ export const pushSystemSettings = createAsyncThunk(
 
 export const pullSystemSettings = createAsyncThunk(
   'system/pullSettings',
-  async (): Promise<Reply<Maybe<Settings>>> => {
+  async (): Promise<Reply<Maybe<SettingsData>>> => {
     return await invoke.getSettings();
   },
   {
@@ -68,7 +69,7 @@ export const killSystem = createAsyncThunk(
 
 export const pullTransformers = createAsyncThunk(
   'system/pullTransformers',
-  async (): Promise<Reply<TransformerData[]>> => {
+  async (): Promise<Reply<TransformerInfo[]>> => {
     return await invoke.getTransformers();
   }
 );

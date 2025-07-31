@@ -1,7 +1,11 @@
-import { unparse } from "papaparse";
+import Papa from "papaparse";
 import { z } from "zod/v4";
-import { State } from "../information/State";
 import { BaseDestination } from ".";
+import { RebateSchema } from "../../shared/worker/response";
+import { Runner } from "../runner/Runner";
+import { CSVRebateFile } from "../information/RebateFile";
+import { XMLElement } from "xmlbuilder";
+import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -18,14 +22,31 @@ export class CSVDestination implements BaseDestination {
     this.name = name;
   }
 
-  getDestinationFile(state: State): string {
-    return state.getSettings().getDestinationPath(this.name);
-  }
-
-  run(table: Table, state: State): void {
+  run(table: Table, runner: Runner): void {
     const data = table.data.map(row => row.data);
-    const buffer = Buffer.from(unparse(data));
+    const { data: raw } = Papa.parse(Papa.unparse(data), { header: true });
+    const rebates = z.array(RebateSchema).parse(raw);
 
-    state.appendDestinationFile(this.getDestinationFile(state), buffer);
+    const filepath = runner.settings.getDestinationPath(this.name);
+    const destination = new CSVRebateFile(filepath, {
+      group: this.name,
+      quarter: runner.settings.time
+    });
+
+    destination.push(rebates);
+    runner.destinations.add(destination);
   }
+
+  buildXML(from: XMLElement): void {
+    from.element("csv", {
+      group: this.name
+    });
+  }
+
+  public static readonly XML_SCHEMA = makeNodeElementSchema("csv",
+    z.strictObject({
+      group: z.string()
+    }),
+    z.undefined())
+    .transform(({ attributes: a }) => new CSVDestination(a.group))
 }

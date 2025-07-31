@@ -1,5 +1,4 @@
 import { z } from "zod/v4";
-import { State } from "../information/State";
 import { ColumnRow } from "./Column";
 import { LiteralRow } from "./Literal";
 import { ReplaceRow } from "./Replace";
@@ -14,12 +13,15 @@ import { EqualsRow } from "./Equals";
 import { ConcatRow } from "./Concat";
 import { DivideRow } from "./Divide";
 import { SumRow } from "./Sum";
-import { getCoerceSchema } from "./Coerce";
+import { getCoerceSchema, getCoerceXMLSchema } from "./Coerce";
+import { Runner } from "../runner/Runner";
+import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
 export interface BaseRow {
-  run(value: string, row: Row, state: State): Promise<string>;
+  run(value: string, row: Row, runner: Runner): Promise<Maybe<string>>;
+  buildXML(from: XMLElement): void;
 }
 
 export const ROW_SCHEMA: z.ZodType<BaseRow> = z.union([
@@ -40,11 +42,31 @@ export const ROW_SCHEMA: z.ZodType<BaseRow> = z.union([
   SumRow.SCHEMA
 ]);
 
-export async function runMany(rows: BaseRow[], row: Row, state: State) {
+export const ROW_XML_SCHEMA: z.ZodType<BaseRow> = z.union([
+  getCoerceXMLSchema(),
+  ColumnRow.XML_SCHEMA,
+  CounterRow.XML_SCHEMA,
+  LiteralRow.XML_SCHEMA,
+  ReplaceRow.XML_SCHEMA,
+  TrimRow.XML_SCHEMA,
+  ReferenceRow.XML_SCHEMA,
+  CharacterRow.XML_SCHEMA,
+  MultiplyRow.XML_SCHEMA,
+  MetaRow.XML_SCHEMA,
+  AddRow.XML_SCHEMA,
+  EqualsRow.XML_SCHEMA,
+  ConcatRow.XML_SCHEMA,
+  DivideRow.XML_SCHEMA,
+  SumRow.XML_SCHEMA
+]);
+
+export async function runMany(rows: BaseRow[], row: Row, runner: Runner): Promise<Maybe<string>> {
   let value = "";
 
   for (const operation of rows) {
-    value = await operation.run(value, row, state);
+    const result = await operation.run(value, row, runner);
+    if (result == null) return result;
+    value = result;
   }
 
   return value;

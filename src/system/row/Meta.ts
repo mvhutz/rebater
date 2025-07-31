@@ -1,8 +1,10 @@
 import { z } from "zod/v4";
 import moment from "moment";
-import { State } from "../information/State";
 import path from "path";
 import { BaseRow } from ".";
+import { Runner } from "../runner/Runner";
+import { XMLElement } from "xmlbuilder";
+import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -15,30 +17,39 @@ export class MetaRow implements BaseRow {
     value: META_TYPE
   }).transform(s => new MetaRow(s.value));
 
-  private readonly value: MetaType;
+  public readonly value: MetaType;
 
   public constructor(value: MetaType) {
     this.value = value;
   }
 
-  async run(_v: string, row: Row, state: State): Promise<string> {
+  async run(_v: string, row: Row, runner: Runner): Promise<string> {
     switch (this.value) {
-      case "quarter.lastday": return MetaRow.getQuarterLastDay(state);
-      case "quarter.number": return MetaRow.getQuarterNumber(state);
+      case "quarter.lastday": return MetaRow.getQuarterLastDay(runner);
+      case "quarter.number": return MetaRow.getQuarterNumber(runner);
       case "row.source": return MetaRow.getRowSource(row);
     }
   }
 
-  static getQuarterLastDay(state: State): string {
-    const { year, quarter } = state.getSettings().getTime();
+  static getQuarterLastDay(runner: Runner): string {
+    const { year, quarter } = runner.settings.getTime();
     return moment().year(year).quarter(quarter).endOf("quarter").format("MM/DD/YYYY");
   }
 
-  static getQuarterNumber(state: State): string {
-    return state.getSettings().getTime().quarter.toString();
+  static getQuarterNumber(runner: Runner): string {
+    return runner.settings.getTime().quarter.toString();
   }
 
   static getRowSource(row: Row) {
     return path.basename(row.table.path);
   }
+
+  buildXML(from: XMLElement): void {
+    from.element("meta", undefined, this.value);
+  }
+
+  public static readonly XML_SCHEMA = makeNodeElementSchema("meta",
+    z.undefined(),
+    z.tuple([makeTextElementSchema(META_TYPE)]))
+    .transform(({ children: c }) => new MetaRow(c[0].text))
 }

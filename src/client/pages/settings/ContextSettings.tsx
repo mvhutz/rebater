@@ -28,7 +28,6 @@ function ContextSettings() {
   const dispatch = useAppDispatch();
 
   const handleQuarter = React.useCallback((_: unknown, new_quarter: Maybe<string>) => {
-    console.log(new_quarter);
     const new_time = moment(new_quarter, "YYYY-QQ");
     dispatch(setSystemYear(new_time.year()));
     dispatch(setSystemQuarter(new_time.quarter()));
@@ -38,10 +37,7 @@ function ContextSettings() {
     dispatch(toggleNewQuarterModal());
   }, [dispatch]);
 
-  console.log(year, quarter, quarterStatus);
-
   const current_quarter = quarterStatus === ResourceStatus.LOADING || year == null || quarter == null ? null : `${year}-Q${quarter}`;
-  console.log(quarterStatus === ResourceStatus.LOADING, year == null, quarter == null, current_quarter, quarters);
 
   return (
     <Accordion>

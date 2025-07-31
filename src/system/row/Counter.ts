@@ -1,6 +1,8 @@
 import { z } from "zod/v4";
-import { State } from "../information/State";
 import { BaseRow } from ".";
+import { Runner } from "../runner/Runner";
+import { XMLElement } from "xmlbuilder";
+import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -9,12 +11,16 @@ export class CounterRow implements BaseRow {
     type: z.literal("counter"),
   }).transform(() => new CounterRow());
 
-  async run(_v: string, _r: Row, state: State): Promise<string> {
-    const counter = state.getCounter("counter");
-
-    const result = counter.get();
-    counter.increment();
-
-    return result.toString();
+  async run(_v: string, _r: Row, runner: Runner): Promise<string> {
+    return runner.counter.getThenIncrement("counter").toString();
   }
+
+  buildXML(from: XMLElement): void {
+    from.element("counter");
+  }
+
+  public static readonly XML_SCHEMA = makeNodeElementSchema("counter",
+    z.undefined(),
+    z.undefined())
+    .transform(() => new CounterRow())
 }

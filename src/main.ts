@@ -4,7 +4,9 @@ import started from 'electron-squirrel-startup';
 import IPC from './shared/ipc';
 import { Worker } from 'worker_threads';
 import { bad, good } from './shared/reply';
-import { WorkerRequest } from './shared/worker_message';
+import { WorkerRequest } from './shared/worker/request';
+import { WorkerResponseSchema } from './shared/worker/response';
+import z from 'zod/v4';
 
 /** ------------------------------------------------------------------------- */
 
@@ -46,7 +48,7 @@ async function createWindow() {
   ipcMain.handle.answerQuestion(async (_, { data }) => {
     if (worker == null) return bad("System is not running!");
 
-    worker.postMessage({ type: "answer", answer: data } as WorkerRequest);
+    worker.postMessage({ type: "answer", question: data.question, answer: data.value } as WorkerRequest);
     return good(undefined);
   });
 
@@ -59,10 +61,27 @@ async function createWindow() {
     return good(undefined);
   });
 
+  ipcMain.handle.exitProgram(async () => {
+    if (worker == null) return bad("System is not running!");
+
+    worker.postMessage({ type: "exit" } as WorkerRequest);
+    return good(undefined);
+  });
+
+  ipcMain.handle.ignoreAll(async () => {
+    if (worker == null) return bad("System is not running!");
+    
+    worker.postMessage({ type: "ignore_all" } as WorkerRequest);
+    return good(undefined);
+  })
+
   ipcMain.handle.runProgram(async (_, { data }) => {
     if (worker != null) {
-      return bad("System is already running!");
-    } else if (data == null) {
+      await worker.terminate();
+      worker = null;
+    }
+    
+    if (data == null) {
       return bad("Cannot give empty settings.");
     }
 
@@ -71,10 +90,26 @@ async function createWindow() {
     });
     
     worker.on("message", message => {
-      if (message.type === "error" || message.type === "done") {
-        worker?.terminate();
+      const response_parse = WorkerResponseSchema.safeParse(message);
+      if (!response_parse.success) {
+        ipcMain.invoke.runnerUpdate(mainWindow, { type: "error", message: z.prettifyError(response_parse.error) });
+        return;
       }
-      ipcMain.invoke.runnerUpdate(mainWindow, message);
+
+      const { data } = response_parse;
+
+      switch (data.type) {
+        case "status": {
+          if (data.status.type === "error" || data.status.type === "done") {
+            worker?.terminate();
+          }
+
+          ipcMain.invoke.runnerUpdate(mainWindow, data.status);
+        } break;
+        case "question": {
+          ipcMain.invoke.runnerQuestion(mainWindow, data.question);
+        }
+      }
     });
 
     worker.on("exit", () => worker = null);
@@ -94,6 +129,7 @@ async function createWindow() {
     ipcMain.remove.openOutputFile();
     ipcMain.remove.getAllQuarters();
     ipcMain.remove.createQuarter();
+    ipcMain.remove.ignoreAll();
   });
 
   // and load the index.html of the app.

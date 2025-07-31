@@ -92,3 +92,5 @@ typings/
 out/
 
 __*__
+dist/
+*.cpuprofile

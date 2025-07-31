@@ -1,9 +1,13 @@
 import { z } from "zod/v4";
 import * as XLSX from "xlsx";
 import assert from "assert";
-import { State } from "../information/State";
 import { makeTable } from "../util";
 import { BaseSource } from ".";
+import { Runner } from "../runner/Runner";
+import path from "path";
+
+import { XMLElement } from "xmlbuilder";
+import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -12,32 +16,36 @@ export class ExcelSource implements BaseSource {
     type: z.literal("excel"),
     group: z.string(),
     file: z.string().default("*"),
-    sheets: z.array(z.string()).optional(),
+    sheets: z.array(z.string()).default([]),
   }).transform(s => new ExcelSource(s.group, s.file, s.sheets));
 
   private group: string;
   private file: string;
-  private sheets?: string[];
+  private sheets: string[];
 
-  public constructor(group: string, file: string, sheets?: string[]) {
+  public constructor(group: string, file: string, sheets: string[]) {
     this.group = group;
     this.file = file;
     this.sheets = sheets;
   }
 
-  getSourceFileGlob(state: State) {
-    return state.getSettings().getSourcePathGlob(this.group, this.file, ".xls*");
+  private getSourceFileGlob(runner: Runner) {
+    return runner.settings.getSourcePathGlob(this.group, this.file, ".xls*");
   }
 
-  run(state: State): Table[] {
-    const files = state.pullSourceFileGlob(this.getSourceFileGlob(state));
+  run(runner: Runner): Table[] {
+    const glob = this.getSourceFileGlob(runner);
+    const files = runner.sources.filter(s => path.matchesGlob(s.path, glob));
     const results = new Array<Table>();
 
     for (const file of files) {
-      const workbook = XLSX.read(file.raw, { type: "buffer" });
+      const raw = file.getData();
+      assert.ok(raw != null, `Source file '${file.path}' not loaded!`);
+
+      const workbook = XLSX.read(raw, { type: "buffer" });
 
       const sheetsToTake = new Set<string>();
-      if (this.sheets == null) {
+      if (this.sheets.length == 0) {
         workbook.SheetNames.forEach(m => sheetsToTake.add(m));
       } else {
         for (const sheet of this.sheets) {
@@ -68,4 +76,21 @@ export class ExcelSource implements BaseSource {
 
     return results;
   }
+
+  buildXML(from: XMLElement): void {
+    from.element("excel", {
+      group: this.group,
+      file: this.file,
+      sheets: this.sheets?.join(",")
+    });
+  }
+
+  public static readonly XML_SCHEMA = makeNodeElementSchema("excel",
+    z.strictObject({
+      group: z.string(),
+      file: z.string().default("*"),
+      sheets: z.string().default("").transform(s => s.split(",").filter(Boolean))
+    }),
+    z.undefined())
+    .transform(({ attributes: a }) => new ExcelSource(a.group, a.file, a.sheets))
 }

@@ -1,7 +1,8 @@
-import assert from "assert";
 import { z } from "zod/v4";
-import { State } from "../information/State";
 import { BaseRow } from ".";
+import { Runner } from "../runner/Runner";
+import { XMLElement } from "xmlbuilder";
+import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -22,27 +23,18 @@ export class ReferenceRow implements BaseRow {
     return `For **\`${group}\`**, what is the **\`${take}\`** of this **\`${table}\`**?\n\n *\`${value}\`*`;
   }
 
-  async run(value: string, row: Row, state: State): Promise<string> {
-    const reference = await state.getReference(this.table);
-    const release = await state.requestAsk();
-
-    const result = reference.ask(this.match, value, this.take, this.group);
+  async run(value: string, row: Row, runner: Runner): Promise<Maybe<string>> {
+    const result = runner.references.ask(this.table, this.match, value, this.take, this.group);
     if (result != null) {
-      release();
       return result;
     }
 
     const question = this.getQuestionFormat(this.group, this.take, this.table, value);
-    const answer = await state.ask(question);
-    assert.ok(answer != null, `Table '${this.table}' has no item '${value}' for '${this.match}'.`);
+    const answer = await runner.asker.ask(question);
+    if (answer == null) return null;
     
-    reference.append({
-      [this.match]: value,
-      [this.take]: answer,
-      group: this.group,
-    });
-
-    release();
+    runner.references.answer(this.table, this.match, value, this.take, this.group, answer);
+    
     return answer;
   }
 
@@ -53,4 +45,23 @@ export class ReferenceRow implements BaseRow {
     take: z.string(),
     group: z.string(),
   }).transform(s => new ReferenceRow(s.table, s.match, s.take, s.group));
+
+  buildXML(from: XMLElement): void {
+    from.element("reference", {
+      table: this.table,
+      match: this.match,
+      take: this.take,
+      group: this.group,
+    })
+  }
+
+  public static readonly XML_SCHEMA = makeNodeElementSchema("reference",
+    z.strictObject({
+      table: z.string(),
+      match: z.string(),
+      take: z.string(),
+      group: z.string(),
+    }),
+    z.undefined())
+    .transform(({ attributes: a }) => new ReferenceRow(a.table, a.match, a.take, a.group))
 }

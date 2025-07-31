@@ -13,3 +13,11 @@ export function getCoerceSchema(): z.ZodType<BaseRow> {
     CoerceUSDRow.SCHEMA
   ])
 }
+
+export function getCoerceXMLSchema(): z.ZodType<BaseRow> {
+  return z.union([
+    CoerceDateRow.XML_SCHEMA,
+    CoerceNumberRow.XML_SCHEMA,
+    CoerceUSDRow.XML_SCHEMA
+  ])
+}

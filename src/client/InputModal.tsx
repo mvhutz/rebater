@@ -1,6 +1,4 @@
 import React from 'react';
-import { useAppSelector } from './store/hooks';
-import { getSystemStatus } from './store/slices/system';
 import Button from '@mui/joy/Button';
 import DialogContent from '@mui/joy/DialogContent';
 import DialogTitle from '@mui/joy/DialogTitle';
@@ -9,46 +7,73 @@ import FormLabel from '@mui/joy/FormLabel';
 import Input from '@mui/joy/Input';
 import Modal from '@mui/joy/Modal';
 import ModalDialog from '@mui/joy/ModalDialog';
-import Stack from '@mui/joy/Stack';
 import Markdown from 'react-markdown';
+import { clearQuestions, getCurrentQuestion, popQuestion } from './store/slices/system';
+import { useAppDispatch, useAppSelector } from './store/hooks';
+import { Box, ButtonGroup, DialogActions, IconButton } from '@mui/joy';
+import NotificationsPausedRoundedIcon from '@mui/icons-material/NotificationsPausedRounded';
 
 /** ------------------------------------------------------------------------- */
 
 const { invoke } = window.api;
 
 function InputModal() {
-  const status = useAppSelector(getSystemStatus);
-  const open = status.type === "asking";
-  const question = status.type === "asking" ? status.question : null;
+  const question = useAppSelector(getCurrentQuestion);
+  const dispatch = useAppDispatch();
+  const open = question != null;
 
   const handleForm = React.useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     
-    invoke.answerQuestion(data.get("answer")?.toString());
-  }, []);
+    invoke.answerQuestion({
+      question,
+      value: data.get("answer")?.toString()
+    });
+    dispatch(popQuestion());
+  }, [dispatch, question]);
   
-  const handleClose = React.useCallback(() => {
-    invoke.answerQuestion(undefined);
-  }, []);
+  const handleClose = React.useCallback(async (event: React.UIEvent) => {
+    event.preventDefault();
+    invoke.exitProgram();
+    dispatch(clearQuestions());
+  }, [dispatch]);
+
+  const handleIgnore = React.useCallback((event: React.UIEvent) => {
+    event.preventDefault();
+    invoke.answerQuestion({ question, value: undefined });
+    dispatch(popQuestion());
+  }, [dispatch, question]);
+
+  const handleIgnoreAll = React.useCallback((event: React.UIEvent) => {
+    event.preventDefault();
+    invoke.ignoreAll();
+    dispatch(clearQuestions());
+  }, [dispatch]);
   
   return (
     <Modal open={open} onClose={handleClose}>
-        <ModalDialog>
-          <DialogTitle>Rebator needs your help!</DialogTitle>
-          <DialogContent>
-            <Markdown>
-              {question}
-            </Markdown>
-            </DialogContent>
+        <ModalDialog minWidth={500}>
           <form onSubmit={handleForm}>
-            <Stack spacing={2}>
+            <DialogTitle>Rebator needs your help!</DialogTitle>
+            <DialogContent>
+              <Markdown>
+                {question}
+              </Markdown>
               <FormControl>
                 <FormLabel>Answer</FormLabel>
                 <Input name="answer" required />
               </FormControl>
+            </DialogContent>
+            <DialogActions sx={{ mt: 2 }}>
               <Button type="submit">Submit</Button>
-            </Stack>
+              <ButtonGroup variant="outlined" color="neutral">
+                <Button onClick={handleIgnore}>Later</Button>
+                <IconButton onClick={handleIgnoreAll}><NotificationsPausedRoundedIcon/></IconButton>
+              </ButtonGroup>
+              <Box width={1}/>
+              <Button type="button" variant="outlined" color="danger" onClick={handleClose}>Quit</Button>
+            </DialogActions>
           </form>
         </ModalDialog>
       </Modal>

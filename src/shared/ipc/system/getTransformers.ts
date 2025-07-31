@@ -10,5 +10,5 @@ export async function getTransformers() {
   const { data: isettings } = settings_reply;
 
   const transformers = await Transformer.pullAll(isettings);
-  return good(transformers.map(t => t.data));
+  return good(transformers.map(t => t.getInfo()));
 }
