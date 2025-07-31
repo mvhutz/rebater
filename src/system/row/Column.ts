@@ -3,7 +3,6 @@ import { ExcelIndexSchema, getExcelFromIndex } from "../util";
 import { BaseRow } from ".";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
-import { LiteralRow } from "./Literal";
 
 /** ------------------------------------------------------------------------- */
 
@@ -29,6 +28,6 @@ export class ColumnRow implements BaseRow {
 
   public static readonly XML_SCHEMA = makeNodeElementSchema("column",
     z.undefined(),
-    z.tuple([makeTextElementSchema(z.string())]))
-    .transform(({ children: c }) => new LiteralRow(c[0].text))
+    z.tuple([makeTextElementSchema(ExcelIndexSchema)]))
+    .transform(({ children: c }) => new ColumnRow(c[0].text))
 }

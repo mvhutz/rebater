@@ -51,7 +51,6 @@ export class PercolateTable implements BaseTable {
 
   public static readonly XML_SCHEMA = makeNodeElementSchema("percolate",
     z.strictObject({
-      column: ExcelIndexSchema,
       columns: z.string().default("").transform(s => s.split(",").filter(Boolean).map(getTrueIndex)),
       matches: z.string().default("").transform(s => s.split(",")),
       action: z.union([z.literal("drop"), z.literal("keep")]).default("keep"),

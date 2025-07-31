@@ -45,9 +45,9 @@ export class ChopTable implements BaseTable {
   }
 
   buildXML(from: XMLElement): void {
-    from.element("select", {
+    from.element("chop", {
       column: getExcelFromIndex(this.column),
-      is: this.is?.join(","),
+      is: this.is.join(","),
       keep: this.keep,
       otherwise: this.otherwise,
     })

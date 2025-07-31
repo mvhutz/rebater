@@ -62,7 +62,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     const actual = this.destinations.getItems().map(d => d.getData()).flat(1);
     const actual_partitions = getPartition(actual, "supplierId");
 
-    const expected = this.truths.getItems().map(d => d.getData()).flat(1);
+    const expected = this.truths.getItems().filter(t => t.meta.quarter.is(this.settings.time)).map(t => t.getData()).flat(1);
     const expected_partitions = getPartition(expected, "supplierId");
 
     const results = new Array<DiscrepencyResult>();

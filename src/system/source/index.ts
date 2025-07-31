@@ -13,3 +13,7 @@ export interface BaseSource {
 export const SOURCE_SCHEMA: z.ZodType<BaseSource> = z.union([
   ExcelSource.SCHEMA
 ]);
+
+export const SOURCE_XML_SCHEMA: z.ZodType<BaseSource> = z.union([
+  ExcelSource.XML_SCHEMA
+]);

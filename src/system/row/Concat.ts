@@ -27,7 +27,7 @@ export class ConcatRow implements BaseRow {
   }
 
   buildXML(from: XMLElement): void {
-    const element = from.element("concat");
+    const element = from.element("concat", { separator: this.separator });
     for (const child of this.other) {
       child.buildXML(element);
     }

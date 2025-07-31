@@ -5,6 +5,7 @@ import { RebateSchema } from "../../shared/worker/response";
 import { Runner } from "../runner/Runner";
 import { CSVRebateFile } from "../information/RebateFile";
 import { XMLElement } from "xmlbuilder";
+import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -41,4 +42,11 @@ export class CSVDestination implements BaseDestination {
       group: this.name
     });
   }
+
+  public static readonly XML_SCHEMA = makeNodeElementSchema("csv",
+    z.strictObject({
+      group: z.string()
+    }),
+    z.undefined())
+    .transform(({ attributes: a }) => new CSVDestination(a.group))
 }

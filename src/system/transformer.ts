@@ -1,8 +1,8 @@
 import { glob, readFile } from "fs/promises";
 import { z } from "zod/v4";
 import { rewire } from "./util";
-import { BaseDestination, DESTINATION_SCHEMA } from "./destination";
-import { BaseSource, SOURCE_SCHEMA } from "./source";
+import { BaseDestination, DESTINATION_SCHEMA, DESTINATION_XML_SCHEMA } from "./destination";
+import { BaseSource, SOURCE_SCHEMA, SOURCE_XML_SCHEMA } from "./source";
 import { BaseTable, TABLE_SCHEMA, TABLE_XML_SCHEMA, runMany as runManyTables } from "./table";
 import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, runMany as runManyRows } from "./row";
 import { Settings } from "../shared/settings";
@@ -50,7 +50,6 @@ export class Transformer {
         return Transformer.SCHEMA.parse(json);
       } else {
         const xml = fromText(raw);
-        console.log(JSON.stringify(xml));
         return Transformer.XML_SCHEMA.parse(xml);
       }
     } catch (error) {
@@ -227,6 +226,9 @@ export class Transformer {
         case "tag":
           tags.push(child.children[0].text);
           break;
+        case "sources":
+          sources.push(...child.children);
+          break;
         case "preprocess":
           preprocess.push(...child.children);
           break;
@@ -235,6 +237,9 @@ export class Transformer {
           break;
         case "postprocess":
           postprocess.push(...child.children);
+          break;
+        case "destinations":
+          destinations.push(...child.children);
           break;
       }
     }
@@ -250,6 +255,9 @@ export class Transformer {
       makeNodeElementSchema("tag", z.undefined(), z.tuple([
         makeTextElementSchema(z.string())
       ])),
+      makeNodeElementSchema("sources", z.undefined(), z.array(
+        SOURCE_XML_SCHEMA
+      )),
       makeNodeElementSchema("preprocess", z.undefined(), z.array(
         TABLE_XML_SCHEMA
       )),
@@ -258,7 +266,10 @@ export class Transformer {
       )),
       makeNodeElementSchema("postprocess", z.undefined(), z.array(
         TABLE_XML_SCHEMA
-      ))
+      )),
+      makeNodeElementSchema("destinations", z.undefined(), z.array(
+        DESTINATION_XML_SCHEMA
+      )),
     ]))
   );
 

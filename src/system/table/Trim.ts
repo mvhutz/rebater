@@ -35,8 +35,8 @@ export class TrimTable implements BaseTable {
 
   public static readonly XML_SCHEMA = makeNodeElementSchema("trim",
     z.strictObject({
-      top: z.number().optional(),
-      bottom: z.number().optional(),
+      top: z.coerce.number().optional(),
+      bottom: z.coerce.number().optional(),
     }),
     z.undefined())
     .transform(({ attributes: a }) => new TrimTable(a.top, a.bottom));

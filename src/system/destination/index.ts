@@ -13,3 +13,7 @@ export interface BaseDestination {
 export const DESTINATION_SCHEMA: z.ZodType<BaseDestination> = z.union([
   CSVDestination.SCHEMA
 ]);
+
+export const DESTINATION_XML_SCHEMA: z.ZodType<BaseDestination> = z.union([
+  CSVDestination.XML_SCHEMA
+]);
