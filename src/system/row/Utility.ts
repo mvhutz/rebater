@@ -3,10 +3,11 @@ import { BaseRow } from ".";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema } from "../xml";
+import assert from "assert";
 
 /** ------------------------------------------------------------------------- */
 
-export class ReferenceRow implements BaseRow {
+export class UtilityRow implements BaseRow {
   private readonly table: string;
   private readonly match: string;
   private readonly take: string;
@@ -19,40 +20,24 @@ export class ReferenceRow implements BaseRow {
     this.group = group;
   }
 
-  private getQuestionFormat(group: string, take: string, table: string, value: string) {
-    return `For **\`${group}\`**, what is the **\`${take}\`** of this **\`${table}\`**?\n\n *\`${value}\`*`;
-  }
-
   async run(value: string, row: Row, runner: Runner): Promise<Maybe<string>> {
-    const reference = runner.references.get(this.table);
-    const result = reference.ask(this.match, value, this.take, this.group);
-    if (result != null) {
-      return result;
-    }
-
-    const question = this.getQuestionFormat(this.group, this.take, this.table, value);
-    const answer = await runner.asker.ask(question);
-    if (answer == null) return null;
+    const utility = runner.utilities.get(this.table);
+    const result = utility.ask(this.match, value, this.take, this.group);
+    assert.ok(result != null, `Table '${this.table}' has no '${this.match}' for '${value}'.`);
     
-    reference.insert([{
-      [this.match]: value,
-      [this.take]: answer,
-      group: this.group,
-    }]);
-    
-    return answer;
+    return result;
   }
 
   public static readonly SCHEMA = z.strictObject({
-    type: z.literal("reference"),
+    type: z.literal("utility"),
     table: z.string(),
     match: z.string(),
     take: z.string(),
     group: z.string(),
-  }).transform(s => new ReferenceRow(s.table, s.match, s.take, s.group));
+  }).transform(s => new UtilityRow(s.table, s.match, s.take, s.group));
 
   buildXML(from: XMLElement): void {
-    from.element("reference", {
+    from.element("utility", {
       table: this.table,
       match: this.match,
       take: this.take,
@@ -60,7 +45,7 @@ export class ReferenceRow implements BaseRow {
     })
   }
 
-  public static readonly XML_SCHEMA = makeNodeElementSchema("reference",
+  public static readonly XML_SCHEMA = makeNodeElementSchema("utility",
     z.strictObject({
       table: z.string(),
       match: z.string(),
@@ -68,5 +53,5 @@ export class ReferenceRow implements BaseRow {
       group: z.string(),
     }),
     z.undefined())
-    .transform(({ attributes: a }) => new ReferenceRow(a.table, a.match, a.take, a.group))
+    .transform(({ attributes: a }) => new UtilityRow(a.table, a.match, a.take, a.group))
 }

@@ -3,18 +3,18 @@ import { z } from "zod/v4";
 import { BaseDestination } from ".";
 import { RebateSchema } from "../../shared/worker/response";
 import { Runner } from "../runner/Runner";
-import { CSVRebateFile } from "../information/RebateFile";
 import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema } from "../xml";
+import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
+import { CSVRebateFile } from "../information/items/CSVRebateFile";
 
 /** ------------------------------------------------------------------------- */
 
-export class CSVDestination implements BaseDestination {
+export class RebateDestination implements BaseDestination {
 
   public static readonly SCHEMA = z.strictObject({
-    type: z.literal("csv"),
+    type: z.literal("rebate"),
     name: z.string(),
-  }).transform(s => new CSVDestination(s.name));
+  }).transform(s => new RebateDestination(s.name));
 
   private name: string;
 
@@ -38,15 +38,13 @@ export class CSVDestination implements BaseDestination {
   }
 
   buildXML(from: XMLElement): void {
-    from.element("csv", {
-      group: this.name
-    });
+    from.element("rebate", undefined, this.name);
   }
 
-  public static readonly XML_SCHEMA = makeNodeElementSchema("csv",
-    z.strictObject({
-      group: z.string()
-    }),
-    z.undefined())
-    .transform(({ attributes: a }) => new CSVDestination(a.group))
+  public static readonly XML_SCHEMA = makeNodeElementSchema("rebate",
+    z.undefined(),
+    z.tuple([
+      makeTextElementSchema(z.string())
+    ]))
+    .transform(({ children: c }) => new RebateDestination(c[0].text))
 }

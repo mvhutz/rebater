@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { CSVDestination } from "../destination/CSV";
+import { RebateDestination } from "../destination/Rebate";
 import { BaseTable } from ".";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
@@ -13,10 +13,10 @@ export class DebugTable implements BaseTable {
     name: z.string().default("default"),
   }).transform(s => new DebugTable(s.name));
 
-  private readonly destination: CSVDestination;
+  private readonly destination: RebateDestination;
 
   public constructor(name: string) {
-    this.destination = new CSVDestination(name);
+    this.destination = new RebateDestination(name);
   }
 
   async run(table: Table, runner: Runner): Promise<Table> {

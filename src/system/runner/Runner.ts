@@ -10,7 +10,8 @@ import { Asker } from "./Asker";
 import { OutputStore } from "../information/OutputStore";
 import { TruthStore } from "../information/TruthStore";
 import { Counter } from "../information/Counter";
-import { ExcelRebateFile } from "../information/RebateFile";
+import { ExcelRebateFile } from "../information/items/ExcelRebateFile";
+import { UtilityStore } from "../information/UtilityStore";
 
 /** ------------------------------------------------------------------------- */
 
@@ -26,6 +27,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
   public readonly destinations: DestinationStore;
   public readonly truths: TruthStore;
   public readonly outputs: OutputStore;
+  public readonly utilities: UtilityStore;
   public readonly asker = new Asker();
 
   private running: boolean;
@@ -40,6 +42,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     this.destinations = new DestinationStore({ directory: settings.getAllDestinationPath() });
     this.outputs = new OutputStore({ directory: settings.getAllOutputPath() });
     this.truths = new TruthStore({ directory: settings.getAllTruthPath() });
+    this.utilities = new UtilityStore({ directory: settings.getAllUtilityPath() })
     this.running = false;
 
     this.emit("status", { type: "idle" });
@@ -89,6 +92,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     await this.destinations.save();
     await this.references.save();
     await this.outputs.save();
+    await this.utilities.save();
   }
 
   private async* iterator(): AsyncIterableIterator<SystemStatus> {
@@ -98,7 +102,8 @@ export class Runner extends EventEmitter<RunnerEvents> {
     }
 
     yield { type: "loading", message: "Reading transformers..." };
-    const transformers = await Transformer.pullAll(this.settings, true);
+    const transformers_unordered = await Transformer.pullAll(this.settings, true);
+    const transformers = Transformer.findValidOrder(transformers_unordered);
 
     yield { type: "loading", message: "Loading sources..." };
     await this.load();

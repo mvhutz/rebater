@@ -1,44 +1,14 @@
-export abstract class AbstractItem<T> {
-  protected data: T;
-  
-  protected constructor(initial: T) {
-    this.data = initial;
-  }
-
-  abstract hash(): string;
-  abstract save(): Promise<void>;
-  abstract insert(datum: T): void;
-
-  public push(...data: T[]) {
-    for (const datum of data) {
-      this.insert(datum);
-    }
-  }
-
-  public add(...others: AbstractItem<T>[]) {
-    for (const other of others) {
-      this.push(other.data);
-    }
-  }
-
-  protected abstract fetch(): Promise<T>;
-
-  public async load(): Promise<void> {
-    this.data = await this.fetch();
-  }
-
-  public getData(): T {
-    return this.data;
-  }
-}
+import assert from "assert";
+import { AbstractItem } from "./items/AbstractItem";
 
 /** ------------------------------------------------------------------------- */
 
-export abstract class AbstractStore<I extends AbstractItem<J>, J, T> {
-  protected items = new Map<string, I>();
-  public readonly meta: T;
+export abstract class AbstractStore<Item extends AbstractItem<ItemData>, Meta, ItemData = ReturnType<Item["getData"]>> {
+  protected items = new Map<string, Item>();
+  public readonly meta: Meta;
+  public abstract readonly name: string;
 
-  public constructor(meta: T) {
+  public constructor(meta: Meta) {
     this.meta = meta;
   }
 
@@ -46,7 +16,7 @@ export abstract class AbstractStore<I extends AbstractItem<J>, J, T> {
     this.items.clear();
   }
 
-  public getItems(): I[] {
+  public getItems(): Item[] {
     return this.items.values().toArray();
   }
 
@@ -56,20 +26,29 @@ export abstract class AbstractStore<I extends AbstractItem<J>, J, T> {
     }))
   }
 
-  public filter(fn: (item: I) => boolean) {
+  public filter(fn: (item: Item) => boolean) {
     return this.getItems().filter(fn);
   }
 
-  public add(item: I): boolean {
+  public add(item: Item) {
     const current = this.items.get(item.hash());
+    assert.ok(current == null, `Item '${item.hash()}' already exists for '${this.name}'!`)
 
-    if (current != null) {
-      return false;
-    } else {
-      this.items.set(item.hash(), item);
+    this.items.set(item.hash(), item);
+  }
+
+  generate(hash: string): Item {
+    throw Error(`Item '${hash}' does not exist for '${this.name}'!`);
+  }
+
+  public get(hash: string) {
+    let current = this.items.get(hash);
+    if (current == null) {
+      current = this.generate(hash);
+      this.add(current);
     }
 
-    return true;
+    return current;
   }
 
   public async load(): Promise<void> {

@@ -122,6 +122,14 @@ export class Settings {
     return path.join(this.directory, "truth");
   }
 
+  getAllUtilityPath() {
+    return path.join(this.directory, "utility");
+  }
+
+  getUtilityPath(name: string) {
+    return path.join(this.directory, "utility", this.time.toString(), `${name}.csv`);
+  }
+
   getTruthPathGlob() {
     return path.join(this.directory, "truth", this.time.toString(), `**/*.csv`);
   }
