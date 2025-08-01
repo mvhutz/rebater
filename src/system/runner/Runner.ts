@@ -94,7 +94,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     await this.truths.load();
   }
 
-  private async save() {
+  public async save() {
     await this.destinations.save();
     await this.references.save();
     await this.outputs.save();

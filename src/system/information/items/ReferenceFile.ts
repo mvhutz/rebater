@@ -1,6 +1,8 @@
 import { AbstractFile } from "./AbstractFile";
 import z from "zod/v4";
 import Papa from 'papaparse';
+import Fuse from 'fuse.js';
+
 
 /** ------------------------------------------------------------------------- */
 
@@ -40,5 +42,18 @@ export class ReferenceFile<Meta = unknown> extends AbstractFile<Reference, Meta>
     const record = this.data.find(record => record[property] === matches && record.group === group);
     if (record == null) return undefined;
     return record[take];
+  }
+
+  public suggest(property: string, matches: string, take: string): { key: string; value: string; group: string; }[] {
+    const fuse = new Fuse(this.data, {
+      keys: [property]
+    });
+
+    const results = fuse.search(matches);
+    return results.map(r => ({
+      key: r.item[property],
+      value: r.item[take],
+      group: r.item.group
+    }));
   }
 }
