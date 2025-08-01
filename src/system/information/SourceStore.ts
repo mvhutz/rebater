@@ -1,7 +1,7 @@
 import { Time } from "../../shared/time";
 import { AbstractStore } from "./AbstractStore";
 import { getSubFiles, getSubFolders } from "../util";
-import { AbstractFile } from "./RebateFile";
+import { AbstractFile } from "./items/AbstractFile";
 
 /** ------------------------------------------------------------------------- */
 
@@ -27,7 +27,9 @@ class Source extends AbstractFile<Buffer, { group: string, quarter: Time }> {
 
 interface Meta { directory: string };
 
-export class SourceStore extends AbstractStore<Source, Buffer, Meta> {
+export class SourceStore extends AbstractStore<Source, Meta> {
+  public readonly name = "sources";
+
   public async gather() {
     for (const [time_path, time_str] of await getSubFolders(this.meta.directory)) {
       const time = Time.parse(time_str);

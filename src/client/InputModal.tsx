@@ -10,7 +10,7 @@ import ModalDialog from '@mui/joy/ModalDialog';
 import Markdown from 'react-markdown';
 import { clearQuestions, getCurrentQuestion, popQuestion } from './store/slices/system';
 import { useAppDispatch, useAppSelector } from './store/hooks';
-import { Box, ButtonGroup, DialogActions, IconButton } from '@mui/joy';
+import { Box, ButtonGroup, DialogActions, IconButton, Sheet } from '@mui/joy';
 import NotificationsPausedRoundedIcon from '@mui/icons-material/NotificationsPausedRounded';
 
 /** ------------------------------------------------------------------------- */
@@ -57,12 +57,14 @@ function InputModal() {
           <form onSubmit={handleForm}>
             <DialogTitle>Rebator needs your help!</DialogTitle>
             <DialogContent>
-              <Markdown>
-                {question}
-              </Markdown>
+              <Sheet>
+                <Markdown>
+                  {question}
+                </Markdown>
+              </Sheet>
               <FormControl>
                 <FormLabel>Answer</FormLabel>
-                <Input name="answer" required />
+                <Input name="answer" required autoFocus={true} />
               </FormControl>
             </DialogContent>
             <DialogActions sx={{ mt: 2 }}>

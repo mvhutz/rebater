@@ -1,7 +1,7 @@
 {
   "name": "rebater",
   "productName": "Rebater",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A desktop application to automate Fuse Alliance's Rebate process for its distributors.",
   "main": ".vite/build/main.js",
   "scripts": {
@@ -12,8 +12,7 @@
     "linux": "electron-forge make --platform linux",
     "publish": "electron-forge publish",
     "lint": "eslint src/**/*.{ts,tsx}",
-    "test": "tsc && node dist/src/terminal.js",
-    "print": "tsc && node dist/src/print_new.js"
+    "test": "tsc && node dist/src/terminal.js"
   },
   "keywords": [],
   "author": {
@@ -69,6 +68,7 @@
     "@uidotdev/usehooks": "^2.4.1",
     "dotenv": "^17.2.0",
     "electron-squirrel-startup": "^1.0.1",
+    "fuse.js": "^7.1.0",
     "glob": "^11.0.3",
     "interprocess": "^0.2.6",
     "moment": "^2.30.1",

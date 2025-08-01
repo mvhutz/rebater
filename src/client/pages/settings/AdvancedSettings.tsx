@@ -13,7 +13,7 @@ import Typography from '@mui/joy/Typography';
 import AccordionDetails from '@mui/joy/AccordionDetails';
 import React from 'react';
 import { useAppDispatch, useAppSelector } from '../../../client/store/hooks';
-import { getSystemSettings, getTestSettings, setSystemTarget, setSystemTesting } from '../../../client/store/slices/system';
+import { getSystemSettings, getTestAll, getTestSettings, setSystemTarget, setSystemTestAll, setSystemTesting } from '../../../client/store/slices/system';
 import Switch from '@mui/joy/Switch';
 
 /** ------------------------------------------------------------------------- */
@@ -63,10 +63,15 @@ function TargetSettings() {
 
 function AdvancedSettings() {
   const doTesting = useAppSelector(getTestSettings);
+  const doCompareAll = useAppSelector(getTestAll);
   const dispatch = useAppDispatch();
 
   const handleTesting = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSystemTesting(event.target.checked));
+  }, [dispatch]);
+
+  const handleTestAll = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(setSystemTestAll(event.target.checked));
   }, [dispatch]);
 
   return (
@@ -87,6 +92,13 @@ function AdvancedSettings() {
                 <Switch checked={doTesting ?? false} onChange={handleTesting} />
               </Stack>
               <FormHelperText>If selected, the system will scrutinize its output against all rebate files in the "truth" folder and note any differences.</FormHelperText>
+            </FormControl>
+            <FormControl>
+              <Stack direction="row" alignItems="center" justifyContent="space-between">
+                <FormLabel>Compare All Suppliers</FormLabel>
+                <Switch disabled={!doTesting} checked={doCompareAll} onChange={handleTestAll} />
+              </Stack>
+              <FormHelperText>If selected, discrepancies will be checked in all suppliers, not only those produced by the transformers.</FormHelperText>
             </FormControl>
           </Stack>
         </Stack>

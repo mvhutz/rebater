@@ -1,7 +1,8 @@
 import { z } from "zod/v4";
-import { CSVDestination } from "./CSV";
+import { RebateDestination } from "./Rebate";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
+import { UtilityDestination } from "./Utility";
 
 /** ------------------------------------------------------------------------- */
 
@@ -11,9 +12,11 @@ export interface BaseDestination {
 }
 
 export const DESTINATION_SCHEMA: z.ZodType<BaseDestination> = z.union([
-  CSVDestination.SCHEMA
+  RebateDestination.SCHEMA,
+  UtilityDestination.SCHEMA
 ]);
 
 export const DESTINATION_XML_SCHEMA: z.ZodType<BaseDestination> = z.union([
-  CSVDestination.XML_SCHEMA
+  RebateDestination.XML_SCHEMA,
+  UtilityDestination.XML_SCHEMA
 ]);

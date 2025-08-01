@@ -10,7 +10,9 @@ import { Asker } from "./Asker";
 import { OutputStore } from "../information/OutputStore";
 import { TruthStore } from "../information/TruthStore";
 import { Counter } from "../information/Counter";
-import { ExcelRebateFile } from "../information/RebateFile";
+import { ExcelRebateFile } from "../information/items/ExcelRebateFile";
+import { UtilityStore } from "../information/UtilityStore";
+import z from "zod/v4";
 
 /** ------------------------------------------------------------------------- */
 
@@ -26,6 +28,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
   public readonly destinations: DestinationStore;
   public readonly truths: TruthStore;
   public readonly outputs: OutputStore;
+  public readonly utilities: UtilityStore;
   public readonly asker = new Asker();
 
   private running: boolean;
@@ -40,6 +43,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     this.destinations = new DestinationStore({ directory: settings.getAllDestinationPath() });
     this.outputs = new OutputStore({ directory: settings.getAllOutputPath() });
     this.truths = new TruthStore({ directory: settings.getAllTruthPath() });
+    this.utilities = new UtilityStore({ directory: settings.getAllUtilityPath() })
     this.running = false;
 
     this.emit("status", { type: "idle" });
@@ -66,9 +70,15 @@ export class Runner extends EventEmitter<RunnerEvents> {
     const expected_partitions = getPartition(expected, "supplierId");
 
     const results = new Array<DiscrepencyResult>();
+    const member_ids = new Set([...expected_partitions.keys(), ...actual_partitions.keys()]);
 
-    for (const [member_id, actual_partition_bucket] of actual_partitions) {
+    for (const member_id of member_ids) {
+      if (!this.settings.doCompareAll() && !actual_partitions.has(member_id)) {
+        continue;
+      }
+
       const expected_partition_bucket = expected_partitions.get(member_id) ?? [];
+      const actual_partition_bucket = actual_partitions.get(member_id) ?? [];
       const { drop, take } = this.compareRebates(actual_partition_bucket, expected_partition_bucket);
       results.push({ name: member_id, drop: drop, take: take });
     }
@@ -85,10 +95,11 @@ export class Runner extends EventEmitter<RunnerEvents> {
     await this.truths.load();
   }
 
-  private async save() {
+  public async save() {
     await this.destinations.save();
     await this.references.save();
     await this.outputs.save();
+    await this.utilities.save();
   }
 
   private async* iterator(): AsyncIterableIterator<SystemStatus> {
@@ -98,14 +109,26 @@ export class Runner extends EventEmitter<RunnerEvents> {
     }
 
     yield { type: "loading", message: "Reading transformers..." };
-    const transformers = await Transformer.pullAll(this.settings, true);
+    const transformers_unordered = await Transformer.pullAll(this.settings, true);
+    const transformers = Transformer.findValidOrder(transformers_unordered);
 
     yield { type: "loading", message: "Loading sources..." };
     await this.load();
 
     for (const [i, transformer] of transformers.entries()) {
       yield { type: "running", progress: i / transformers.length };
-      results.config.push(await transformer.run(this));
+      try {
+        results.config.push(await transformer.run(this));
+      } catch (error) {
+        const start = `While running ${transformer.name}:\n\n`;
+        if (error instanceof z.ZodError) {
+          throw Error(`${start}${z.prettifyError(error)}`);
+        } else if (error instanceof Error) {
+          throw Error(`${start}${error.message}`);
+        } else {
+          throw Error(`${start}${error}`);
+        }
+      }
     }
 
     if (this.settings.doTesting()) {

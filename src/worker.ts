@@ -59,7 +59,8 @@ function main() {
   })
 
   runner.run()
-    .catch(error => {
+    .catch(async error => {
+      await runner.save();
       if (error instanceof z.ZodError) {
         return sendError(z.prettifyError(error));
       } else if (error instanceof Error) {

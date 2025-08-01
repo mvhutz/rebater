@@ -20,20 +20,31 @@ export class ReferenceRow implements BaseRow {
   }
 
   private getQuestionFormat(group: string, take: string, table: string, value: string) {
-    return `For **\`${group}\`**, what is the **\`${take}\`** of this **\`${table}\`**?\n\n *\`${value}\`*`;
+    return `For *${group}*, what is the **\`${take}\`** of this **\`${table}\`**?\n\n *\`${value}\`*`;
   }
 
   async run(value: string, row: Row, runner: Runner): Promise<Maybe<string>> {
-    const result = runner.references.ask(this.table, this.match, value, this.take, this.group);
+    const reference = runner.references.get(this.table);
+    const result = reference.ask(this.match, value, this.take, this.group);
     if (result != null) {
       return result;
     }
 
-    const question = this.getQuestionFormat(this.group, this.take, this.table, value);
+    const suggestions = reference.suggest(this.match, value, this.take);
+    let question = this.getQuestionFormat(this.group, this.take, this.table, value);
+    if (suggestions.length > 0) {
+      question += "\n\nHere are some suggestions:\n"
+        + suggestions.slice(0, 3).map(s => `- **\`${s.value}\`** for *\`${s.key}\`*, in *${s.group}*.`).join("\n");
+    }
+
     const answer = await runner.asker.ask(question);
     if (answer == null) return null;
     
-    runner.references.answer(this.table, this.match, value, this.take, this.group, answer);
+    reference.insert([{
+      [this.match]: value,
+      [this.take]: answer,
+      group: this.group,
+    }]);
     
     return answer;
   }

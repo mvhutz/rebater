@@ -10,6 +10,7 @@ import { TransformerResult } from "../shared/worker/response";
 import { Runner } from "./runner/Runner";
 import builder from "xmlbuilder";
 import { fromText, makeNodeElementSchema, makeTextElementSchema } from "./xml";
+import assert from "assert";
 
 /** ------------------------------------------------------------------------- */
 
@@ -26,8 +27,9 @@ export class Transformer {
   private readonly properties: { name: string, definition: BaseRow[] }[];
   private readonly postprocess: BaseTable[];
   private readonly destinations: BaseDestination[];
+  private readonly requirements: string[];
 
-  public constructor(name: string, tags: string[], sources: BaseSource[], preprocess: BaseTable[], properties: { name: string, definition: BaseRow[] }[], postprocess: BaseTable[], destinations: BaseDestination[]) {
+  public constructor(name: string, tags: string[], sources: BaseSource[], preprocess: BaseTable[], properties: { name: string, definition: BaseRow[] }[], postprocess: BaseTable[], destinations: BaseDestination[], requirements: string[]) {
     this.name = name;
     this.tags = tags;
     this.sources = sources;
@@ -35,6 +37,7 @@ export class Transformer {
     this.properties = properties;
     this.postprocess = postprocess;
     this.destinations = destinations;
+    this.requirements = requirements;
   }
 
   public getInfo(): TransformerInfo {
@@ -86,6 +89,46 @@ export class Transformer {
     return transformers;
   }
 
+  public static findValidOrder(transformers: Transformer[]) {
+    const by_name = new Map<string, Transformer>();
+    
+    // No duplicates.
+    for (const transformer of transformers) {
+      assert.ok(!by_name.has(transformer.name), `Duplicate transformers named '${transformer.name}'!`);
+      by_name.set(transformer.name, transformer);
+    }
+
+    // Is closed.
+    for (const [, transformer] of by_name) {
+      for (const requirement of transformer.requirements) {
+        assert.ok(by_name.has(requirement), `Transformer '${transformer.name}' requires '${requirement}', which it cannot find!`);
+      }
+    }
+
+    // Find topological ordering.
+    const stack: Transformer[] = [];
+    const visited = new WeakSet<Transformer>();
+
+    function DFS(node: Transformer) {
+      visited.add(node);
+
+      for (const neighbor_hash of node.requirements) {
+        const neighbor = by_name.get(neighbor_hash);
+        if (neighbor == null || visited.has(neighbor)) continue;
+        DFS(neighbor);
+      }
+
+      stack.push(node);
+    }
+
+    for (const transformer of transformers) {
+      if(visited.has(transformer)) continue;
+      DFS(transformer);
+    }
+
+    return stack;
+  }
+
   public async runRow(runner: Runner, row: Row) {
     const result = new Array<string>();
 
@@ -103,7 +146,7 @@ export class Transformer {
 
   public async run(runner: Runner): Promise<TransformerResult> {
     const start = performance.now();
-    const source_data = this.sources.map(s => s.run(runner)).flat(1);
+    const source_data = (await Promise.all(this.sources.map(s => s.run(runner)))).flat(1);
     const preprocessed_data = (await Promise.all(source_data.map(d => runManyTables(this.preprocess, d, runner))));
     
     const recombined = rewire({
@@ -198,14 +241,15 @@ export class Transformer {
     name: z.string(),
     tags: z.array(z.string()).default([]),
     sources: z.array(SOURCE_SCHEMA),
-    preprocess: z.array(TABLE_SCHEMA).optional(),
+    requirements: z.array(z.string()).default([]),
+    preprocess: z.array(TABLE_SCHEMA).default([]),
     properties: z.array(z.strictObject({
       name: z.string(),
       definition: z.array(ROW_SCHEMA)
     })),
-    postprocess: z.array(TABLE_SCHEMA).optional(),
+    postprocess: z.array(TABLE_SCHEMA).default([]),
     destination: DESTINATION_SCHEMA,
-  }).transform(s => new Transformer(s.name, s.tags, s.sources, s.preprocess ?? [], s.properties, s.postprocess ?? [], [s.destination]));
+  }).transform(s => new Transformer(s.name, s.tags, s.sources, s.preprocess, s.properties, s.postprocess, [s.destination], s.requirements));
 
   private static parseInitialXML(data: z.infer<typeof Transformer.XML_SCHEMA_INITIAL>) {
     const { children } = data;
@@ -217,6 +261,7 @@ export class Transformer {
     const properties: { name: string, definition: BaseRow[] }[] = [];
     const postprocess: BaseTable[] = [];
     const destinations: BaseDestination[] = [];
+    const requirements: string[] = [];
     
     for (const child of children) {
       switch (child.name) {
@@ -241,10 +286,12 @@ export class Transformer {
         case "destinations":
           destinations.push(...child.children);
           break;
+        case "requires":
+          requirements.push(child.children[0].text);
       }
     }
 
-    return new Transformer(name, tags, sources, preprocess, properties, postprocess, destinations);
+    return new Transformer(name, tags, sources, preprocess, properties, postprocess, destinations, requirements);
   }
 
   private static readonly XML_SCHEMA_INITIAL = makeNodeElementSchema("transformer", z.undefined(),
@@ -253,6 +300,9 @@ export class Transformer {
         makeTextElementSchema(z.string())
       ])),
       makeNodeElementSchema("tag", z.undefined(), z.tuple([
+        makeTextElementSchema(z.string())
+      ])),
+      makeNodeElementSchema("requires", z.undefined(), z.tuple([
         makeTextElementSchema(z.string())
       ])),
       makeNodeElementSchema("sources", z.undefined(), z.array(

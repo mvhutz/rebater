@@ -16,6 +16,7 @@ export const DEFAULT_SETTINGS: SettingsData = {
   },
   advanced: {
     target: { type: "basic" },
+    doCompareAll: false,
   }
 };
 
@@ -39,6 +40,7 @@ export class Settings {
         directory: z.string().optional(),
       }),
       doTesting: z.boolean().optional(),
+      doCompareAll: z.boolean().default(false),
     })
   });
 
@@ -82,6 +84,10 @@ export class Settings {
     return this.testing;
   }
 
+  doCompareAll(): boolean {
+    return this.data.advanced.doCompareAll;
+  }
+
   getSingleReferencePath(name: string) {
     return path.join(this.directory, "tables", `${name}.csv`);
   }
@@ -120,6 +126,14 @@ export class Settings {
 
   getAllTruthPath() {
     return path.join(this.directory, "truth");
+  }
+
+  getAllUtilityPath() {
+    return path.join(this.directory, "utility");
+  }
+
+  getUtilityPath(name: string) {
+    return path.join(this.directory, "utility", this.time.toString(), `${name}.csv`);
   }
 
   getTruthPathGlob() {
