@@ -23,7 +23,7 @@ export class ConcatRow implements BaseRow {
 
   async run(value: string, row: Row, runner: Runner): Promise<string> {
     const other_value = await runMany(this.other, row, runner);
-    return other_value + this.separator + value;
+    return value + this.separator + other_value;
   }
 
   buildXML(from: XMLElement): void {
