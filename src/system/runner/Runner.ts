@@ -12,6 +12,7 @@ import { TruthStore } from "../information/TruthStore";
 import { Counter } from "../information/Counter";
 import { ExcelRebateFile } from "../information/items/ExcelRebateFile";
 import { UtilityStore } from "../information/UtilityStore";
+import z from "zod/v4";
 
 /** ------------------------------------------------------------------------- */
 
@@ -116,7 +117,18 @@ export class Runner extends EventEmitter<RunnerEvents> {
 
     for (const [i, transformer] of transformers.entries()) {
       yield { type: "running", progress: i / transformers.length };
-      results.config.push(await transformer.run(this));
+      try {
+        results.config.push(await transformer.run(this));
+      } catch (error) {
+        const start = `While running ${transformer.name}:\n\n`;
+        if (error instanceof z.ZodError) {
+          throw Error(`${start}${z.prettifyError(error)}`);
+        } else if (error instanceof Error) {
+          throw Error(`${start}${error.message}`);
+        } else {
+          throw Error(`${start}${error}`);
+        }
+      }
     }
 
     if (this.settings.doTesting()) {

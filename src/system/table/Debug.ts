@@ -1,9 +1,10 @@
 import { z } from "zod/v4";
-import { RebateDestination } from "../destination/Rebate";
 import { BaseTable } from ".";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema } from "../xml";
+import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
+import { UtilityDestination } from "../destination/Utility";
+import path from "path";
 
 /** ------------------------------------------------------------------------- */
 
@@ -13,25 +14,27 @@ export class DebugTable implements BaseTable {
     name: z.string().default("default"),
   }).transform(s => new DebugTable(s.name));
 
-  private readonly destination: RebateDestination;
+  private readonly name: string;
 
   public constructor(name: string) {
-    this.destination = new RebateDestination(name);
+    this.name = name;
   }
 
   async run(table: Table, runner: Runner): Promise<Table> {
-    this.destination.run(table, runner);
+    const true_name = `debug/${this.name}/${path.parse(table.path).name}`;
+    const utility = new UtilityDestination(true_name);
+    utility.run(table, runner);
     return table;
   }
 
   buildXML(from: XMLElement): void {
-    from.element("debug");
+    from.element("debug", undefined, this.name);
   }
 
   public static readonly XML_SCHEMA = makeNodeElementSchema("debug",
-    z.strictObject({
-      name: z.string().default("default")
-    }),
-    z.undefined())
-    .transform(({ attributes: a }) => new DebugTable(a.name));
+    z.undefined(),
+    z.tuple([
+      makeTextElementSchema(z.string())
+    ]))
+    .transform(({ children: c }) => new DebugTable(c[0].text));
 }

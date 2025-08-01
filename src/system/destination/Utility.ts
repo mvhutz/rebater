@@ -15,7 +15,7 @@ export class UtilityDestination implements BaseDestination {
     name: z.string(),
   }).transform(s => new UtilityDestination(s.name));
 
-  private name: string;
+  public readonly name: string;
 
   public constructor(name: string) {
     this.name = name;

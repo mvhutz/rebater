@@ -46,7 +46,8 @@ export class ReferenceFile<Meta = unknown> extends AbstractFile<Reference, Meta>
 
   public suggest(property: string, matches: string, take: string): { key: string; value: string; group: string; }[] {
     const fuse = new Fuse(this.data, {
-      keys: [property]
+      keys: [property],
+      threshold: 0.2
     });
 
     const results = fuse.search(matches);
