@@ -12,8 +12,7 @@
     "linux": "electron-forge make --platform linux",
     "publish": "electron-forge publish",
     "lint": "eslint src/**/*.{ts,tsx}",
-    "test": "tsc && node dist/src/terminal.js",
-    "print": "tsc && node dist/src/print_new.js"
+    "test": "tsc && node dist/src/terminal.js"
   },
   "keywords": [],
   "author": {

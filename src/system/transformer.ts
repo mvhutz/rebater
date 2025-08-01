@@ -146,7 +146,7 @@ export class Transformer {
 
   public async run(runner: Runner): Promise<TransformerResult> {
     const start = performance.now();
-    const source_data = this.sources.map(s => s.run(runner)).flat(1);
+    const source_data = (await Promise.all(this.sources.map(s => s.run(runner)))).flat(1);
     const preprocessed_data = (await Promise.all(source_data.map(d => runManyTables(this.preprocess, d, runner))));
     
     const recombined = rewire({

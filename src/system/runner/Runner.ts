@@ -69,9 +69,15 @@ export class Runner extends EventEmitter<RunnerEvents> {
     const expected_partitions = getPartition(expected, "supplierId");
 
     const results = new Array<DiscrepencyResult>();
+    const member_ids = new Set([...expected_partitions.keys(), ...actual_partitions.keys()]);
 
-    for (const [member_id, actual_partition_bucket] of actual_partitions) {
+    for (const member_id of member_ids) {
+      if (!this.settings.doCompareAll() && !actual_partitions.has(member_id)) {
+        continue;
+      }
+
       const expected_partition_bucket = expected_partitions.get(member_id) ?? [];
+      const actual_partition_bucket = actual_partitions.get(member_id) ?? [];
       const { drop, take } = this.compareRebates(actual_partition_bucket, expected_partition_bucket);
       results.push({ name: member_id, drop: drop, take: take });
     }

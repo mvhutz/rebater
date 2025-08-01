@@ -16,6 +16,7 @@ export const DEFAULT_SETTINGS: SettingsData = {
   },
   advanced: {
     target: { type: "basic" },
+    doCompareAll: false,
   }
 };
 
@@ -39,6 +40,7 @@ export class Settings {
         directory: z.string().optional(),
       }),
       doTesting: z.boolean().optional(),
+      doCompareAll: z.boolean().default(false),
     })
   });
 
@@ -80,6 +82,10 @@ export class Settings {
 
   doTesting(): boolean {
     return this.testing;
+  }
+
+  doCompareAll(): boolean {
+    return this.data.advanced.doCompareAll;
   }
 
   getSingleReferencePath(name: string) {

@@ -47,6 +47,9 @@ export const SystemSlice = createSlice({
     setSystemTesting: (state, action: PayloadAction<boolean>) => {
       state.settings.data.advanced.doTesting = action.payload;
     },
+    setSystemTestAll: (state, action: PayloadAction<boolean>) => {
+      state.settings.data.advanced.doCompareAll = action.payload;
+    },
     setTransformersNames: (state, action: PayloadAction<Maybe<string[]>>) => {
       state.settings.data.transformers.names.include = action.payload ?? undefined;
     },
@@ -137,13 +140,15 @@ export const SystemSlice = createSlice({
 
 export const {
   setStatus, setSystemTarget, setSystemQuarter, setSystemYear, setSystemTesting,
-  setTransformersNames, setTransformersTags, pushQuestion, popQuestion, clearQuestions
+  setTransformersNames, setTransformersTags, pushQuestion, popQuestion, clearQuestions,
+  setSystemTestAll
 } = SystemSlice.actions
 
 export const getSystemStatus = (state: RootState) => state.system.status;
 export const getSystemSettings = (state: RootState) => state.system.settings;
 export const getContextSettings = (state: RootState) => state.system.settings.data.context;
 export const getTestSettings = (state: RootState) => state.system.settings.data.advanced.doTesting;
+export const getTestAll = (state: RootState) => state.system.settings.data.advanced.doCompareAll;
 export const getTransformers = (state: RootState) => state.system.transformers;
 export const getTransformersSettings = (state: RootState) => state.system.settings.data.transformers;
 export const getCurrentQuestion = (state: RootState) => state.system.questions[0];
