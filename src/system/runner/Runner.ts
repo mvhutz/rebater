@@ -57,6 +57,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     expected.forEach(r => actual_set.take(r));
 
     return {
+      match: actual.length - actual_set.values().length,
       drop: actual_set.values().map(getRebateHash),
       take: expected_set.values().map(getRebateHash),
     }
@@ -79,8 +80,8 @@ export class Runner extends EventEmitter<RunnerEvents> {
 
       const expected_partition_bucket = expected_partitions.get(member_id) ?? [];
       const actual_partition_bucket = actual_partitions.get(member_id) ?? [];
-      const { drop, take } = this.compareRebates(actual_partition_bucket, expected_partition_bucket);
-      results.push({ name: member_id, drop: drop, take: take });
+      const { drop, take, match } = this.compareRebates(actual_partition_bucket, expected_partition_bucket);
+      results.push({ name: member_id, drop, take, match });
     }
 
     return results;

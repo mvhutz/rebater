@@ -33,6 +33,7 @@ export type TransformerResult = z.infer<typeof TransformerResultSchema>;
 
 const DiscrepencyResultSchema = z.object({
   name: z.string(),
+  match: z.number(),
   take: z.array(z.string()),
   drop: z.array(z.string())
 });
