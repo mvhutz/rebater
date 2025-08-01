@@ -167,15 +167,18 @@ export class Settings {
     }
 
     const time_parse = Time.SCHEMA.safeParse(data_parse.data.context);
+    let time: Time;
     if (!time_parse.success) {
-      return bad(z.prettifyError(time_parse.error));
+      time = new Time(0, 1);
+    } else {
+      time = time_parse.data;
     }
 
     const { target: {directory}, doTesting = false } = data_parse.data.advanced;
     if (directory == null) return bad("You must specify a target directory.");
 
 
-    const iface = new Settings(directory, time_parse.data, doTesting, data_parse.data);
+    const iface = new Settings(directory, time, doTesting, data_parse.data);
     return good(iface);
   }
 }
