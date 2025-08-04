@@ -1,4 +1,4 @@
-import { bad, good, Reply } from "../../reply";
+import { good, Reply } from "../../reply";
 import { readdir } from "fs/promises";
 import moment from "moment";
 import { getSettingsInterface } from "./getSettings";
@@ -19,14 +19,10 @@ export async function getAllQuarters(): Promise<Reply<TimeData[]>> {
     if (!directory.isDirectory()) continue;
 
     const time = moment(directory.name, SOURCE_FOLDER_FORMAT);
-    if (!time.isValid()) {
-      return bad(`Time ${directory.name} is not a valid quarter!`);
-    }
+    if (!time.isValid()) continue;
 
     const quarter = time.quarter();
-    if (quarter !== 1 && quarter !== 2 && quarter !== 3 && quarter !== 4) {
-      return bad(`Quarter ${quarter} is not a valid quarter!`);
-    }
+    if (quarter !== 1 && quarter !== 2 && quarter !== 3 && quarter !== 4) continue;
 
     quarters.push({ year: time.year(), quarter });
   }
