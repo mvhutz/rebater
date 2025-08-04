@@ -22,7 +22,11 @@ export class UtilityRow implements BaseRow {
 
   async run(value: string, row: Row, runner: Runner): Promise<Maybe<string>> {
     const utility = runner.utilities.get(this.table);
-    const result = utility.ask(this.match, value, this.take, this.group);
+    const result = utility.ask({
+      [this.match]: value,
+      group: this.group,
+    }, this.take);
+    
     assert.ok(result != null, `Table '${this.table}' has no '${this.match}' for '${value}'.`);
     
     return result;

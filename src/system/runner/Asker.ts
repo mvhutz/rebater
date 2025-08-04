@@ -1,25 +1,27 @@
 import EventEmitter from "events";
+import { Question } from "../../shared/worker/response";
+import { Answer } from "../../shared/worker/request";
 
 /** ------------------------------------------------------------------------- */
 
 interface AskerEvents {
-  ask: [string]
+  ask: [Question]
 }
 
 export class Asker extends EventEmitter<AskerEvents> {
-  private data = new Map<string, PromiseWithResolvers<Maybe<string>>>();
+  private data = new Map<string, PromiseWithResolvers<Answer>>();
   private ignore_all = false;
 
   public ignoreAll() {
     this.ignore_all = true;
 
-    for (const [, resolvers] of this.data) {
-      resolvers.resolve(undefined);
+    for (const [hash, resolvers] of this.data) {
+      resolvers.resolve({ hash, answer: undefined });
     }
   }
 
-  public answer(question: string, answer?: string): void {
-    const existing_answer = this.data.get(question);
+  public answer(answer: Answer): void {
+    const existing_answer = this.data.get(answer.hash);
     if (existing_answer == null) {
       return;
     }
@@ -27,18 +29,18 @@ export class Asker extends EventEmitter<AskerEvents> {
     existing_answer.resolve(answer);
   }
 
-  public ask(question: string): Promise<Maybe<string>> {
+  public ask(question: Question): Promise<Answer> {
     if (this.ignore_all) {
-      return Promise.resolve(undefined);
+      return Promise.resolve({ hash: question.hash, answer: undefined });
     }
   
-    const existing_answer = this.data.get(question);
+    const existing_answer = this.data.get(question.hash);
     if (existing_answer != null) {
       return existing_answer.promise;
     }
 
-    const new_answer = Promise.withResolvers<Maybe<string>>();
-    this.data.set(question, new_answer);
+    const new_answer = Promise.withResolvers<Answer>();
+    this.data.set(question.hash, new_answer);
     this.emit("ask", question);
     return new_answer.promise;
   }

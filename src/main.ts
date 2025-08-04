@@ -48,7 +48,7 @@ async function createWindow() {
   ipcMain.handle.answerQuestion(async (_, { data }) => {
     if (worker == null) return bad("System is not running!");
 
-    worker.postMessage({ type: "answer", question: data.question, answer: data.value } as WorkerRequest);
+    worker.postMessage({ type: "answer", ...data } as WorkerRequest);
     return good(undefined);
   });
 
@@ -107,7 +107,7 @@ async function createWindow() {
           ipcMain.invoke.runnerUpdate(mainWindow, data.status);
         } break;
         case "question": {
-          ipcMain.invoke.runnerQuestion(mainWindow, data.question);
+          ipcMain.invoke.runnerQuestion(mainWindow, data);
         }
       }
     });

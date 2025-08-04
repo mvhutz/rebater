@@ -18,6 +18,7 @@ import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
 import { UtilityRow } from "./Utility";
 import { SubtractRow } from "./Subtract";
+import { SearchRow } from "./Search";
 
 /** ------------------------------------------------------------------------- */
 
@@ -43,7 +44,8 @@ export const ROW_SCHEMA: z.ZodType<BaseRow> = z.union([
   DivideRow.SCHEMA,
   SumRow.SCHEMA,
   UtilityRow.SCHEMA,
-  SubtractRow.SCHEMA
+  SubtractRow.SCHEMA,
+  SearchRow.SCHEMA,
 ]);
 
 export const ROW_XML_SCHEMA: z.ZodType<BaseRow> = z.union([
@@ -63,7 +65,8 @@ export const ROW_XML_SCHEMA: z.ZodType<BaseRow> = z.union([
   DivideRow.XML_SCHEMA,
   SumRow.XML_SCHEMA,
   UtilityRow.XML_SCHEMA,
-  SubtractRow.XML_SCHEMA
+  SubtractRow.XML_SCHEMA,
+  SearchRow.XML_SCHEMA
 ]);
 
 export async function runMany(rows: BaseRow[], row: Row, runner: Runner): Promise<Maybe<string>> {

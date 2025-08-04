@@ -25,28 +25,35 @@ export class ReferenceRow implements BaseRow {
 
   async run(value: string, row: Row, runner: Runner): Promise<Maybe<string>> {
     const reference = runner.references.get(this.table);
-    const result = reference.ask(this.match, value, this.take, this.group);
+    const result = reference.ask({
+      [this.match]: value,
+      group: this.group,
+    }, this.take);
+    
     if (result != null) {
       return result;
     }
 
+    const question = this.getQuestionFormat(this.group, this.take, this.table, value);
     const suggestions = reference.suggest(this.match, value, this.take);
-    let question = this.getQuestionFormat(this.group, this.take, this.table, value);
-    if (suggestions.length > 0) {
-      question += "\n\nHere are some suggestions:\n"
-        + suggestions.slice(0, 3).map(s => `- **\`${s.value}\`** for *\`${s.key}\`*, in *${s.group}*.`).join("\n");
-    }
 
-    const answer = await runner.asker.ask(question);
+    const { answer } = await runner.asker.ask({
+      table: this.table,
+      hash: question,
+      known: {
+        [this.match]: value,
+        group: this.group,
+      },
+      optional: [],
+      unknown: this.take,
+      suggestions: suggestions.slice(0, 3).map(s => (
+        `**\`${s.value}\`** for *\`${s.key}\`*, in *${s.group}*.`
+      )),
+    });
     if (answer == null) return null;
     
-    reference.insert([{
-      [this.match]: value,
-      [this.take]: answer,
-      group: this.group,
-    }]);
-    
-    return answer;
+    reference.insert([answer]);
+    return answer[this.take];
   }
 
   public static readonly SCHEMA = z.strictObject({

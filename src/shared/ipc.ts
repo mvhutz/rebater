@@ -9,7 +9,8 @@ import { openOutputFile } from "./ipc/system/openOutputFile";
 import { getAllQuarters } from "./ipc/system/getAllQuarters";
 import { createQuarter } from "./ipc/system/createQuarter";
 import { SettingsData } from "./settings";
-import { SystemStatus } from "./worker/response";
+import { Question, SystemStatus } from "./worker/response";
+import { Answer } from "./worker/request";
 
 /** ------------------------------------------------------------------------- */
 
@@ -47,7 +48,7 @@ const IPC = createInterprocess({
     async cancelProgram(): Promise<Reply> {
       return good(undefined);
     },
-    async answerQuestion(_, answer: { question: string, value: Maybe<string> }): Promise<Reply> {
+    async answerQuestion(_, answer: Answer): Promise<Reply> {
       void [answer];
 
       return good(undefined);
@@ -65,7 +66,7 @@ const IPC = createInterprocess({
     async runnerUpdate(_, runner_status: SystemStatus) {
       void [runner_status];
     },
-    async runnerQuestion(_, question: string) {
+    async runnerQuestion(_, question: Question) {
       void [question];
     }
   }

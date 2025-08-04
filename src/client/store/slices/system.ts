@@ -5,7 +5,7 @@ import { resource, Resource, ResourceStatus } from '../../../shared/resource';
 import { killSystem, pullAllQuarters, pullSystemSettings, pullTransformers, pushSystemSettings, startSystem } from './thunk';
 import { bad, Reply } from '../../../shared/reply';
 import { TimeData } from '../../../shared/time';
-import { SystemStatus } from '../../../shared/worker/response';
+import { Question, SystemStatus } from '../../../shared/worker/response';
 import { TransformerInfo } from '../../../system/transformer';
 
 /** ------------------------------------------------------------------------- */
@@ -15,7 +15,7 @@ interface SystemState {
   settings: Resource<SettingsData>;
   transformers: Reply<TransformerInfo[]>;
   quarters: Resource<TimeData[]>;
-  questions: string[];
+  questions: Question[];
 }
 
 const initialState: SystemState = {
@@ -56,7 +56,7 @@ export const SystemSlice = createSlice({
     setTransformersTags: (state, action: PayloadAction<Maybe<string[]>>) => {
       state.settings.data.transformers.tags.include = action.payload ?? undefined;
     },
-    pushQuestion: (state, action: PayloadAction<string>) => {
+    pushQuestion: (state, action: PayloadAction<Question>) => {
       state.questions.push(action.payload);
     },
     popQuestion: (state) => {

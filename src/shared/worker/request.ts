@@ -4,11 +4,12 @@ import z from "zod/v4";
 
 const AnswerWorkerRequestSchema = z.object({
   type: z.literal("answer"),
-  question: z.string(),
-  answer: z.string().optional(),
+  hash: z.string(),
+  answer: z.record(z.string(), z.string()).optional(),
 });
 
 export type AnswerWorkerRequest = z.infer<typeof AnswerWorkerRequestSchema>;
+export type Answer = Omit<AnswerWorkerRequest, "type">;
 
 /** ------------------------------------------------------------------------- */
 

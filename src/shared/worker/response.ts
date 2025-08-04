@@ -4,8 +4,15 @@ import { z } from 'zod/v4';
 
 export const QuestionWorkerResponseSchema = z.object({
   type: z.literal("question"),
-  question: z.string()
+  table: z.string(),
+  hash: z.string(),
+  unknown: z.string(),
+  known: z.record(z.string(), z.string()),
+  optional: z.array(z.string()).default([]),
+  suggestions: z.array(z.string()).default([])
 });
+
+export type Question = Omit<z.infer<typeof QuestionWorkerResponseSchema>, "type">;
 
 /** ------------------------------------------------------------------------- */
 

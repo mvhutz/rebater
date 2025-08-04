@@ -38,10 +38,24 @@ export class ReferenceFile<Meta = unknown> extends AbstractFile<Reference, Meta>
     return ReferenceSchema.parse(data);
   }
 
-  public ask(property: string, matches: string, take: string, group: string): Maybe<string> {
-    const record = this.data.find(record => record[property] === matches && record.group === group);
-    if (record == null) return undefined;
-    return record[take];
+  private match(ask: Record<string, string>, datum: Record<string, string>) {
+    for (const [property, value] of Object.entries(ask)) {
+      if (datum[property] !== "*" && datum[property] !== value) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  public ask(known: Record<string, string>, unknown: string): Maybe<string> {
+    for (const datum of this.data) {
+      if (this.match(known, datum)) {
+        return datum[unknown];
+      }
+    }
+
+    return null;
   }
 
   public suggest(property: string, matches: string, take: string): { key: string; value: string; group: string; }[] {

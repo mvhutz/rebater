@@ -41,12 +41,12 @@ function main() {
   const runner = new Runner(settings_reply.data);
 
   runner.on("status", status => send({ type: "status", status }));
-  runner.asker.on("ask", question => send({ type: "question", question }));
+  runner.asker.on("ask", question => send({ type: "question", ...question }));
 
   onReceive(async request => {
     switch (request.type) {
       case "answer":
-        runner.asker.answer(request.question, request.answer);
+        runner.asker.answer(request);
         break;
       case "exit":
         runner.asker.ignoreAll();
