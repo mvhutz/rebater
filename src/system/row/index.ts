@@ -19,6 +19,8 @@ import { XMLElement } from "xmlbuilder";
 import { UtilityRow } from "./Utility";
 import { SubtractRow } from "./Subtract";
 import { SearchRow } from "./Search";
+import { SignumRow } from "./Sign";
+import { AbsoluteRow } from "./Absolute";
 
 /** ------------------------------------------------------------------------- */
 
@@ -46,6 +48,8 @@ export const ROW_SCHEMA: z.ZodType<BaseRow> = z.union([
   UtilityRow.SCHEMA,
   SubtractRow.SCHEMA,
   SearchRow.SCHEMA,
+  SignumRow.SCHEMA,
+  AbsoluteRow.SCHEMA,
 ]);
 
 export const ROW_XML_SCHEMA: z.ZodType<BaseRow> = z.union([
@@ -66,7 +70,9 @@ export const ROW_XML_SCHEMA: z.ZodType<BaseRow> = z.union([
   SumRow.XML_SCHEMA,
   UtilityRow.XML_SCHEMA,
   SubtractRow.XML_SCHEMA,
-  SearchRow.XML_SCHEMA
+  SearchRow.XML_SCHEMA,
+  SignumRow.XML_SCHEMA,
+  AbsoluteRow.XML_SCHEMA,
 ]);
 
 export async function runMany(rows: BaseRow[], row: Row, runner: Runner): Promise<Maybe<string>> {

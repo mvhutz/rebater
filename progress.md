@@ -4,14 +4,14 @@ Shows the progress towards full compatibility with Q3, Q2, and Q3.
 
 ## American Olean
 
-- [x] **Q1**. Distributor "BUILDING PLASTICS INC-MEMPHIS" is recorded as "Belknap White". Dates formatted as MM/DD/YY, instead of M/D/YYYY. Uses "SAP Invoice" instead of "Reference" for invoice number.
+- [x] **Q1**. Distributor "BUILDING PLASTICS INC-MEMPHIS" is recorded as "Belknap White". Uses "SAP Invoice" instead of "Reference" for invoice number.
 - [x] **Q2**. Distributors "SSC Phoenix West, AZ" and "METRO SURFACES LLC" are recorded as "American Olean". But, in Q3/Q4, they are "Sales Service Center" and "Metro Surfaces", respectively.
 - [x] **Q3**.
 - [x] **Q4**.
 
 ## Ardex
 
-- [x] **Q1**. Contains December 23 in report. Different date format.
+- [x] **Q1**. Contains December 23 in report.
 - [x] **Q2**. March in Q2 report. "Inside Edge Commercial Interior Services" reported as 1481, instead of 1474.
 - [x] **Q3**.
 - [x] **Q4**. "Floor & Home (The Showroom)" reported as 1519, instead of 1518.
@@ -46,143 +46,147 @@ Shows the progress towards full compatibility with Q3, Q2, and Q3.
 
 ## Cain & Bultman
 
-- [ ] **Q1**.
-- [ ] **Q2**.
-- [ ] **Q3**.
-- [ ] **Q4**.
+- [x] **Q1**.
+- [x] **Q2**.
+- [x] **Q3**.
+- [x] **Q4**. No sources, cannot test.
 
 ## EF Contract
 
-- [ ] **Q1**.
-- [ ] **Q2**.
-- [ ] **Q3**.
-- [ ] **Q4**.
+- [x] **Q1**.
+- [x] **Q2**.
+- [x] **Q3**.
+- [x] **Q4**. No issues.
 
 ## Esmer Tile
 
-- [ ] **Q1**.
-- [ ] **Q2**.
-- [ ] **Q3**.
-- [ ] **Q4**.
+- [x] **Q1**.
+- [x] **Q2**. There is a record for $79.81, which appears nowhere. Ignores essential rebate part.
+- [x] **Q3**.
+- [x] **Q4**. "CONTINENTAL COMMERCIAL FLOORS" reported as 1116, instead of 1157.
+
+---
 
 ## Flexco
 
-- [ ] **Q1**.
-- [ ] **Q2**.
-- [ ] **Q3**.
-- [ ] **Q4**.
+- [x] **Q1**.
+- [x] **Q2**.
+- [x] **Q3**.
+- [x] **Q4**. No issues.
 
 ## Futura
 
-- [ ] **Q1**.
-- [ ] **Q2**.
-- [ ] **Q3**.
-- [ ] **Q4**.
+- [x] **Q1**. "STUART & ASSOCIATES COMMERCIAL FLOO (109953)" reported as 1029 instead of 1371.
+- [x] **Q2**. Unknown invoice "8086710.001".
+- [x] **Q3**. "Midwest" reported as "Galleher".
+- [x] **Q4**.
 
 ## Gallaher
 
-- [ ] **Q1**.
-- [ ] **Q2**.
-- [ ] **Q3**.
-- [ ] **Q4**.
+- [x] **Q1**.
+- [x] **Q2**.
+- [x] **Q3**.
+- [x] **Q4**. Records rebates of $0.
 
 ## Gerflor-US
 
-- [ ] **Q1**.
-- [ ] **Q2**.
-- [ ] **Q3**.
-- [ ] **Q4**.
+- [x] **Q1**.
+- [x] **Q2**.
+- [x] **Q3**.
+- [x] **Q4**. No issues.
 
 ## GrassTex
 
-- [ ] **Q1**.
-- [ ] **Q2**.
-- [ ] **Q3**.
-- [ ] **Q4**.
+- [x] **Q1**. No March source given.
+- [x] **Q2**.
+- [x] **Q3**.
+- [x] **Q4**.
 
 ## HB Fuller
 
-- [ ] **Q1**.
-- [ ] **Q2**.
-- [ ] **Q3**.
-- [ ] **Q4**.
+- [x] **Q1**. Somehow even worse time format for #8164192001 and #8192812002.
+- [x] **Q2**. Q3. Incorrectly placed #8221710002 and #8288922001 in March.
+- [x] **Q3**. No coalesce. Ignore PARABOND and CHAPCO.
+- [x] **Q4**. Record #1175533 not reported.
 
 ## HMTX Industries
 
-- [ ] **Q1**.
-- [ ] **Q2**.
-- [ ] **Q3**.
-- [ ] **Q4**.
+- [x] **Q1**. Reports distributor as "Shannon Specialty Floors".
+- [x] **Q2**.
+- [x] **Q3**.
+- [x] **Q4**.
 
 ## JJ Group
 
-- [ ] **Q1**.
-- [ ] **Q2**.
-- [ ] **Q3**.
-- [ ] **Q4**.
+- [x] **Q1**.
+- [x] **Q2**. Reports "COMMERCIAL FLOORING SYSTEMS" as 1063 instead of 1359.
+- [x] **Q3**. Reports "WRIGHT COMMERCIAL FLOORS LLC" and "CONTINENTAL OFFICE FURNITURE" as 1116.
+- [x] **Q4**. Reports "COMMERCIAL FLOORING SYSTEMS" as 1063 instead of 1359.
 
 ## Johnsonite
 
-- [ ] **Q1**.
-- [ ] **Q2**.
-- [ ] **Q3**.
-- [ ] **Q4**.
+- [x] **Q1**.
+- [x] **Q2**.
+- [x] **Q3**. Inside Edge flattened to 1474.
+- [x] **Q4**. Inside Edge flattened to 1474.
 
 ## Kahrs-Upo
 
-- [ ] **Q1**.
-- [ ] **Q2**.
-- [ ] **Q3**.
-- [ ] **Q4**.
+- [x] **Q1**.
+- [x] **Q2**.
+- [x] **Q3**.
+- [x] **Q4**. No issues.
 
 ## Karndean
 
-- [ ] **Q1**.
-- [ ] **Q2**.
-- [ ] **Q3**.
-- [ ] **Q4**.
+- [x] **Q1**. 3 records do not exist, nor have ID. 1 records has an ID, but that records still does not exist.
+- [x] **Q2**. "Steinberger Floors" reported as 1116, instead of 1534. 4 records with no invoice ID that do not exist.
+- [x] **Q3**. 12 records with no invoice ID do not exist.
+- [x] **Q4**.
 
 ## Kuberit
 
-- [ ] **Q1**.
-- [ ] **Q2**.
-- [ ] **Q3**.
-- [ ] **Q4**.
+- [x] **Q1**. Reports "Commercial Flooring Dist" as CDC.
+- [x] **Q2**. Reports "Commercial Flooring Dist" as CDC.
+- [x] **Q3**. Reports "Commercial Flooring Dist" as CDC.
+- [x] **Q4**.
 
 ## Mapei
 
-- [ ] **Q1**.
-- [ ] **Q2**.
-- [ ] **Q3**.
-- [ ] **Q4**.
+- [x] **Q1**. Many issues.
+- [x] **Q2**. No Kelowna. (BECAUSE IT IS NOT A MEMBER)
+- [x] **Q3**. Small differences in member ID.
+- [x] **Q4**.
 
 ## Matter Surfaces
 
-- [ ] **Q1**.
-- [ ] **Q2**.
-- [ ] **Q3**.
-- [ ] **Q4**.
+- [x] **Q1**.
+- [x] **Q2**. PDF. Cannot do.
+- [x] **Q3**.
+- [x] **Q4**.
 
 ## Maxxon
 
 - [ ] **Q1**.
 - [ ] **Q2**.
 - [ ] **Q3**.
-- [ ] **Q4**.
+- [ ] **Q4**. Complete mess.
 
 ## Metroflor
 
-- [ ] **Q1**.
-- [ ] **Q2**.
-- [ ] **Q3**.
-- [ ] **Q4**.
+- [x] **Q1**. Bad format.
+- [x] **Q2**. Open the file group.
+- [x] **Q3**. Open the file group.
+- [x] **Q4**.
 
 ## Milliken
 
-- [ ] **Q1**.
-- [ ] **Q2**.
-- [ ] **Q3**.
-- [ ] **Q4**.
+- [x] **Q1**.
+- [x] **Q2**.
+- [x] **Q3**. Cannot find 5 rows.
+- [x] **Q4**.
+
+---
 
 ## Mohawk
 
