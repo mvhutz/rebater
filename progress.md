@@ -19,23 +19,23 @@ Shows the progress towards full compatibility with Q3, Q2, and Q3.
 ## Daltile
 
 - [ ] **Q1**.
-- [ ] **Q2**.
+- [x] **Q2**. "CONTINENTAL OFFICE FURN CORP" is reported as "Wright Commercial Floors".
 - [x] **Q3**. "YOUNG OFFICE ENVIRONMENTS" reported as 1488 instead of 1448. "O'NEILL BROTHERS FLOORING" reported as "O'NEAL FLOORING SERVICES".
 - [x] **Q4**.
 
 ## Henry
 
 - [ ] **Q1**.
-- [ ] **Q2**.
-- [ ] **Q3**.
-- [ ] **Q4**.
+- [x] **Q2**.
+- [x] **Q3**.
+- [x] **Q4**. No issues.
 
 ## Marazzi
 
-- [ ] **Q1**.
-- [ ] **Q2**.
-- [ ] **Q3**.
-- [ ] **Q4**.
+- [x] **Q1**.
+- [x] **Q2**.
+- [x] **Q3**.
+- [x] **Q4**. No issues.
 
 ## Bostik
 

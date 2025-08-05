@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { readdir } from 'fs/promises';
 import path from "path";
 import { Rebate } from "../shared/worker/response";
+import moment from "moment";
 
 /** ------------------------------------------------------------------------- */
 
@@ -45,12 +46,14 @@ export function getRebateHash(rebate: Rebate): string {
   return `${transactionDate},${supplierId},${memberId},${distributorName},${purchaseAmount},${rebateAmount},${invoiceId},${invoiceDate}`;
 }
 
+const COMMON_PARSE = ["MM/DD/YY", "M/D/YYYY"];
+
 export function areRebatesEqual(a: Rebate, b: Rebate) {
   return a.invoiceId === b.invoiceId
     && Math.abs(a.purchaseAmount - b.purchaseAmount) <= 0.02
     && Math.abs(a.rebateAmount - b.rebateAmount) <= 0.02
-    && a.invoiceDate === b.invoiceDate
-    && a.transactionDate === b.transactionDate
+    && moment(a.invoiceDate, COMMON_PARSE).format("MM/DD/YY") === moment(b.invoiceDate, COMMON_PARSE).format("MM/DD/YY")
+    && moment(a.transactionDate, COMMON_PARSE).format("MM/DD/YY") === moment(b.transactionDate, COMMON_PARSE).format("MM/DD/YY")
     && a.supplierId === b.supplierId
     && a.memberId === b.memberId
     && a.distributorName === b.distributorName;
