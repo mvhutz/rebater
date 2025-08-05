@@ -39,10 +39,10 @@ Shows the progress towards full compatibility with Q3, Q2, and Q3.
 
 ## Bostik
 
-- [ ] **Q1**.
-- [ ] **Q2**.
-- [x] **Q3**. All distributors are `Bostik`, unlike in Q4, where their names were listed in the report. In Q4, "Carpet Decorators Inc Indy" is reported as 1294, which is Capozza Tile.
-- [x] **Q4**.
+- [x] **Q1**.
+- [x] **Q2**. Invoice #131075956 is from DeSoto, but reported as from Halebien.
+- [x] **Q3**. All distributors are `Bostik`, unlike in Q4, where their names were listed in the report.
+- [x] **Q4**. "Carpet Decorators Inc Indy" is reported as 1294, which is Capozza Tile.
 
 ## Cain & Bultman
 

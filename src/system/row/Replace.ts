@@ -46,7 +46,7 @@ export class ReplaceRow implements BaseRow {
     }
 
     if (this.substring != null) {
-      result = result.replace(this.substring, truePut);
+      result = result.replace(new RegExp(this.substring), truePut);
     }
 
     if (this.all != null) {
