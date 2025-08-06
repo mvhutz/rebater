@@ -1,7 +1,7 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'path';
 import started from 'electron-squirrel-startup';
-import { handleIPC } from './shared/ipc/handle';
+import { IPCHandler } from './shared/ipc/handler';
 
 /** ------------------------------------------------------------------------- */
 
@@ -24,8 +24,9 @@ async function createWindow() {
     icon: './images/icon.png'
   });
 
-  // Allow all handlers
-  handleIPC(mainWindow);
+  // Handle interaction between threads.
+  const handler = new IPCHandler(mainWindow);
+  handler.handleIPC();
 
   // and load the index.html of the app.
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
