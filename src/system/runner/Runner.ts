@@ -132,7 +132,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
       }
     }
 
-    if (this.settings.doTesting()) {
+    if (this.settings.testing) {
       yield { type: "loading", message: "Scoring accuracy..." };
       results.discrepency = await this.compareAllRebates();
     }

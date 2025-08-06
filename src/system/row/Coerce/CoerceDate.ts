@@ -52,7 +52,7 @@ export class CoerceDateRow implements BaseRow {
     }
 
     if (this.year === "assume") {
-      date.year(runner.settings.getTime().year);
+      date.year(runner.settings.time.year);
     }
 
     assert.ok(date.isValid(), `Date ${value} could not be parsed.`);

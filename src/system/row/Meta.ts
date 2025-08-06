@@ -32,12 +32,12 @@ export class MetaRow implements BaseRow {
   }
 
   static getQuarterLastDay(runner: Runner): string {
-    const { year, quarter } = runner.settings.getTime();
+    const { year, quarter } = runner.settings.time;
     return moment().year(year).quarter(quarter).endOf("quarter").format("MM/DD/YYYY");
   }
 
   static getQuarterNumber(runner: Runner): string {
-    return runner.settings.getTime().quarter.toString();
+    return runner.settings.time.quarter.toString();
   }
 
   static getRowSource(row: Row) {
