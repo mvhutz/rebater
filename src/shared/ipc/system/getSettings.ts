@@ -8,20 +8,29 @@ import { DEFAULT_SETTINGS, Settings, SettingsData } from "../../../shared/settin
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Fetches the app settings from the file system.
+ * @returns The settings JSON. Not the class.
+ */
 export async function getSettings(): Promise<Reply<SettingsData>> {
   const file = path.join(app.getPath("userData"), "settings.json");
+
+  // Return the default settings, if the file does not exist.
   if (!existsSync(file)) {
     return good(DEFAULT_SETTINGS);
   }
 
+  // Should only be a file.
   const stat = await lstat(file);
   if (!stat.isFile()) {
     return bad("File not found in settings location.");
   }
 
+  // Parse data.
   const raw = await readFile(file, 'utf-8');
   const json = JSON.parse(raw);
   const parsed = Settings.SCHEMA.safeParse(json);
+
   if (!parsed.success) {
     return bad(z.prettifyError(parsed.error));
   } else {
@@ -29,6 +38,10 @@ export async function getSettings(): Promise<Reply<SettingsData>> {
   }
 }
 
+/**
+ * Fetches and parses the settings JSON into the class.
+ * @returns The settings class, not the data.
+ */
 export async function getSettingsInterface(): Promise<Reply<Settings>> {
   const settings_reply = await getSettings(); 
   if (!settings_reply.ok) return settings_reply;

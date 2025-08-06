@@ -3,8 +3,8 @@ import SettingsPane from './pages/settings/SettingsPane';
 import ViewPane from './pages/view/ViewPane';
 import Stack from '@mui/joy/Stack';
 import Divider from '@mui/joy/Divider';
-import AlertPopup from './AlertPopup';
-import InputModal from './InputModal';
+import AlertPopup from './modals/AlertPopup';
+import InputModal from './modals/InputModal';
 
 /** ------------------------------------------------------------------------- */
 

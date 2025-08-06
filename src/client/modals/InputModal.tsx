@@ -7,8 +7,8 @@ import FormLabel from '@mui/joy/FormLabel';
 import Input from '@mui/joy/Input';
 import Modal from '@mui/joy/Modal';
 import ModalDialog from '@mui/joy/ModalDialog';
-import { clearQuestions, getCurrentQuestion, popQuestion } from './store/slices/system';
-import { useAppDispatch, useAppSelector } from './store/hooks';
+import { clearQuestions, getCurrentQuestion, popQuestion } from '../store/slices/system';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { Box, ButtonGroup, Checkbox, DialogActions, IconButton, ModalOverflow, Stack, Table } from '@mui/joy';
 import NotificationsPausedRoundedIcon from '@mui/icons-material/NotificationsPausedRounded';
 import { Typography } from '@mui/material';
@@ -78,7 +78,7 @@ function InputModal() {
 
   const handleClose = React.useCallback(async (event: React.UIEvent) => {
     event.preventDefault();
-    invoke.exitProgram();
+    invoke.exitProgram({});
     dispatch(clearQuestions());
   }, [dispatch]);
 
@@ -90,7 +90,7 @@ function InputModal() {
 
   const handleIgnoreAll = React.useCallback((event: React.UIEvent) => {
     event.preventDefault();
-    invoke.ignoreAll();
+    invoke.ignoreAll({});
     dispatch(clearQuestions());
   }, [dispatch]);
 

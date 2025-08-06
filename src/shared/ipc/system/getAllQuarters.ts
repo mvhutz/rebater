@@ -1,30 +1,32 @@
 import { good, Reply } from "../../reply";
 import { readdir } from "fs/promises";
-import moment from "moment";
 import { getSettingsInterface } from "./getSettings";
-import { TimeData } from "../../../shared/time";
+import { Time, TimeData } from "../../../shared/time";
 
 /** ------------------------------------------------------------------------- */
 
-const SOURCE_FOLDER_FORMAT = "YYYY-QQ";
-
+/**
+ * Searches the sources directory, and finds all sources available.
+ * @returns All quarters found.
+ */
 export async function getAllQuarters(): Promise<Reply<TimeData[]>> {
+  // Get settings.
   const settings_reply = await getSettingsInterface(); 
   if (!settings_reply.ok) return settings_reply;
   const { data: isettings } = settings_reply;
 
-  const directories = await readdir(isettings.getAllSourcePath(), { withFileTypes: true });
   const quarters = new Array<TimeData>();
-  for (const directory of directories) {
+
+  // Read all top level folders in the sources folder for valid names.
+  for (const directory of await readdir(isettings.getAllSourcePath(), {
+    withFileTypes: true
+  })) {
     if (!directory.isDirectory()) continue;
 
-    const time = moment(directory.name, SOURCE_FOLDER_FORMAT);
-    if (!time.isValid()) continue;
+    const time = Time.parse(directory.name);
+    if (time == null) continue;
 
-    const quarter = time.quarter();
-    if (quarter !== 1 && quarter !== 2 && quarter !== 3 && quarter !== 4) continue;
-
-    quarters.push({ year: time.year(), quarter });
+    quarters.push(time.toJSON());
   }
 
   return good(quarters);

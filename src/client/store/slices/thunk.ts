@@ -63,7 +63,7 @@ export const startSystem = createAsyncThunk(
 export const killSystem = createAsyncThunk(
   'system/kill',
   async () => {
-    return await invoke.cancelProgram();
+    return await invoke.cancelProgram({});
   }
 );
 
