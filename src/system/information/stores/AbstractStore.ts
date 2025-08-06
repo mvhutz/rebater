@@ -1,5 +1,5 @@
 import assert from "assert";
-import { AbstractItem } from "./items/AbstractItem";
+import { AbstractItem } from "../items/AbstractItem";
 
 /** ------------------------------------------------------------------------- */
 

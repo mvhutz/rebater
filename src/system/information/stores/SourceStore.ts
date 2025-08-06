@@ -1,7 +1,7 @@
-import { Time } from "../../shared/time";
+import { Time } from "../../../shared/time";
 import { AbstractStore } from "./AbstractStore";
-import { getSubFiles, getSubFolders } from "../util";
-import { AbstractFile } from "./items/AbstractFile";
+import { getSubFiles, getSubFolders } from "../../util";
+import { AbstractFile } from "../items/AbstractFile";
 
 /** ------------------------------------------------------------------------- */
 

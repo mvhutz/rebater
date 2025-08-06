@@ -1,15 +1,15 @@
-import { Time } from "../../shared/time";
-import { getSubFiles, getSubFolders } from "../util";
+import { Time } from "../../../shared/time";
+import { getSubFiles, getSubFolders } from "../../util";
 import { AbstractStore } from "./AbstractStore";
-import { ExcelRebateFile } from "./items/ExcelRebateFile";
+import { CSVRebateFile } from "../items/CSVRebateFile";
 
 /** ------------------------------------------------------------------------- */
 
-type Item = ExcelRebateFile<{ quarter: Time }>;
+type Item = CSVRebateFile<{ quarter: Time }>;
 interface Meta { directory: string };
 
-export class OutputStore extends AbstractStore<Item, Meta> {
-  public readonly name = "outputs";
+export class TruthStore extends AbstractStore<Item, Meta> {
+  public readonly name = "truths";
 
   public async gather(): Promise<void> {
     for (const [time_path, time_str] of await getSubFolders(this.meta.directory)) {
@@ -17,7 +17,7 @@ export class OutputStore extends AbstractStore<Item, Meta> {
       if (time == null) continue;
 
       for (const [file_path] of await getSubFiles(time_path)) {
-        this.add(new ExcelRebateFile(file_path, { quarter: time }));
+        this.add(new CSVRebateFile(file_path, { quarter: time }));
       }
     }
   }

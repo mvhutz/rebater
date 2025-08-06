@@ -1,18 +1,19 @@
 import { Transformer } from "../transformer";
-import { getPartition, getRebateHash, RebateSet } from "../util";
+import { getPartition, getRebateHash } from "../util";
 import EventEmitter from "events";
 import { Settings } from "../../shared/settings";
 import { DiscrepencyResult, Rebate, RunResults, SystemStatus } from "../../shared/worker/response";
-import { ReferenceStore } from "../information/ReferenceStore";
-import { SourceStore } from "../information/SourceStore";
-import { DestinationStore } from "../information/DestinationStore";
+import { ReferenceStore } from "../information/stores/ReferenceStore";
+import { SourceStore } from "../information/stores/SourceStore";
+import { DestinationStore } from "../information/stores/DestinationStore";
 import { Asker } from "./Asker";
-import { OutputStore } from "../information/OutputStore";
-import { TruthStore } from "../information/TruthStore";
+import { OutputStore } from "../information/stores/OutputStore";
+import { TruthStore } from "../information/stores/TruthStore";
 import { Counter } from "../information/Counter";
 import { ExcelRebateFile } from "../information/items/ExcelRebateFile";
-import { UtilityStore } from "../information/UtilityStore";
+import { UtilityStore } from "../information/stores/UtilityStore";
 import z from "zod/v4";
+import { RebateSet } from "./RebateSet";
 
 /** ------------------------------------------------------------------------- */
 
