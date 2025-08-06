@@ -8,13 +8,11 @@ import { ReferenceFile, ReferenceSchema } from "../information/items/ReferenceFi
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Convert the table to a "utility". This can be referenced in future transformers
+ * using the `<utility>` row operation.
+ */
 export class UtilityDestination implements BaseDestination {
-
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("utility"),
-    name: z.string(),
-  }).transform(s => new UtilityDestination(s.name));
-
   public readonly name: string;
 
   public constructor(name: string) {
@@ -22,10 +20,12 @@ export class UtilityDestination implements BaseDestination {
   }
 
   run(table: Table, runner: Runner): void {
+    // Convert to a reference.
     const data = table.data.map(row => row.data);
     const { data: raw } = Papa.parse(Papa.unparse(data), { header: true });
     const reference_data = ReferenceSchema.parse(raw);
 
+    // Send to the Utility store.
     const filepath = runner.settings.getUtilityPath(this.name);
     const utility = new ReferenceFile(filepath, this.name, {
       group: this.name,
@@ -35,6 +35,11 @@ export class UtilityDestination implements BaseDestination {
     utility.push(reference_data);
     runner.utilities.add(utility);
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("utility"),
+    name: z.string(),
+  }).transform(s => new UtilityDestination(s.name));
 
   buildXML(from: XMLElement): void {
     from.element("utility", undefined, this.name);
