@@ -56,7 +56,7 @@ export function areRebatesEqual(a: Rebate, b: Rebate) {
     && moment(a.transactionDate, COMMON_PARSE).format("MM/DD/YY") === moment(b.transactionDate, COMMON_PARSE).format("MM/DD/YY")
     && a.supplierId === b.supplierId
     && a.memberId === b.memberId
-    && a.distributorName === b.distributorName;
+    // && a.distributorName === b.distributorName;
 }
 
 export function getPartition<O extends object, K extends keyof O>(objects: O[], key: K): Map<O[K], O[]> {

@@ -300,6 +300,8 @@ Shows the progress towards full compatibility with Q3, Q2, and Q3.
 - [ ] **Q3**.
 - [ ] **Q4**.
 
+---
+
 ## Taylor (819)
 
 - [ ] **Q1**.
