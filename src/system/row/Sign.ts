@@ -5,14 +5,17 @@ import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Get the sign of the current value.
+ */
 export class SignumRow implements BaseRow {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("abs"),
-  }).transform(() => new SignumRow());
-
   async run(value: string): Promise<string> {
     return Math.sign(parseFloat(value)).toString();
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("abs"),
+  }).transform(() => new SignumRow());
 
   buildXML(from: XMLElement): void {
     from.element("abs");

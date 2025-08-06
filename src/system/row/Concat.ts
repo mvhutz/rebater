@@ -6,16 +6,23 @@ import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Concatenate one string with the value from another set of row
+ * transformations.
+ * 
+ * Optionally, you can set a separator value to go in-between the two values.
+ */
 export class ConcatRow implements BaseRow {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("concat"),
-    with: z.lazy(() => z.array(ROW_SCHEMA)),
-    separator: z.string().default("")
-  }).transform(s => new ConcatRow(s.with, s.separator));
-
+  /** The set of row transformations to extract the second value. */
   private readonly other: BaseRow[];
+  /** The separator between the two values. */
   private readonly separator: string;
 
+  /**
+   * Create a concat operation.
+   * @param other The set of row transformations to extract the second value.
+   * @param separator The separator between the two values.
+   */
   public constructor(other: BaseRow[], separator: string) {
     this.other = other;
     this.separator = separator;
@@ -25,6 +32,12 @@ export class ConcatRow implements BaseRow {
     const other_value = await runMany(this.other, row, runner);
     return value + this.separator + other_value;
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("concat"),
+    with: z.lazy(() => z.array(ROW_SCHEMA)),
+    separator: z.string().default("")
+  }).transform(s => new ConcatRow(s.with, s.separator));
 
   buildXML(from: XMLElement): void {
     const element = from.element("concat", { separator: this.separator });

@@ -6,14 +6,17 @@ import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Extract the value of a certain counter.
+ */
 export class CounterRow implements BaseRow {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("counter"),
-  }).transform(() => new CounterRow());
-
   async run(_v: string, _r: Row, runner: Runner): Promise<string> {
     return runner.counter.getThenIncrement("counter").toString();
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("counter"),
+  }).transform(() => new CounterRow());
 
   buildXML(from: XMLElement): void {
     from.element("counter");

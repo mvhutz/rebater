@@ -5,15 +5,18 @@ import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Get the absolute value of a value.
+ */
 export class AbsoluteRow implements BaseRow {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("abs"),
-  }).transform(() => new AbsoluteRow());
-
   async run(value: string): Promise<string> {
     return Math.abs(parseFloat(value)).toString();
   }
 
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("abs"),
+  }).transform(() => new AbsoluteRow());
+  
   buildXML(from: XMLElement): void {
     from.element("abs");
   }

@@ -5,15 +5,17 @@ import { makeNodeElementSchema } from "../../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Attempt to coerce a number from a string.
+ */
 export class CoerceNumberRow implements BaseRow {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("coerce"),
-    as: z.literal("number"),
-    otherwise: z.string().optional(),
-  }).transform(s => new CoerceNumberRow(s.otherwise));
-
+  /** If the value cannot be converted, replace it with this value. */
   private readonly otherwise?: string;
 
+  /**
+   * Create a coerce number operation.
+   * @param otherwise If the value cannot be converted, replace it with this value.
+   */
   public constructor(otherwise?: string) {
     this.otherwise = otherwise;
   }
@@ -27,6 +29,12 @@ export class CoerceNumberRow implements BaseRow {
       return float.toString();
     }
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("coerce"),
+    as: z.literal("number"),
+    otherwise: z.string().optional(),
+  }).transform(s => new CoerceNumberRow(s.otherwise));
 
   buildXML(from: XMLElement): void {
     from.element("coerce", {

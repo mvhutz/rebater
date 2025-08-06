@@ -5,14 +5,17 @@ import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Trim the whitespace off of the current value.
+ */
 export class TrimRow implements BaseRow {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("trim"),
-  }).transform(() => new TrimRow());
-
   async run(value: string): Promise<string> {
     return value.trim();
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("trim"),
+  }).transform(() => new TrimRow());
 
   buildXML(from: XMLElement): void {
     from.element("trim");

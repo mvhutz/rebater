@@ -6,15 +6,20 @@ import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Find the combined sum of a specific column of the table that the row is from.
+ */
 export class SumRow implements BaseRow {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("sum"),
-    column: ExcelIndexSchema,
-  }).transform(s => new SumRow(s.column));
-
+  /** The column to sum. */
   private readonly column: number;
+
+  /** A cache of any previous sums, to meet performance needs. */
   private static cache = new WeakMap<Table, Map<number, number>>();
 
+  /**
+   * Create a sum operation.
+   * @param column The column to be summed.
+   */
   public constructor(column: number) {
     this.column = column;
   }
@@ -36,6 +41,11 @@ export class SumRow implements BaseRow {
     cached_table.set(this.column, sum);
     return sum.toString();
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("sum"),
+    column: ExcelIndexSchema,
+  }).transform(s => new SumRow(s.column));
 
   buildXML(from: XMLElement): void {
     from.element("sum", undefined, getExcelFromIndex(this.column));

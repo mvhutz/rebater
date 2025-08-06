@@ -14,7 +14,7 @@ import { XMLElement } from "xmlbuilder";
 /** ------------------------------------------------------------------------- */
 
 /**
- * A destination operation.
+ * A table operation.
  * 
  * Given a certain resulting table, figure out where to store it.
  */

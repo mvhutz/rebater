@@ -6,13 +6,51 @@ import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * A generalized version of `<reference>`.
+ * 
+ * Given a reference, it searches that table for a matching record.
+ * 
+ * To determine a match, it uses the "matches" object. For each [key, rows] in
+ * "matches", it checks whether the value of the key in the record, matches the
+ * resulting value generated from the set of row transformation. The first
+ * record that matches all keys is chosen. The value of its "take" property is
+ * returned.
+ * 
+ * When no record is found, it asks the user for input:
+ * - If a property is "optional", then the question will be directed for all
+ *   records, not just those with the specific value of this property.
+ * - If a property is "primary", then suggestions will be made as to what the
+ *   answer could be, based on the value of that property.
+ */
 export class SearchRow implements BaseRow {
+  /** The table to search through. */
   private readonly table: string;
+  /** The property of the matching record to return. */
   private readonly take: string;
+  /** 
+   * If a property is put inside here, any questions to the user will disregard
+   * this property, and apply to all records.
+   */
   private readonly optional: string[];
+  /**
+   * If specified, create suggestions for the user, based on the value of this
+   * property.
+   */
   private readonly primary?: string;
+  /**
+   * The properties to match by.
+   */
   private readonly matches: Record<string, BaseRow[]>;
 
+  /**
+   * 
+   * @param table The table to search in.
+   * @param take The property to take.
+   * @param matches The properties to match by.
+   * @param optional The properties to disregard when asking the user.
+   * @param primary The property to generate suggestions from.
+   */
   public constructor(table: string, take: string, matches: Record<string, BaseRow[]>, optional?: string[], primary?: string) {
     this.table = table;
     this.take = take;

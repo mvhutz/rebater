@@ -6,12 +6,34 @@ import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Perform a lookup on a set of tabular data.
+ * 
+ * Given a reference table, this operation finds the first row whose "match" 
+ * property matches the current value. Then, it returns the value of the "take"
+ * property of that record.
+ * 
+ * It only searches records whose group matches those specified.
+ * 
+ * If no record is found, it returns null.
+ */
 export class ReferenceRow implements BaseRow {
+  /** The reference table to look in. */
   private readonly table: string;
+  /** The property to match. */
   private readonly match: string;
+  /** The property to return. */
   private readonly take: string;
+  /** The group of records to consider, within the table. */
   private readonly group: string;
 
+  /**
+   * Create a reference operation.
+   * @param table The reference table to look in.
+   * @param match The property to match.
+   * @param take The property to return.
+   * @param group The group of records to consider, within the table.
+   */
   public constructor(table: string, match: string, take: string, group: string) {
     this.table = table;
     this.match = match;
@@ -19,8 +41,26 @@ export class ReferenceRow implements BaseRow {
     this.group = group;
   }
 
-  private getQuestionFormat(group: string, take: string, table: string, value: string) {
-    return `For *${group}*, what is the **\`${take}\`** of this **\`${table}\`**?\n\n *\`${value}\`*`;
+  /**
+   * Turn a suggestion into a string.
+   * @param s The suggestion data.
+   * @returns The stringified suggestion.
+   */
+  private getSuggestionFormat(s: {
+    key: string;
+    value: string;
+    group: string;
+  }) {
+    return `**\`${s.value}\`** for *\`${s.key}\`*, in *${s.group}*.`
+  }
+
+  /**
+   * Create a question for the user, based on the given data.
+   * @param value The value to ask for.
+   * @returns 
+   */
+  private getQuestionFormat(value: string) {
+    return `For *${this.group}*, what is the **\`${this.take}\`** of this **\`${this.table}\`**?\n\n *\`${value}\`*`;
   }
 
   async run(value: string, row: Row, runner: Runner): Promise<Maybe<string>> {
@@ -34,21 +74,21 @@ export class ReferenceRow implements BaseRow {
       return result;
     }
 
-    const question = this.getQuestionFormat(this.group, this.take, this.table, value);
+    const question = this.getQuestionFormat(value);
     const suggestions = reference.suggest(this.match, value, this.take);
 
     const { answer } = await runner.asker.ask({
       table: this.table,
       hash: question,
+      // We only want to match the required property, and the group.
       known: {
         [this.match]: value,
         group: this.group,
       },
+      // No properties are optional.
       optional: [],
       unknown: this.take,
-      suggestions: suggestions.slice(0, 3).map(s => (
-        `**\`${s.value}\`** for *\`${s.key}\`*, in *${s.group}*.`
-      )),
+      suggestions: suggestions.slice(0, 3).map(s => this.getSuggestionFormat(s)),
     });
     if (answer == null) return null;
     

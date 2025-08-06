@@ -6,14 +6,20 @@ import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Compare the current value with the value of anotehr set of row
+ * transformations.
+ * 
+ * If they equal, this operation returns "true". Otherwise, it returns "false".
+ */
 export class EqualsRow implements BaseRow {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("equals"),
-    with: z.lazy(() => z.array(ROW_SCHEMA)),
-  }).transform(s => new EqualsRow(s.with));
-
+  /** The other set of row transformations. */
   private readonly other: BaseRow[];
 
+  /**
+   * Create an equals operation.
+   * @param other The other set of row transformations.
+   */
   public constructor(other: BaseRow[]) {
     this.other = other;
   }
@@ -22,6 +28,11 @@ export class EqualsRow implements BaseRow {
     const other_value = await runMany(this.other, row, runner);
     return (value === other_value).toString();
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("equals"),
+    with: z.lazy(() => z.array(ROW_SCHEMA)),
+  }).transform(s => new EqualsRow(s.with));
 
   buildXML(from: XMLElement): void {
     const element = from.element("equals");
