@@ -7,6 +7,9 @@ import { ReferenceFile } from "../items/ReferenceFile";
 
 interface Meta { directory: string };
 
+/**
+ * Holds all references used by the Transformers.
+ */
 export class ReferenceStore extends AbstractStore<ReferenceFile, Meta> {
   public readonly name = "references";
 

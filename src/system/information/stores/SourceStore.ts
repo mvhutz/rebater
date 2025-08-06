@@ -5,6 +5,9 @@ import { AbstractFile } from "../items/AbstractFile";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * An AbstractFile which holds source data.
+ */
 class Source extends AbstractFile<Buffer, { group: string, quarter: Time }> {
   constructor(path: string, meta: { group: string, quarter: Time }) {
     super(path, Buffer.from(""), meta);
@@ -27,6 +30,9 @@ class Source extends AbstractFile<Buffer, { group: string, quarter: Time }> {
 
 interface Meta { directory: string };
 
+/**
+ * Holds all the sources pulled by the transformers.
+ */
 export class SourceStore extends AbstractStore<Source, Meta> {
   public readonly name = "sources";
 

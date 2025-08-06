@@ -8,6 +8,9 @@ import { CSVRebateFile } from "../items/CSVRebateFile";
 type Item = CSVRebateFile<{ quarter: Time }>;
 interface Meta { directory: string };
 
+/**
+ * Holds all rebate files which are used to run discrepancy reports on.
+ */
 export class TruthStore extends AbstractStore<Item, Meta> {
   public readonly name = "truths";
 

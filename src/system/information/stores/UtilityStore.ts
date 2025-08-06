@@ -8,6 +8,9 @@ import { Time } from "../../../shared/time";
 
 interface Meta { directory: string };
 
+/**
+ * Holds all utilities created and used by the Transformers.
+ */
 export class UtilityStore extends AbstractStore<ReferenceFile<{ quarter: Time }>, Meta> {
   public readonly name = "utilities";
 
