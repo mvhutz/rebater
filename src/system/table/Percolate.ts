@@ -6,16 +6,25 @@ import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Fill in certain cells based on the values above them.
+ * 
+ * The operation finds all cells with a certain "matching" value, within a
+ * certain column. It then looks directly above it, and finds the first cell
+ * within the same column that is not a "matching" value. It replaces the cells
+ * value with that value.
+ */
 export class PercolateTable implements BaseTable {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("percolate"),
-    columns: z.array(ExcelIndexSchema),
-    matches: z.array(z.string()).default([""])
-  }).transform(s => new PercolateTable(s.columns, s.matches));
-
+  /** The columns to percolate in. */
   private readonly columns: number[];
+  /** The values that are replaced by percolation. */
   private readonly matches: string[];
 
+  /**
+   * Create a percolate operation.
+   * @param columns The columns to percolate in.
+   * @param matches The values that are replaced by percolation.
+   */
   public constructor(columns: number[], matches: string[]) {
     this.columns = columns;
     this.matches = matches;
@@ -41,6 +50,12 @@ export class PercolateTable implements BaseTable {
 
     return makeTable(rows, table.path);
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("percolate"),
+    columns: z.array(ExcelIndexSchema),
+    matches: z.array(z.string()).default([""])
+  }).transform(s => new PercolateTable(s.columns, s.matches));
 
   buildXML(from: XMLElement): void {
     from.element("percolate", {

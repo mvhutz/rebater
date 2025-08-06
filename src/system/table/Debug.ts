@@ -8,24 +8,33 @@ import path from "path";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * A utility operation, that prints any table that goes through it.
+ */
 export class DebugTable implements BaseTable {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("debug"),
-    name: z.string().default("default"),
-  }).transform(s => new DebugTable(s.name));
-
+  /** The name of the file that table sohuld be printed to. */
   private readonly name: string;
 
+  /**
+   * Create a debug operation.
+   * @param name The name of the file that table sohuld be printed to.
+   */
   public constructor(name: string) {
     this.name = name;
   }
 
   async run(table: Table, runner: Runner): Promise<Table> {
+    // The debug table is stored as a utility, under the `debug` folder.
     const true_name = `debug/${this.name}/${path.parse(table.path).name}`;
     const utility = new UtilityDestination(true_name);
     utility.run(table, runner);
     return table;
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("debug"),
+    name: z.string().default("default"),
+  }).transform(s => new DebugTable(s.name));
 
   buildXML(from: XMLElement): void {
     from.element("debug", undefined, this.name);

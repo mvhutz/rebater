@@ -6,20 +6,33 @@ import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Chops a table in two, given specific criteria.
+ * 
+ * Given a table, finds the first row such that `column` is one of `is`. Then,
+ * assuming it finds a row, it chooses to `keep` either the `"top"` or `"bottom"`
+ * of the table (not including the found row).
+ * 
+ * If it cannot find a row, it `otherwise` chooses to either `"drop"` the entire
+ * table, or `"take"` it and leave it as is.
+ */
 export class ChopTable implements BaseTable {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("chop"),
-    column: ExcelIndexSchema,
-    is: z.array(z.string()),
-    keep: z.union([z.literal("top"), z.literal("bottom")]).default("bottom"),
-    otherwise: z.union([z.literal("drop"), z.literal("take")]).default("drop")
-  }).transform(s => new ChopTable(s.column, s.is, s.keep, s.otherwise));
-
+  /** The column to check. */
   private readonly column: number;
+  /** The list of values that the column must match. */
   private readonly is: string[];
+  /** Whether to keep the top or bottom of the table. */
   private readonly keep: "top" | "bottom";
+  /** Whether to discard to entire table or not, if a row cannot be found. */
   private readonly otherwise: "drop" | "take";
 
+  /**
+   * Create a chop operation.
+   * @param column The column to check.
+   * @param is The list of values that the column must match.
+   * @param keep Whether to keep the top or bottom of the table.
+   * @param otherwise Whether to discard to entire table or not, if a row cannot be found.
+   */
   public constructor(column: number, is: string[], keep: "top" | "bottom", otherwise: "drop" | "take") {
     this.column = column;
     this.is = is;
@@ -43,6 +56,14 @@ export class ChopTable implements BaseTable {
 
     return rewire({ ...table, data });
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("chop"),
+    column: ExcelIndexSchema,
+    is: z.array(z.string()),
+    keep: z.union([z.literal("top"), z.literal("bottom")]).default("bottom"),
+    otherwise: z.union([z.literal("drop"), z.literal("take")]).default("drop")
+  }).transform(s => new ChopTable(s.column, s.is, s.keep, s.otherwise));
 
   buildXML(from: XMLElement): void {
     from.element("chop", {
