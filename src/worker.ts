@@ -8,19 +8,32 @@ import { WorkerRequest, WorkerRequestSchema } from "./shared/worker/request";
 
 /** ------------------------------------------------------------------------- */
 
+// Make sure this is actually a worker thread.
 assert.ok(parentPort != null, "Not initialized as worker!");
 const parent = parentPort;
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Send a message to the main thread.
+ * @param response The message to send.
+ */
 function send(response: WorkerResponse) {
   parent.postMessage(response);
 }
 
+/**
+ * Send an error to the main thread.
+ * @param message The error to send.
+ */
 function sendError(message?: string) {
   send({ type: "status", status: { type: "error", message } });
 }
 
+/**
+ * Handle a message from the main thread.
+ * @param fn The handler.
+ */
 function onReceive(fn: (message: WorkerRequest) => Promise<void>) {
   parent.on("message", message => {
     const request_parse = WorkerRequestSchema.safeParse(message);
@@ -34,15 +47,20 @@ function onReceive(fn: (message: WorkerRequest) => Promise<void>) {
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Run the program.
+ */
 function main() {
+  // Get settings.
   const settings_reply = Settings.from(workerData);
   if (!settings_reply.ok) return sendError(settings_reply.reason);
-
+  
+  // Create runner.
   const runner = new Runner(settings_reply.data);
-
   runner.on("status", status => send({ type: "status", status }));
   runner.asker.on("ask", question => send({ type: "question", ...question }));
 
+  // Handle messages from main.
   onReceive(async request => {
     switch (request.type) {
       case "answer":
@@ -58,6 +76,7 @@ function main() {
     }
   })
 
+  // Run it.
   runner.run()
     .catch(async error => {
       await runner.save();
