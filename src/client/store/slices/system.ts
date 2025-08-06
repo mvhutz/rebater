@@ -1,12 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { type RootState } from '..'
-import { DEFAULT_SETTINGS, type SettingsData } from '../../../shared/settings';
+import { Settings, type SettingsData } from '../../../shared/settings';
 import { resource, Resource, ResourceStatus } from '../../../shared/resource';
 import { killSystem, pullAllQuarters, pullSystemSettings, pullTransformers, pushSystemSettings, startSystem } from './thunk';
 import { bad, Reply } from '../../../shared/reply';
 import { TimeData } from '../../../shared/time';
 import { Question, SystemStatus } from '../../../shared/worker/response';
-import { TransformerInfo } from '../../../system/transformer';
+import { TransformerInfo } from '../../../system/Transformer';
 
 /** ------------------------------------------------------------------------- */
 
@@ -20,7 +20,7 @@ interface SystemState {
 
 const initialState: SystemState = {
   status: { type: "idle" },
-  settings: resource(DEFAULT_SETTINGS),
+  settings: resource(Settings.DEFAULT_SETTINGS),
   quarters: resource([], ResourceStatus.LOADING),
   transformers: bad("Loading transformers..."),
   questions: []

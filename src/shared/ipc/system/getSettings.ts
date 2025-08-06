@@ -4,7 +4,7 @@ import path from "path";
 import { existsSync } from "fs";
 import { lstat, readFile } from "fs/promises";
 import z from "zod/v4";
-import { DEFAULT_SETTINGS, Settings, SettingsData } from "../../../shared/settings";
+import { Settings, SettingsData } from "../../../shared/settings";
 
 /** ------------------------------------------------------------------------- */
 
@@ -17,7 +17,7 @@ export async function getSettings(): Promise<Reply<SettingsData>> {
 
   // Return the default settings, if the file does not exist.
   if (!existsSync(file)) {
-    return good(DEFAULT_SETTINGS);
+    return good(Settings.DEFAULT_SETTINGS);
   }
 
   // Should only be a file.

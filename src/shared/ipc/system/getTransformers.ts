@@ -1,5 +1,5 @@
 import { bad, good } from "../../reply";
-import { Transformer } from "../../../system/transformer";
+import { Transformer } from "../../../system/Transformer";
 import { getSettingsInterface } from "./getSettings";
 
 /** ------------------------------------------------------------------------- */
