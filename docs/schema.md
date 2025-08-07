@@ -101,7 +101,7 @@ A transformer can be given a tag. These can be used to group and run certain set
 
 Some transformers require another transformer to be run before it (i.e. those which use [utilities](./supplements.md#utilites)). The user can specify these dependencies using the `<requires>` tag.
 
-The transformer whose name matches the text inside is garunteed to run before it.
+The transformer whose name matches the text inside is guaranteed to run before it.
 
 ```xml
 <!--
