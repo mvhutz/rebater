@@ -2,8 +2,12 @@ import z from "zod/v4";
 
 /** ------------------------------------------------------------------------- */
 
+/** The JSON schema of a certain time. */
 export type TimeData = z.input<typeof Time.SCHEMA>;
 
+/**
+ * Represents a specific time (year and quarter) that the system can handle.
+ */
 export class Time {
   public static readonly SCHEMA = z.strictObject({
     year: z.number(),
@@ -30,12 +34,22 @@ export class Time {
     return o.quarter === this.quarter && o.year === this.year;
   }
 
+  /**
+   * Build a `Time` from JSON.
+   * @param data The JSON data.
+   * @returns A valid time object.
+   */
   public static of(data: TimeData) {
     return new Time(data.year, data.quarter);
   }
 
   private static readonly REGEX = /(?<year>\d{4})-Q(?<quarter>[1234])/;
 
+  /**
+   * Attempt to parse a `Time` from a string. The string should be in the format `yyyy-Qq`.
+   * @param from The string to parse.
+   * @returns If valid, a new `Time` object. Otherwise, `null`.
+   */
   public static parse(from: string) {
     const matches = from.match(Time.REGEX);
     if (matches == null) {

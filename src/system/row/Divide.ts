@@ -6,14 +6,17 @@ import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Divide the current value with the result of anotehr set of row transformations.
+ */
 export class DivideRow implements BaseRow {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("divide"),
-    with: z.lazy(() => z.array(ROW_SCHEMA)),
-  }).transform(s => new DivideRow(s.with));
-
+  /** The set of row transformations. */
   private readonly other: BaseRow[];
 
+  /**
+   * Create a divide operation.
+   * @param other The set of row transformations.
+   */
   public constructor(other: BaseRow[]) {
     this.other = other;
   }
@@ -22,6 +25,11 @@ export class DivideRow implements BaseRow {
     const other_value = await runMany(this.other, row, runner);
     return (Number(value) / Number(other_value)).toString();
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("divide"),
+    with: z.lazy(() => z.array(ROW_SCHEMA)),
+  }).transform(s => new DivideRow(s.with));
 
   buildXML(from: XMLElement): void {
     const element = from.element("divide");

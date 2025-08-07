@@ -1,25 +1,30 @@
-import { Transformer } from "../transformer";
-import { getPartition, getRebateHash, RebateSet } from "../util";
+import { Transformer } from "../Transformer";
+import { getPartition, getRebateHash } from "../util";
 import EventEmitter from "events";
 import { Settings } from "../../shared/settings";
 import { DiscrepencyResult, Rebate, RunResults, SystemStatus } from "../../shared/worker/response";
-import { ReferenceStore } from "../information/ReferenceStore";
-import { SourceStore } from "../information/SourceStore";
-import { DestinationStore } from "../information/DestinationStore";
+import { ReferenceStore } from "../information/stores/ReferenceStore";
+import { SourceStore } from "../information/stores/SourceStore";
+import { DestinationStore } from "../information/stores/DestinationStore";
 import { Asker } from "./Asker";
-import { OutputStore } from "../information/OutputStore";
-import { TruthStore } from "../information/TruthStore";
+import { OutputStore } from "../information/stores/OutputStore";
+import { TruthStore } from "../information/stores/TruthStore";
 import { Counter } from "../information/Counter";
 import { ExcelRebateFile } from "../information/items/ExcelRebateFile";
-import { UtilityStore } from "../information/UtilityStore";
+import { UtilityStore } from "../information/stores/UtilityStore";
 import z from "zod/v4";
+import { RebateSet } from "./RebateSet";
 
 /** ------------------------------------------------------------------------- */
 
+/** Runner events to subscribe to. */
 interface RunnerEvents {
   status: [SystemStatus];
 }
 
+/**
+ * Handles execution of the program.
+ */
 export class Runner extends EventEmitter<RunnerEvents> {
   public readonly counter: Counter;
   public readonly references: ReferenceStore;
@@ -49,7 +54,13 @@ export class Runner extends EventEmitter<RunnerEvents> {
     this.emit("status", { type: "idle" });
   }
 
-  compareRebates(actual: Rebate[], expected: Rebate[]): Omit<DiscrepencyResult, "name"> {
+  /**
+   * Find the discrepancies between to sets of Rebates.
+   * @param actual The actual results.
+   * @param expected The expected results.
+   * @returns The differences.
+   */
+  private static compareRebates(actual: Rebate[], expected: Rebate[]): Omit<DiscrepencyResult, "name"> {
     const actual_set = new RebateSet(actual);
     const expected_set = new RebateSet(expected);
 
@@ -57,11 +68,17 @@ export class Runner extends EventEmitter<RunnerEvents> {
     expected.forEach(r => actual_set.take(r));
 
     return {
+      match: actual.length - actual_set.values().length,
       drop: actual_set.values().map(getRebateHash),
       take: expected_set.values().map(getRebateHash),
     }
   }
 
+  /**
+   * Determine the discrepancies between the actual results of the program, and
+   * the expected results.
+   * @returns The results.
+   */
   async compareAllRebates(): Promise<DiscrepencyResult[]> {
     const actual = this.destinations.getItems().map(d => d.getData()).flat(1);
     const actual_partitions = getPartition(actual, "supplierId");
@@ -79,13 +96,16 @@ export class Runner extends EventEmitter<RunnerEvents> {
 
       const expected_partition_bucket = expected_partitions.get(member_id) ?? [];
       const actual_partition_bucket = actual_partitions.get(member_id) ?? [];
-      const { drop, take } = this.compareRebates(actual_partition_bucket, expected_partition_bucket);
-      results.push({ name: member_id, drop: drop, take: take });
+      const { drop, take, match } = Runner.compareRebates(actual_partition_bucket, expected_partition_bucket);
+      results.push({ name: member_id, drop, take, match });
     }
 
     return results;
   }
 
+  /**
+   * Load all stores.
+   */
   private async load() {
     await this.sources.gather();
     await this.sources.load();
@@ -95,6 +115,9 @@ export class Runner extends EventEmitter<RunnerEvents> {
     await this.truths.load();
   }
 
+  /**
+   * Save all stores.
+   */
   public async save() {
     await this.destinations.save();
     await this.references.save();
@@ -102,19 +125,26 @@ export class Runner extends EventEmitter<RunnerEvents> {
     await this.utilities.save();
   }
 
+  /**
+   * Runs the program. Returns an iterator, so that the program can be halted,
+   * if needed.
+   */
   private async* iterator(): AsyncIterableIterator<SystemStatus> {
     const results: RunResults = {
       config: [],
       discrepency: undefined,
     }
 
+    // Load the transformers.
     yield { type: "loading", message: "Reading transformers..." };
     const transformers_unordered = await Transformer.pullAll(this.settings, true);
     const transformers = Transformer.findValidOrder(transformers_unordered);
 
+    // Load stores.
     yield { type: "loading", message: "Loading sources..." };
     await this.load();
 
+    // Run the transformers.
     for (const [i, transformer] of transformers.entries()) {
       yield { type: "running", progress: i / transformers.length };
       try {
@@ -131,11 +161,13 @@ export class Runner extends EventEmitter<RunnerEvents> {
       }
     }
 
-    if (this.settings.doTesting()) {
+    // Optionally, create a discrepancy report.
+    if (this.settings.testing) {
       yield { type: "loading", message: "Scoring accuracy..." };
       results.discrepency = await this.compareAllRebates();
     }
 
+    // Create the output file.
     yield { type: "loading", message: "Compiling rebates..." };
     const output = new ExcelRebateFile(this.settings.getOutputFile("xlsx"), {
       quarter: this.settings.time
@@ -143,12 +175,16 @@ export class Runner extends EventEmitter<RunnerEvents> {
     output.add(...this.destinations.getItems());
     this.outputs.add(output);
 
+    // Saving stores.
     yield { type: "loading", message: "Saving data..." };
     await this.save();
     
     yield { type: "done", results: results };
   }
 
+  /**
+   * Run the program.
+   */
   public async run() {
     this.running = true;
 
@@ -168,6 +204,9 @@ export class Runner extends EventEmitter<RunnerEvents> {
     this.running = false;
   }
 
+  /**
+   * Stop the program, during execution.
+   */
   public stop() {
     this.running = false;
   }

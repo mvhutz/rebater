@@ -11,14 +11,23 @@ import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
 export const META_TYPE = z.enum(["quarter.lastday", "quarter.number", "row.source"]);
 export type MetaType = z.infer<typeof META_TYPE>;
 
+/**
+ * Replace the current value with another value, pulled from the context of the
+ * runner.
+ * 
+ * There are several types of values to extract:
+ * - "quarter.lastday" returns the last day of the current quarter.
+ * - "quarter.number" returns the number (1, 2, 3, 4) of the current quarter.
+ * - "row.source" returns the name of the file that the current row is from.
+ */
 export class MetaRow implements BaseRow {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("meta"),
-    value: META_TYPE
-  }).transform(s => new MetaRow(s.value));
-
+  /** The type of value to select. */
   public readonly value: MetaType;
 
+  /**
+   * Create a meta operation.
+   * @param value The type of value to select.
+   */
   public constructor(value: MetaType) {
     this.value = value;
   }
@@ -31,13 +40,18 @@ export class MetaRow implements BaseRow {
     }
   }
 
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("meta"),
+    value: META_TYPE
+  }).transform(s => new MetaRow(s.value));
+
   static getQuarterLastDay(runner: Runner): string {
-    const { year, quarter } = runner.settings.getTime();
+    const { year, quarter } = runner.settings.time;
     return moment().year(year).quarter(quarter).endOf("quarter").format("MM/DD/YYYY");
   }
 
   static getQuarterNumber(runner: Runner): string {
-    return runner.settings.getTime().quarter.toString();
+    return runner.settings.time.quarter.toString();
   }
 
   static getRowSource(row: Row) {

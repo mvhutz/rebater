@@ -6,14 +6,18 @@ import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Add another value to the current value, based on another set of row
+ * transformations.
+ */
 export class AddRow implements BaseRow {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("add"),
-    with: z.lazy(() => z.array(ROW_SCHEMA))
-  }).transform(s => new AddRow(s.with));
-
+  /** The other row transformations, whose result will be added. */
   private readonly other: BaseRow[];
 
+  /**
+   * Create an add operation.
+   * @param other The other row transformations, whose result will be added.
+   */
   public constructor(other: BaseRow[]) {
     this.other = other;
   }
@@ -22,6 +26,11 @@ export class AddRow implements BaseRow {
     const other_value = await runMany(this.other, row, runner);
     return (Number(value) + Number(other_value)).toString();
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("add"),
+    with: z.lazy(() => z.array(ROW_SCHEMA))
+  }).transform(s => new AddRow(s.with));
 
   buildXML(from: XMLElement): void {
     const element = from.element("add");

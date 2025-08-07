@@ -1,12 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { type RootState } from '..'
-import { DEFAULT_SETTINGS, type SettingsData } from '../../../shared/settings';
+import { Settings, type SettingsData } from '../../../shared/settings';
 import { resource, Resource, ResourceStatus } from '../../../shared/resource';
 import { killSystem, pullAllQuarters, pullSystemSettings, pullTransformers, pushSystemSettings, startSystem } from './thunk';
 import { bad, Reply } from '../../../shared/reply';
 import { TimeData } from '../../../shared/time';
-import { SystemStatus } from '../../../shared/worker/response';
-import { TransformerInfo } from '../../../system/transformer';
+import { Question, SystemStatus } from '../../../shared/worker/response';
+import { TransformerInfo } from '../../../system/Transformer';
 
 /** ------------------------------------------------------------------------- */
 
@@ -15,12 +15,12 @@ interface SystemState {
   settings: Resource<SettingsData>;
   transformers: Reply<TransformerInfo[]>;
   quarters: Resource<TimeData[]>;
-  questions: string[];
+  questions: Question[];
 }
 
 const initialState: SystemState = {
   status: { type: "idle" },
-  settings: resource(DEFAULT_SETTINGS),
+  settings: resource(Settings.DEFAULT_SETTINGS),
   quarters: resource([], ResourceStatus.LOADING),
   transformers: bad("Loading transformers..."),
   questions: []
@@ -56,7 +56,7 @@ export const SystemSlice = createSlice({
     setTransformersTags: (state, action: PayloadAction<Maybe<string[]>>) => {
       state.settings.data.transformers.tags.include = action.payload ?? undefined;
     },
-    pushQuestion: (state, action: PayloadAction<string>) => {
+    pushQuestion: (state, action: PayloadAction<Question>) => {
       state.questions.push(action.payload);
     },
     popQuestion: (state) => {

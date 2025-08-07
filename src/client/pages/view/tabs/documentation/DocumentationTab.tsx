@@ -2,17 +2,12 @@ import React from 'react';
 import Stack from '@mui/joy/Stack';
 import Markdown, { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Option, Select, Sheet } from '@mui/joy';
-import { Route, Routes, useLocation, useNavigate } from 'react-router';
-import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
-import Documents from './Documents';
+import { Sheet, Typography } from '@mui/joy';
 import TabMenu from '../../TabMenu';
 import { useAppSelector } from '../../../../../client/store/hooks';
 import { getDisplayTab } from '../../../../../client/store/slices/ui';
-import { HashLink } from 'react-router-hash-link';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeSlug from 'rehype-slug';
-import path from 'path-browserify';
 
 /** ------------------------------------------------------------------------- */
 
@@ -20,55 +15,28 @@ const MARKDOWN_COMPONENTS: Components = {
   a({ node, href, ...rest }) {
     void [node];
 
-    return <HashLink scroll={e => e.scrollIntoView({ "behavior": "smooth", block: 'center'})} to={href?.[0] === "#" ? href : path.join("..", href ?? "/")} {...rest} />
+    return <a href={href} target="_blank" {...rest} />
   }
 };
 
-interface DocumentPageProps {
-  document: (typeof Documents)[number];
-}
+const DOCUMENTATION_PAGE = `
+# Documentation
 
-function _DocumentPage(props: DocumentPageProps) {
-  const { document } = props;
-
-  return (
-    <Sheet sx={{maxWidth: 700, mx: "auto" }}>
-      <div className='docs'>
-        <Markdown components={MARKDOWN_COMPONENTS} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSlug, rehypeAutolinkHeadings]} children={document.text} />
-      </div>
-    </Sheet>
-  );
-}
-
-const DocumentPage = React.memo(_DocumentPage);
+You can learn more about this program [here](https://github.com/mvhutz/rebater#-rebater).
+`;
 
 /** ------------------------------------------------------------------------- */
 
 function DocumentationTab() {
-  const location = useLocation();
-  const navigate = useNavigate();
   const display = useAppSelector(getDisplayTab("documentation"));
-
-  const handleChangeDoc = React.useCallback((_: unknown, doc: Maybe<string>) => {
-    navigate(doc ?? "/");
-  }, [navigate]);
 
   return (
     <Stack padding={0} display={display}>
       <TabMenu>
-        <Select value={location.pathname} onChange={handleChangeDoc} renderValue={e => <><i>Reading:</i>&nbsp;{e?.label}</>} variant="plain" indicator={<ExpandMoreRoundedIcon fontSize="small" />}>
-          {Documents.map(d => (
-            <Option value={d.id} key={d.id}>{d.name}</Option>
-          ))}
-        </Select>
+        <Typography level="body-lg" pt={0.5} color="neutral"><i>Documentation</i></Typography>
       </TabMenu>
       <Sheet sx={{ p: 5, overflow: "scroll" }}>
-        <Routes>
-          {Documents.map(d => (
-            <Route index={d.name === "Welcome"} path={d.id} element={<DocumentPage document={d} />}/>
-          ))}
-        </Routes>
-
+        <Markdown components={MARKDOWN_COMPONENTS} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSlug, rehypeAutolinkHeadings]} children={DOCUMENTATION_PAGE}/>
       </Sheet>
     </Stack>
   );

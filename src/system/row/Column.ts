@@ -6,14 +6,17 @@ import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Extract a specific column value from a row.
+ */
 export class ColumnRow implements BaseRow {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("column"),
-    index: ExcelIndexSchema
-  }).transform(s => new ColumnRow(s.index));
-
+  /** The index of the column value to extract. */
   private readonly index: number;
 
+  /**
+   * Create a column operation.
+   * @param index The index of the column value to extract.
+   */
   public constructor(index: number) {
     this.index = index;
   }
@@ -21,6 +24,11 @@ export class ColumnRow implements BaseRow {
   async run(_v: string, row: Row): Promise<string> {
     return row.data[this.index];
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("column"),
+    index: ExcelIndexSchema
+  }).transform(s => new ColumnRow(s.index));
 
   buildXML(from: XMLElement): void {
     from.element("column", undefined, getExcelFromIndex(this.index));

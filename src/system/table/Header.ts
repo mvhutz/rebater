@@ -6,21 +6,46 @@ import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Alter the available columns, based on the values within the first row
+ * (header).
+ * 
+ * If the user acts to `"keep"` the chosen `names`, then:
+ * - The operations goes through the list of names, sequentially.
+ * - For each name, it finds the first column s.t. its first row matches the
+ *   name. It places the entire column into a resulting table.
+ * - If no column is found, it does not place a column.
+ * - After all columns are found, they are combined (in the order that the names
+ *   where specified), and returned as a table.
+ * 
+ * If the user acts to `"drop"` the chosen `name`, then:
+ * - The operations goes through the list of names, sequentially.
+ * - For each name, find all columns which contain that name in the first row.
+ * - Delete those columns.
+ * - Return the resulting table.
+ */
 export class HeaderTable implements BaseTable {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("header"),
-    names: z.array(z.string()),
-    action: z.union([z.literal("drop"), z.literal("keep")]),
-  }).transform(s => new HeaderTable(s.names, s.action));
-
+  /** The names of the headers to search for. */
   private readonly names: string[];
+  /** Whether to keep the found columns, or drop them. */
   private readonly action: "drop" | "keep";
 
+  /**
+   * Create a header operation.
+   * @param names The names of the headers to search for.
+   * @param action Whether to keep the found columns, or drop them.
+   */
   public constructor(names: string[], action: "drop" | "keep") {
     this.names = names;
     this.action = action;
   }
 
+  /**
+   * Find the first column whose first row matches the name.
+   * @param name The name to search for.
+   * @param table The table to search in.
+   * @returns The column, represented as a table.
+   */
   private takeRow(name: string, table: Table) {
     const index = table.data[0].data.findIndex(r => r === name);
     if (index === -1) return null;
@@ -33,6 +58,12 @@ export class HeaderTable implements BaseTable {
     return rewire({ ...table, data: rows });
   }
 
+  /**
+   * Combine a set of tables, left to right.
+   * @param a The left table.
+   * @param b The right table.
+   * @returns The combined table.
+   */
   private combineColumns(a: Table, b: Table) {
     const rows: Row[] = [];
 
@@ -45,6 +76,12 @@ export class HeaderTable implements BaseTable {
     return rewire({ path: a.path, data: rows });
   }
 
+  /**
+   * Find all columns whose first row matches a name, and delete those columns.
+   * @param name The name to match for.
+   * @param table The table to delete in.
+   * @returns A new table, with the matching columns deleted.
+   */
   private dropRow(name: string, table: Table) {
     const index = table.data[0].data.findIndex(r => r === name);
     if (index === -1) return table;
@@ -77,6 +114,12 @@ export class HeaderTable implements BaseTable {
       return rewire(result);
     }
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("header"),
+    names: z.array(z.string()),
+    action: z.union([z.literal("drop"), z.literal("keep")]),
+  }).transform(s => new HeaderTable(s.names, s.action));
 
   buildXML(from: XMLElement): void {
     const parent = from.element("header", {

@@ -8,17 +8,18 @@ import { makeNodeElementSchema } from "../../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Attempt to turn a string in a date.
+ */
 export class CoerceDateRow implements BaseRow {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("coerce"),
-    as: z.literal("date"),
-    year: z.union([z.literal("assume"), z.literal("keep")]).default("keep"),
-    parse: z.array(z.string()).default([]),
-    format: z.string().default("M/D/YYYY")
-  }).transform(s => new CoerceDateRow(s.format, s.year, s.parse));
-
+  /**
+   * If "assume", disard the year of the date, and make it the year of the
+   * current quarter.
+   */
   private readonly year: "assume" | "keep";
+  /** Specify a format to parse from, if it is particularly unique. */
   private readonly parse: string[];
+  /** The format that the date will be parsed to. */
   private readonly format: string;
 
   private static readonly COMMON_DATES = [
@@ -31,6 +32,13 @@ export class CoerceDateRow implements BaseRow {
     "YY/MM/DD"
   ];
 
+  /**
+   * Create a corce date operation.
+   * @param format Specify a format to parse from, if it is particularly unique.
+   * @param year If "assume", disard the year of the date, and make it the year of the
+   * current quarter.
+   * @param parse The format that the date will be parsed to.
+   */
   public constructor(format: string, year: "assume" | "keep", parse: string[]) {
     this.year = year;
     this.parse = parse;
@@ -52,12 +60,20 @@ export class CoerceDateRow implements BaseRow {
     }
 
     if (this.year === "assume") {
-      date.year(runner.settings.getTime().year);
+      date.year(runner.settings.time.year);
     }
 
     assert.ok(date.isValid(), `Date ${value} could not be parsed.`);
     return date.format(this.format);
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("coerce"),
+    as: z.literal("date"),
+    year: z.union([z.literal("assume"), z.literal("keep")]).default("keep"),
+    parse: z.array(z.string()).default([]),
+    format: z.string().default("M/D/YYYY")
+  }).transform(s => new CoerceDateRow(s.format, s.year, s.parse));
 
   buildXML(from: XMLElement): void {
     from.element("coerce", {

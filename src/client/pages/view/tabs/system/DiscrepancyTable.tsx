@@ -33,13 +33,14 @@ function DiscrepancyTable(props: DiscrepancyTableProps) {
       </AccordionSummary>
       <AccordionDetails color="warning" variant="soft">
         <AccordionGroup size='sm' color="warning" variant="soft">
-          {data.filter(r => r.drop.length > 0 || r.take.length > 0).toSorted((a, b) => b.take.length - a.take.length).map(r => (
+          {data.toSorted((a, b) => b.take.length - a.take.length).map(r => (
             <Accordion color="warning" variant="soft" key={r.name}>
               <AccordionSummary color="warning" variant="soft">
                 <ListItemContent>
                   <Typography level="title-sm" fontFamily="monospace">#{r.name}</Typography>
                 </ListItemContent>
                 <>
+                  {r.match !== 0 && <Chip color="neutral">={r.match}</Chip>}
                   {r.take.length !== 0 && <Chip color="success">+{r.take.length}</Chip>}
                   {r.drop.length !== 0 && <Chip color="danger">-{r.drop.length}</Chip>}
                 </>

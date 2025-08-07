@@ -6,18 +6,32 @@ import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Filters rows based on their value in a specific column.
+ * 
+ * For each row in a table, the operation collects the row if the specified
+ * column in that row equals a specific value.
+ * 
+ * If the user chooses to `"drop"` these rows, there will be deleted, and the
+ * remaining rows returned.
+ * 
+ * If the user chooses to `"keep"` these rows, they will be returned instead,
+ * ignoring all other rows.
+ */
 export class SelectTable implements BaseTable {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("select"),
-    column: ExcelIndexSchema,
-    is: z.string(),
-    action: z.union([z.literal("drop"), z.literal("keep")]).default("keep"),
-  }).transform(s => new SelectTable(s.column, s.action, s.is));
-
+  /** The colunm to check. */
   private readonly column: number;
+  /** The value to match against. */
   private readonly is: string;
+  /** Whether to keep any matching rows, or delete them. */
   private readonly action: "drop" | "keep";
 
+  /**
+   * Create a select operation.
+   * @param column The colunm to check.
+   * @param action The value to match against.
+   * @param is Whether to keep any matching rows, or delete them.
+   */
   public constructor(column: number, action: "drop" | "keep", is: string) {
     this.column = column;
     this.action = action;
@@ -32,6 +46,13 @@ export class SelectTable implements BaseTable {
 
     return rewire({ ...table, data: rows });
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("select"),
+    column: ExcelIndexSchema,
+    is: z.string(),
+    action: z.union([z.literal("drop"), z.literal("keep")]).default("keep"),
+  }).transform(s => new SelectTable(s.column, s.action, s.is));
 
   buildXML(from: XMLElement): void {
     from.element("select", {

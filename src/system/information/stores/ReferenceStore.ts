@@ -1,12 +1,15 @@
 import path from "path";
 import { AbstractStore } from "./AbstractStore";
-import { getSubFiles } from "../util";
-import { ReferenceFile } from "./items/ReferenceFile";
+import { getSubFiles } from "../../util";
+import { ReferenceFile } from "../items/ReferenceFile";
 
 /** ------------------------------------------------------------------------- */
 
 interface Meta { directory: string };
 
+/**
+ * Holds all references used by the Transformers.
+ */
 export class ReferenceStore extends AbstractStore<ReferenceFile, Meta> {
   public readonly name = "references";
 

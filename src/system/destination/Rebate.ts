@@ -9,13 +9,10 @@ import { CSVRebateFile } from "../information/items/CSVRebateFile";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Send a table to the `rebates` folder, as a CSV.
+ */
 export class RebateDestination implements BaseDestination {
-
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("rebate"),
-    name: z.string(),
-  }).transform(s => new RebateDestination(s.name));
-
   private name: string;
 
   public constructor(name: string) {
@@ -23,10 +20,12 @@ export class RebateDestination implements BaseDestination {
   }
 
   run(table: Table, runner: Runner): void {
+    // Convert to a list of Rebates.
     const data = table.data.map(row => row.data);
     const { data: raw } = Papa.parse(Papa.unparse(data), { header: true });
     const rebates = z.array(RebateSchema).parse(raw);
 
+    // Send to the destination store.
     const filepath = runner.settings.getDestinationPath(this.name);
     const destination = new CSVRebateFile(filepath, {
       group: this.name,
@@ -36,6 +35,11 @@ export class RebateDestination implements BaseDestination {
     destination.push(rebates);
     runner.destinations.add(destination);
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("rebate"),
+    name: z.string(),
+  }).transform(s => new RebateDestination(s.name));
 
   buildXML(from: XMLElement): void {
     from.element("rebate", undefined, this.name);

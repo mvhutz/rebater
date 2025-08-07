@@ -1,20 +1,28 @@
 import { z } from "zod/v4";
 import { BaseRow } from ".";
-import { Element, makeNodeElement, makeNodeElementSchema, makeTextElement, makeTextElementSchema } from "../xml";
+import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
 import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Filter out certain characters from a string.
+ * 
+ * This operation selects all characters in a value that exists in a specified
+ * string. Then it either chooses to discard those characters, or keep only
+ * those, and discard the rest.
+ */
 export class CharacterRow implements BaseRow {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("character"),
-    select: z.string(),
-    action: z.union([z.literal("keep"), z.literal("drop")]).default("keep")
-  }).transform(s => new CharacterRow(s.select, s.action));
-
+  /** The set of characters to match for. */
   private readonly select: string;
+  /** Whether the keep or drop the matching characters. */
   private readonly action: "keep" | "drop";
 
+  /**
+   * Create a character operation.
+   * @param select The set of characters to match for.
+   * @param action Whether the keep or drop the matching characters.
+   */
   public constructor(select: string, action: "keep" | "drop") {
     this.select = select;
     this.action = action;
@@ -27,13 +35,11 @@ export class CharacterRow implements BaseRow {
       .join("");
   }
 
-  toXML(): Element {
-    return makeNodeElement("character", {
-      action: this.action
-    }, [
-      makeTextElement(this.select)
-    ]); 
-  }
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("character"),
+    select: z.string(),
+    action: z.union([z.literal("keep"), z.literal("drop")]).default("keep")
+  }).transform(s => new CharacterRow(s.select, s.action));
 
   buildXML(from: XMLElement): void {
     from.element("character", {

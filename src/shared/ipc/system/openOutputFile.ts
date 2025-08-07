@@ -5,7 +5,11 @@ import { shell } from "electron";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Find the output Excel file, and open it for the user.
+ */
 export async function openOutputFile() {
+  // Get settings.
   const settings_reply = await getSettingsInterface(); 
   if (!settings_reply.ok) return settings_reply;
   const { data: isettings } = settings_reply;

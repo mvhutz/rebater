@@ -67,9 +67,25 @@ th {
     border-style: solid;
 }
 
+th:first-of-type {
+  border-top-left-radius: 10px;
+}
+th:last-of-type {
+  border-top-right-radius: 10px;
+}
+tr:last-of-type td:first-of-type {
+  border-bottom-left-radius: 10px;
+}
+tr:last-of-type td:last-of-type {
+  border-bottom-right-radius: 10px;
+}
+
+
 td,
 th {
     padding: 5px;
+    border: 0;
+    height: unset !important;
 }
 
 li:not(:first-child),
@@ -103,4 +119,8 @@ table {
 
 * {
     scrollbar-width: none;
+}
+
+ul p {
+    margin: 0;
 }

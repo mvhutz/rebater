@@ -14,11 +14,38 @@ import assert from "assert";
 
 /** ------------------------------------------------------------------------- */
 
+/** Statistics for the client to view. */
 export interface TransformerInfo {
   name: string;
   tags: string[];
 }
 
+/**
+ * An individual extractor for the Rebater.
+ * 
+ * It runs in 5 steps:
+ * 
+ * 1. First, it searches for all sources that it may need. These are specified
+ *    using the `<sources>` tag. For each source, it extracts all of the data
+ *    into a list of `Table`, which hold 2D matrix data.
+ * 
+ * 2. Next, it runs a set of operations on those tables. These are specified in
+ *    the `<preprocess>` tag. Examples can be found in the `table` folder. Each
+ *    tag takes in a table, and returns a new table, altered in some way.
+ * 
+ * 3. Next, the tables are all combined, and chopped up into rows. From here,
+ *    each row will have various `<property>` extracted from it. The process
+ *    is separate for each property, done through defined "row" transformations.
+ *    These take a string (and the current row as context) and return a
+ *    modified string, based on the type of operation done. Example can be found
+ *    in the `row` folder.
+ * 
+ * 4. Much like the `<preprocess>` tag, the `<postprocess>` tag is run on the
+ *    resulting extracted rows.
+ * 
+ * 5. Finally, the process rebates are written to a set of `<destinations>`.
+ *    Examples are in the `destination` folder.
+ */
 export class Transformer {
   public readonly name: string;
   public readonly tags: string[];
@@ -40,10 +67,19 @@ export class Transformer {
     this.requirements = requirements;
   }
 
+  /**
+   * Get statistics about the transformer.
+   */
   public getInfo(): TransformerInfo {
     return { name: this.name, tags: this.tags };
   }
 
+  /**
+   * Parse a transformer from a file.
+   * @param filepath The location of the file.
+   * @param type The format the transformer is in.
+   * @returns A new transformer.
+   */
   public static async fromFile(filepath: string, type: "xml" | "json"): Promise<Transformer> {
     const raw = await readFile(filepath, 'utf-8');
 
@@ -66,6 +102,13 @@ export class Transformer {
     }
   }
 
+  /**
+   * Extract all transformers present in Rebater.
+   * @param settings The settings to use to search.
+   * @param filter Whether to return all transformers, or just those that will
+   * be run.
+   * @returns A list of transformers found.
+   */
   public static async pullAll(settings: Settings, filter = false) {
     const transformer_json_files = await Array.fromAsync(glob(settings.getTransformerPathGlob()));
     const transformer_xml_files = await Array.fromAsync(glob(settings.getTransformerPathXMLGlob()));
@@ -89,6 +132,14 @@ export class Transformer {
     return transformers;
   }
 
+  /**
+   * Find a valid order for a set of transformers to run in.
+   * @description Certain transformers can require other to run before hand,
+   * using the `<requires>` tag. This is useful when one transformer requires
+   * another `<utility>` transformer to run beforehand.
+   * @param transformers The transformers to sort.
+   * @returns The same transformers, ordered in a way that causes no conflicts.
+   */
   public static findValidOrder(transformers: Transformer[]) {
     const by_name = new Map<string, Transformer>();
     
@@ -129,7 +180,13 @@ export class Transformer {
     return stack;
   }
 
-  public async runRow(runner: Runner, row: Row) {
+  /**
+   * Extract the properties from a certain row.
+   * @param runner The Runner which is running this transformer.
+   * @param row The row being extracted.
+   * @returns The extracted properties.
+   */
+  private async runRow(runner: Runner, row: Row) {
     const result = new Array<string>();
 
     for (const { definition } of this.properties) {
@@ -144,11 +201,21 @@ export class Transformer {
     return result;
   }
 
+  /**
+   * Run the transformer.
+   * @param runner The context to run in.
+   * @returns Information as to how well the transformer ran.
+   */
   public async run(runner: Runner): Promise<TransformerResult> {
     const start = performance.now();
+
+    // 1. Pull sources.
     const source_data = (await Promise.all(this.sources.map(s => s.run(runner)))).flat(1);
+
+    // 2. Pre-process data.
     const preprocessed_data = (await Promise.all(source_data.map(d => runManyTables(this.preprocess, d, runner))));
     
+    // 3. Extract properties.
     const recombined = rewire({
       path: "",
       data: [{
@@ -167,7 +234,10 @@ export class Transformer {
       }
     }
 
+    // 4. Post-process data.
     const postprocessed_data = await runManyTables(this.postprocess, recombined, runner);
+
+    // 5. Send to destinations.
     for (const destination of this.destinations) {
       destination.run(postprocessed_data, runner);
     }
@@ -176,6 +246,9 @@ export class Transformer {
     return { start, end, name: this.name };
   }
 
+  /**
+   * Serialize the transformer in XML.
+   */
   toXML(): string {
     const root = builder.create("transformer");
 
@@ -237,6 +310,9 @@ export class Transformer {
     return root.end({ pretty: true, spaceBeforeSlash: " " });
   }
 
+  /**
+   * The JSON schema of a Transformer.
+   */
   public static readonly SCHEMA = z.strictObject({
     name: z.string(),
     tags: z.array(z.string()).default([]),
@@ -323,6 +399,9 @@ export class Transformer {
     ]))
   );
 
+  /**
+   * The XML schema of a Transformer.
+   */
   public static readonly XML_SCHEMA: z.ZodType<Transformer> = z.strictObject({
     children: z.tuple([Transformer.XML_SCHEMA_INITIAL])
   }).transform(x => Transformer.parseInitialXML(x.children[0]));

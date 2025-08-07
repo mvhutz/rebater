@@ -11,71 +11,100 @@ import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Extracts tables as sheets from an Excel file.
+ */
 export class ExcelSource implements BaseSource {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("excel"),
-    group: z.string(),
-    file: z.string().default("*"),
-    sheets: z.array(z.string()).default([]),
-  }).transform(s => new ExcelSource(s.group, s.file, s.sheets));
-
+  /** The group of sources the extract from. */
   private group: string;
+  /** The name of the files to extract. Supports glob. */
   private file: string;
+  /** The names of the sheets to extract. Supports regex. */
   private sheets: string[];
 
+  /**
+   * Create an Excel source operation.
+   * @param group The group of sources the extract from.
+   * @param file The name of the files to extract. Supports glob.
+   * @param sheets The names of the sheets to extract. Supports regex.
+   */
   public constructor(group: string, file: string, sheets: string[]) {
     this.group = group;
     this.file = file;
     this.sheets = sheets;
   }
 
-  private getSourceFileGlob(runner: Runner) {
-    return runner.settings.getSourcePathGlob(this.group, this.file, ".xls*");
+  /**
+   * Extract a table from an Excel worksheet.
+   * @param sheet The sheet to extract from.
+   * @param filepath The path of the file.
+   * @param results The table list to push to.
+   */
+  private extractWorkSheet(sheet: XLSX.WorkSheet, filepath: string, results: Table[]) {
+    const unclean = XLSX.utils.sheet_to_json(sheet, {
+      raw: true,
+      blankrows: false,
+      defval: '',
+      header: 1,
+    });
+
+    const parsed = z.array(z.array(z.coerce.string())).parse(unclean);
+
+    const table = makeTable(parsed, filepath);
+    results.push(table);
+  }
+
+  /**
+   * Extract a table from an Excel workbook.
+   * @param workbook The workbook to extract from.
+   * @param filepath The path of the file.
+   * @param results The table list to push to.
+   */
+  private extractWorkBook(workbook: XLSX.WorkBook, filepath: string, results: Table[]) {
+    const sheetsToTake = new Set<string>();
+    if (this.sheets.length == 0) {
+      workbook.SheetNames.forEach(m => sheetsToTake.add(m));
+    } else {
+      for (const sheet of this.sheets) {
+        const regex = new RegExp(`^${sheet}$`);
+        const matching = workbook.SheetNames.filter(n => regex.test(n));
+        matching.forEach(m => sheetsToTake.add(m));
+      }
+    }
+
+    for (const sheetName of sheetsToTake) {
+
+      const sheet = workbook.Sheets[sheetName];
+      assert.ok(sheet != null, `Sheet '${sheetName}' does not exist on workbook!`);
+
+      this.extractWorkSheet(sheet, filepath, results);
+    }
   }
 
   run(runner: Runner): Table[] {
-    const glob = this.getSourceFileGlob(runner);
+    // Get the needed files.
+    const glob = runner.settings.getSourcePathGlob(this.group, this.file, ".xls*");
     const files = runner.sources.filter(s => path.matchesGlob(s.path, glob));
-    const results = new Array<Table>();
 
+    // Extract tables.
+    const results = new Array<Table>();
     for (const file of files) {
       const raw = file.getData();
       assert.ok(raw != null, `Source file '${file.path}' not loaded!`);
 
       const workbook = XLSX.read(raw, { type: "buffer" });
-
-      const sheetsToTake = new Set<string>();
-      if (this.sheets.length == 0) {
-        workbook.SheetNames.forEach(m => sheetsToTake.add(m));
-      } else {
-        for (const sheet of this.sheets) {
-          const regex = new RegExp(`^${sheet}$`);
-          const matching = workbook.SheetNames.filter(n => regex.test(n));
-          matching.forEach(m => sheetsToTake.add(m));
-        }
-      }
-
-      for (const sheetName of sheetsToTake) {
-
-        const sheet = workbook.Sheets[sheetName];
-        assert.ok(sheet != null, `Sheet '${sheetName}' does not exist on workbook!`);
-
-        const unclean = XLSX.utils.sheet_to_json(sheet, {
-          raw: true,
-          blankrows: false,
-          defval: '',
-          header: 1,
-        });
-
-        const parsed = z.array(z.array(z.coerce.string())).parse(unclean);
-
-        const table = makeTable(parsed, file.path);
-        results.push(table);
-      }
+      this.extractWorkBook(workbook, file.path, results);
     }
 
     return results;
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("excel"),
+    group: z.string(),
+    file: z.string().default("*"),
+    sheets: z.array(z.string()).default([]),
+  }).transform(s => new ExcelSource(s.group, s.file, s.sheets));
 
   buildXML(from: XMLElement): void {
     from.element("excel", {

@@ -8,14 +8,20 @@ import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Filters rows, based a certain criteria.
+ * 
+ * For each row in the table, a set of row transformations are run. If the
+ * resulting value is truthy, the row is kept.
+ */
 export class FilterTable implements BaseTable {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("filter"),
-    criteria: z.lazy(() => z.array(ROW_SCHEMA)),
-  }).transform(s => new FilterTable(s.criteria));
-
+  /** The criteria to check. */
   private readonly criteria: BaseRow[];
 
+  /**
+   * Create a filter operation.
+   * @param criteria The criteria to check.
+   */
   public constructor(criteria: BaseRow[]) {
     this.criteria = criteria;
   }
@@ -29,6 +35,11 @@ export class FilterTable implements BaseTable {
 
     return rewire({ ...table, data: rows });
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("filter"),
+    criteria: z.lazy(() => z.array(ROW_SCHEMA)),
+  }).transform(s => new FilterTable(s.criteria));
 
   buildXML(from: XMLElement): void {
     const parent = from.element("filter");

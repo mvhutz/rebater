@@ -6,16 +6,20 @@ import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Trim rows on the top or bottom of a table.
+ */
 export class TrimTable implements BaseTable {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("trim"),
-    top: z.number().optional(),
-    bottom: z.number().optional(),
-  }).transform(s => new TrimTable(s.top, s.bottom));
-
+  /** How many rows to remove from the top of the table. */
   private readonly top?: number;
+  /** How many rows to remove from the bottom of the table. */
   private readonly bottom?: number;
 
+  /**
+   * Create a trim operation.
+   * @param top How many rows to remove from the top of the table.
+   * @param bottom How many rows to remove from the bottom of the table.
+   */
   public constructor(top?: number, bottom?: number) {
     this.top = top == null ? undefined : top;
     this.bottom = bottom == null ? undefined : -bottom;
@@ -25,6 +29,12 @@ export class TrimTable implements BaseTable {
     table.data = table.data.slice(this.top, this.bottom);
     return rewire(table);
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("trim"),
+    top: z.number().optional(),
+    bottom: z.number().optional(),
+  }).transform(s => new TrimTable(s.top, s.bottom));
 
   buildXML(from: XMLElement): void {
     from.element("trim", {

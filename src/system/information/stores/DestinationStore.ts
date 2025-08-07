@@ -1,13 +1,16 @@
-import { Time } from "../../shared/time";
-import { getSubFiles, getSubFolders } from "../util";
+import { Time } from "../../../shared/time";
+import { getSubFiles, getSubFolders } from "../../util";
 import { AbstractStore } from "./AbstractStore";
-import { CSVRebateFile } from "./items/CSVRebateFile";
+import { CSVRebateFile } from "../items/CSVRebateFile";
 
 /** ------------------------------------------------------------------------- */
 
 type Item = CSVRebateFile<{ group: string, quarter: Time }>;
 interface Meta { directory: string };
 
+/**
+ * Holds all rebate data created by the transformers.
+ */
 export class DestinationStore extends AbstractStore<Item, Meta> {
   public readonly name = "destinations";
 

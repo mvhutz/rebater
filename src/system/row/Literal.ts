@@ -5,14 +5,17 @@ import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Replace the current value with another.
+ */
 export class LiteralRow implements BaseRow {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("literal"),
-    value: z.coerce.string()
-  }).transform(s => new LiteralRow(s.value));
-
+  /** The replacement value. */
   private readonly value: string;
 
+  /**
+   * Create a literal operation.
+   * @param value The replacement value.
+   */
   public constructor(value: string) {
     this.value = value;
   }
@@ -20,6 +23,11 @@ export class LiteralRow implements BaseRow {
   async run(): Promise<string> {
     return this.value;
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("literal"),
+    value: z.coerce.string()
+  }).transform(s => new LiteralRow(s.value));
 
   buildXML(from: XMLElement): void {
     from.element("literal", undefined, this.value);

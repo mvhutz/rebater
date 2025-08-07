@@ -5,15 +5,17 @@ import { makeNodeElementSchema } from "../../xml";
 
 /** ------------------------------------------------------------------------- */
 
+/**
+ * Attempt to coerce a string to a USD amount.
+ */
 export class CoerceUSDRow implements BaseRow {
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("coerce"),
-    as: z.literal("usd"),
-    round: z.union([z.literal("up"), z.literal("down"), z.literal("default")]).default("default"),
-  }).transform(s => new CoerceUSDRow(s.round));
-
+  /** Which direction to round. */
   private readonly round: "up" | "down" | "default";
 
+  /**
+   * Create a coerce USD operation.
+   * @param round Which direction to round.
+   */
   public constructor(round: "up" | "down" | "default") {
     this.round = round;
   }
@@ -29,6 +31,12 @@ export class CoerceUSDRow implements BaseRow {
 
     return value.toFixed(2);
   }
+
+  public static readonly SCHEMA = z.strictObject({
+    type: z.literal("coerce"),
+    as: z.literal("usd"),
+    round: z.union([z.literal("up"), z.literal("down"), z.literal("default")]).default("default"),
+  }).transform(s => new CoerceUSDRow(s.round));
 
   buildXML(from: XMLElement): void {
     from.element("coerce", {
