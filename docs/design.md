@@ -6,11 +6,11 @@
 graph LR
   subgraph Sources
     subgraph FQ1[2024 Q3]
-      F1[(Format 1)]
-      F2[(Format 2)]
+      F1@{ shape: docs, label: "Format 1" }
+      F2@{ shape: docs, label: "Format 2" }
     end
     subgraph FQ2[2024 Q4]
-      F3[(Format 3)]
+      F3@{ shape: docs, label: "Format 3" }
     end
   end
 
