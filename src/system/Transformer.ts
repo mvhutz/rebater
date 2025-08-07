@@ -105,7 +105,7 @@ export class Transformer {
       }
     }
 
-    // Find the topological ordering.
+    // Find topological ordering.
     const stack: Transformer[] = [];
     const visited = new WeakSet<Transformer>();
 
