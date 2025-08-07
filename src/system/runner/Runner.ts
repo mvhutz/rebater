@@ -1,4 +1,4 @@
-import { Transformer } from "../transformer";
+import { Transformer } from "../Transformer";
 import { getPartition, getRebateHash, RebateSet } from "../util";
 import EventEmitter from "events";
 import { Settings } from "../../shared/settings";

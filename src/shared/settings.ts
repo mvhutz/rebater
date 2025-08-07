@@ -1,6 +1,6 @@
 import path from "path";
 import { bad, good, Reply } from "./reply";
-import { type TransformerInfo } from "../system/transformer";
+import { type TransformerInfo } from "../system/Transformer";
 import z from "zod/v4";
 import { Time } from "./time";
 
