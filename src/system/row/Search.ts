@@ -44,7 +44,7 @@ export class SearchRow implements BaseRow {
   private readonly matches: Record<string, BaseRow[]>;
 
   /**
-   * 
+   * Create a search operation.
    * @param table The table to search in.
    * @param take The property to take.
    * @param matches The properties to match by.
