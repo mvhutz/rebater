@@ -1,5 +1,14 @@
 # Structure
 
+- [Structure](#structure)
+  - [Overview](#overview)
+  - [Sources Folder](#sources-folder)
+  - [Transformers Folder](#transformers-folder)
+  - [Rebates/Destination Folder](#rebatesdestination-folder)
+  - [Upload/Output Folder](#uploadoutput-folder)
+
+## Overview
+
 The data for Rebater is stored without the following file structure:
 
 ```txt
@@ -38,7 +47,7 @@ This is where the accountant places the files they get from the suppliers. The f
 
 ## Transformers Folder
 
-This is where the account places there transformer configurations.
+This is where the accountant places their [transformer configurations](./schema.md).
 
 ## Rebates/Destination Folder
 

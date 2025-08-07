@@ -1,5 +1,8 @@
 # Design Of Rebator
 
+- [Design Of Rebator](#design-of-rebator)
+  - [High-level](#high-level)
+
 ## High-level
 
 ```mermaid
@@ -51,5 +54,3 @@ When the user begins the program, it:
 3. Collects all resulting data, and puts it in its corresponding location.
 
 Finally, the program collects all rebates for the entire quarter, and combines it into one Excel file, and places it in [the output folder](./structure.md#uploadoutput-folder).
-
-## Underlying Technology
