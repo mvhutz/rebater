@@ -241,7 +241,7 @@ If the user acts to `"keep"`, then:
 
 Here is an example:
 
-| Rebate $ | Year Id | Month Name |
+| Rebate | Year Id | Month Name |
 |-|-|-|
 | $1.81 | 2024 | October |
 | $0.91 | 2024 | October |
@@ -250,9 +250,9 @@ Here is an example:
 | $2.71 | 2024 | October |
 | $84.50 | 2024 | October |
 
-If we choose to keep the names "Rebate \$", "Month", "Month Name", and "Rebate \$", then the resulting table would be:
+If we choose to keep the names "Rebate", "Month", "Month Name", and "Rebate", then the resulting table would be:
 
-| Rebate \$ | Year Id | Rebate \$ |
+| Rebate | Year Id | Rebate |
 |-|-|-|
 | $1.81 | October | $1.81 |
 | $0.91 | October | $0.91 |
