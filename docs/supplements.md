@@ -3,7 +3,7 @@
 - [Supplemental Data](#supplemental-data)
   - [Overview](#overview)
   - [Reference Tables](#reference-tables)
-  - [Utilites](#utilites)
+  - [Utilities](#utilities)
 
 ## Overview
 
@@ -11,4 +11,4 @@ During the execution of row and table transformations, the program is given extr
 
 ## Reference Tables
 
-## Utilites
+## Utilities

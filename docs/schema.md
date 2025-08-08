@@ -8,7 +8,7 @@
     - [Transformer Dependencies](#transformer-dependencies)
   - [Sources](#sources)
     - [Excel](#excel)
-  - [Pre/Post-Processing](#prepost-processing)
+  - [Pre- and Post-Processing](#pre--and-post-processing)
     - [Chop](#chop)
     - [Coalesce](#coalesce)
     - [Debug](#debug)
@@ -80,7 +80,7 @@ Each transformer is defined by an XML document, stored in [the `transformers` fo
 
 ## Metadata
 
-Certain information about the trasnformer itself can be specified.
+Certain information about the transformer itself can be specified.
 
 ### Transformer Name
 
@@ -101,7 +101,7 @@ A transformer can be given a tag. These can be used to group and run certain set
 
 ### Transformer Dependencies
 
-Some transformers require another transformer to be run before it (i.e. those which use [utilities](./supplements.md#utilites)). The user can specify these dependencies using the `<requires>` tag.
+Some transformers require another transformer to be run before it (i.e. those which use [utilities](./supplements.md#utilities)). The user can specify these dependencies using the `<requires>` tag.
 
 The transformer whose name matches the text inside is guaranteed to run before it.
 
@@ -135,7 +135,7 @@ The `<excel>` source extracts specific sheets from Excel source files.
 <excel group="Mapei" sheets="2-Mapei_Indepdent Distributors,3-Daltile" />
 ```
 
-## Pre/Post-Processing
+## Pre- and Post-Processing
 
 Under the `<preprocess>` and `<postprocess>` tags, users can do operations on the tabular data before or after the extraction process.
 
@@ -212,7 +212,7 @@ It goes through each row in the table, and individually run a set of row operati
 
 | Attribute | Value | Description |
 |-|-|-|
-| `[INSIDE]` | `operation[]` | The set of row operations, that will be run.. |
+| `[INSIDE]` | `operation[]` | The set of row operations, that will be run… |
 
 ```xml
 <!-- Keeps all rows whose value in column E is "1". -->
@@ -265,7 +265,7 @@ If we choose to keep the names "Rebate", "Month", "Month Name", and "Rebate", th
 
 If the user acts to `"drop"`, then:
 
-- The operations goes through the list of names, sequentially.
+- The operations go through the list of names, sequentially.
 - For each name, it deletes all columns whose header matches.
 - The resulting table is returned.
 
@@ -553,7 +553,7 @@ The `<divide>` tag compares its input with the resulting value of another set of
 
 ### Literal
 
-The `<literal>` tag discards the input it is given, and returns the value inside of it.
+The `<literal>` tag discards the input it is given, and returns the value inside it.
 
 | Attribute | Value | Description |
 |-|-|-|
@@ -773,7 +773,7 @@ Specifically, under `./rebates/<QUARTER>/<NAME>.csv`, where `QUARTER` is the cur
 
 ### Utility (Destination)
 
-In the case that your transformer builds [utility files](./supplements.md#utilites), you can specify to place your data in them using the `<utility>` tag.
+In the case that your transformer builds [utility files](./supplements.md#utilities), you can specify to place your data in them using the `<utility>` tag.
 
 Much like the `<rebate>` tag, this stores your data under `./utility/<QUARTER>/<NAME>.csv`.
 

@@ -21,3 +21,10 @@ To download the Rebater, complete the following steps:
 3. Open a Terminal in the folder where you cloned the repository.
 4. Run `npm install`, to install the dependencies of the program.
 5. Finally, to run the program, run the command `npm start` where you cloned the repository.
+
+## Resources
+
+- [How does Rebator work?](./docs/design.md)
+- [What *is* a transformer?](./docs/transformer.md)
+- [How do I write a transformer schema?](./docs/schema.md)
+- [What should the folder structure look like?](./docs/structure.md)
