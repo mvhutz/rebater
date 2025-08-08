@@ -349,8 +349,6 @@ The `<set>` tag replace the value of a specific column.
 
 For each row, a set of row transformations are performed on it. The resulting value is put into a specific column cell of that row.
 
-### Trim (Table)
-
 | Attribute | Value | Description |
 |-|-|-|
 | `column` | `string` | The column to replace values in. |
@@ -363,17 +361,102 @@ For each row, a set of row transformations are performed on it. The resulting va
 </set>
 ```
 
+### Trim (Table)
+
+The `<trim>` tag deletes a certain number of rows at the top and bottom of a table.
+
+| Attribute | Value | Description |
+|-|-|-|
+| `top` | `number?` | The number of columns to remove on top. |
+| `bottom` | `number?` | The number of columns to remove on the bottom. |
+
+```xml
+<!-- Remove the top column of every table that passes through. -->
+<trim top="1"/>
+```
+
 ## Properties/Row Transformations
+
+Under the `<property>` tag, users can extract specific types of data from each row that is fed into transformer.
+
+The name of the property is specified by the `name` attribute. This name must be unique.
+
+```xml
+<!-- Extracts the "purchaseId" from a row. -->
+<property name="purchaseId">
+  <!-- Various operations... -->
+</property>
+```
+
+Each property extracts their data through various row operations. These are defined below.
 
 ### Coerce Date
 
+The `<coerce as="date">` tag attempts to parse the value as a date. Then, it returns the formatted date.
+
+| Attribute | Value | Description |
+|-|-|-|
+| `year` | `"assume"` or `"keep"` | If `"assume"`, the date's year will automatically be converted to the year of the current quarter. |
+| `parse` | `string[]?` | A comma-separated list of extra formats to parse the string from. If your date is in an uncommon format, use this. |
+| `format` | `string?` | Optionally, change the format to return the date in. By default, it is `M/D/YYYY`. |
+
+```xml
+<!-- Parse the date using the format "YYYYMMDD". Return it as "M/D/YYYY". -->
+<coerce as="date" parse="YYYYMMDD" />
+
+<!-- Parse the date using conventional methods. Return the quarter number (Q). -->
+<coerce as="date" format="Q" />
+```
+
 ### Coerce Number
+
+The `<coerce as="number">` tag attempts to extract a number from a string.
+
+| Attribute | Value | Description |
+|-|-|-|
+| `otherwise` | `string?` | If the value is not a number, return this value instead. |
+
+```xml
+<!-- Attempt to coerce to number. Otherwise, return "99999". -->
+<coerce as="number" otherwise="99999" />
+```
 
 ### Coerce USD
 
+The `<coerce as="usd">` tag attempts turn a number to a USD amount. So, if you gave it `-1.111101`, it would return `$-1.11`.
+
+| Attribute | Value | Description |
+|-|-|-|
+| `round` | `"up"` or `"down"` or `"default"` | The direction to round the number. |
+
+```xml
+<!-- Convert to USD; round up to 2nd decimal place. -->
+<coerce as="usd" round="up" />
+```
+
 ### Absolute
 
+The `<abs>` tag returns the absolute value of its input.
+
+```xml
+<!-- Return the absolute value. -->
+<abs/>
+```
+
 ### Add
+
+The `<add>` tag adds to its input, the resulting value of another set of row operations.
+
+| Attribute | Value | Description |
+|-|-|-|
+| `[INSIDE]` | `operation[]` | The set of operations to perform in parallel. |
+
+```xml
+<!-- For every value, add 0.03 to it. -->
+<add>
+  <literal>0.03</literal>
+</add>
+```
 
 ### Character
 
@@ -385,13 +468,78 @@ For each row, a set of row transformations are performed on it. The resulting va
 
 ### Divide
 
+The `<divide>` tag divides its input by the resulting value of another set of row operations.
+
+| Attribute | Value | Description |
+|-|-|-|
+| `[INSIDE]` | `operation[]` | The set of operations to perform in parallel. |
+
+```xml
+<!-- For every value, divide it by 0.03. -->
+<divide>
+  <literal>0.03</literal>
+</divide>
+```
+
 ### Equals
+
+The `<divide>` tag compares its input with the resulting value of another set of row operations. If they match, it returns "true". Otherwise, it returns "false".
+
+| Attribute | Value | Description |
+|-|-|-|
+| `[INSIDE]` | `operation[]` | The set of operations to perform in parallel. |
+
+```xml
+<!-- Returns "true" if its input equals "0.03". -->
+<equals>
+  <literal>0.03</literal>
+</equals>
+```
 
 ### Literal
 
+The `<literal>` tag discards the input it is given, and returns the value inside of it.
+
+| Attribute | Value | Description |
+|-|-|-|
+| `[INSIDE]` | `string` | The value to return. |
+
+```xml
+<!-- Returns "0.03", no matter what input. -->
+<literal>0.03</literal>
+```
+
 ### Meta
 
+The `<meta>` tag discards the input it is given, and returns a contextual value. There are a few types this could be:
+
+- `"quarter.lastday"` returns the last day of the current quarter, in "M/D/YYYY" format.
+- `"quarter.number"` returns the ordinal of the current quarter.
+- `"row.source"` returns the name of the source file that the current row came from.
+
+| Attribute | Value | Description |
+|-|-|-|
+| `[INSIDE]` | `string` | The meta-value to return |
+
+```xml
+<!-- Returns the quarter number, no matter what input. -->
+<meta>quarter.number</meta>
+```
+
 ### Multiply
+
+The `<multiply>` tag multiplies its input by the resulting value of another set of row operations.
+
+| Attribute | Value | Description |
+|-|-|-|
+| `[INSIDE]` | `operation[]` | The set of operations to perform in parallel. |
+
+```xml
+<!-- For every value, multiply it by 0.03. -->
+<multiply>
+  <literal>0.03</literal>
+</multiply>
+```
 
 ### Reference
 
@@ -401,16 +549,85 @@ For each row, a set of row transformations are performed on it. The resulting va
 
 ### Sign
 
+The `<sign>` tag returns the sign (-1, 0, or 1) of its input.
+
+```xml
+<!-- Return the sign value. -->
+<sign/>
+```
+
 ### Subtract
+
+The `<subtract>` tag subtract from its input, the resulting value of another set of row operations.
+
+| Attribute | Value | Description |
+|-|-|-|
+| `[INSIDE]` | `operation[]` | The set of operations to perform in parallel. |
+
+```xml
+<!-- For every value, subtract 0.03 from it. -->
+<subtract>
+  <literal>0.03</literal>
+</subtract>
+```
 
 ### Sum
 
+The `<sum>` tag returns the sum of all values of a certain column. It is limited to the table that the row comes from.
+
+| Attribute | Value | Description |
+|-|-|-|
+| `[INSIDE]` | `string` | The index of the column to sum. |
+
+```xml
+<!-- Imagine this returns "FILE.xlsx". -->
+<meta>row.source</meta>
+
+<!-- This returns the sum of column AE in "FILE.xlsx". -->
+<sum>AE</sum>
+```
+
 ### Trim (Row)
+
+The `<trim>` tag trims any whitespace (spaces, tabs) of the ends of its input.
+
+```xml
+<!-- Trim whitespace. -->
+<trim />
+```
 
 ### Utility (Row)
 
 ## Destinations
 
+Under the `<destinations>` tag, users can specify various locations in which the rebate data will be stored.
+
 ### Rebate
 
+The most common destination is to store your final data as rebates, using the `<rebate>` tag. This stores your data under the `rebates` folder in your data directory.
+
+Specifically, under `./rebates/<QUARTER>/<NAME>.csv`, where `QUARTER` is the current quarter, and `NAME` is the one specified by the tag.
+
+| Attribute | Value | Description |
+|-|-|-|
+| `[INSIDE]` | `operation[]` | The name of the file you wish to store your data in. |
+
+```xml
+<!-- Store all data under "Futura.csv". -->
+<rebate>Futura</rebate>
+```
+
 ### Utility (Destination)
+
+In the case that your transformer builds [utility files](./supplements.md#utilites), you can specify to place your data in them using the `<utility>` tag.
+
+Much like the `<rebate>` tag, this stores your data under `./utility/<QUARTER>/<NAME>.csv`.
+
+| Attribute | Value | Description |
+|-|-|-|
+| `[INSIDE]` | `operation[]` | The name of the file you wish to store your data in. |
+
+```xml
+<!-- Store your utility data under "Futura.csv". -->
+<utility>Futura</utility>
+```
