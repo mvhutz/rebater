@@ -6,6 +6,7 @@
   - [Tables/References Folder](#tablesreferences-folder)
   - [Transformers Folder](#transformers-folder)
   - [Rebates/Destination Folder](#rebatesdestination-folder)
+  - [Truth Folder](#truth-folder)
   - [Upload/Output Folder](#uploadoutput-folder)
 
 ## Overview
@@ -57,6 +58,12 @@ This is where the accountant places their [transformer configurations](./schema.
 ## Rebates/Destination Folder
 
 This is where the program places the rebates it extracts from the sources. They are sorted by quarter. Each file contains all rebates generated from the transformer it is created from. They are in CSV format by default.
+
+- The sub-folder for quarter MUST follow the format `YYYY-QQ` (an example is `2024-Q1`). Any folder that do not follow this format are ignored.
+
+## Truth Folder
+
+This is where the accountant the rebate data that is expected of the transformers, when they are run. They are sorted by quarter. Each file contains all rebates generated from the transformer it is created from. They are in CSV format by default.
 
 - The sub-folder for quarter MUST follow the format `YYYY-QQ` (an example is `2024-Q1`). Any folder that do not follow this format are ignored.
 
