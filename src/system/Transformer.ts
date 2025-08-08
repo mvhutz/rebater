@@ -348,18 +348,23 @@ export class Transformer {
           tags.push(child.children[0].text);
           break;
         case "sources":
+          if (child.children == null) continue;
           sources.push(...child.children);
           break;
         case "preprocess":
+          if (child.children == null) continue;
           preprocess.push(...child.children);
           break;
         case "property":
+          if (child.children == null) continue;
           properties.push({ name: child.attributes.name, definition: child.children });
           break;
         case "postprocess":
+          if (child.children == null) continue;
           postprocess.push(...child.children);
           break;
         case "destinations":
+          if (child.children == null) continue;
           destinations.push(...child.children);
           break;
         case "requires":
@@ -383,19 +388,19 @@ export class Transformer {
       ])),
       makeNodeElementSchema("sources", z.undefined(), z.array(
         SOURCE_XML_SCHEMA
-      )),
+      ).optional()),
       makeNodeElementSchema("preprocess", z.undefined(), z.array(
         TABLE_XML_SCHEMA
-      )),
+      ).optional()),
       makeNodeElementSchema("property", z.strictObject({ name: z.string() }), z.array(
         ROW_XML_SCHEMA
-      )),
+      ).optional()),
       makeNodeElementSchema("postprocess", z.undefined(), z.array(
         TABLE_XML_SCHEMA
-      )),
+      ).optional()),
       makeNodeElementSchema("destinations", z.undefined(), z.array(
         DESTINATION_XML_SCHEMA
-      )),
+      ).optional()),
     ]))
   );
 
