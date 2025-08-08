@@ -1,6 +1,6 @@
-# Design Of Rebator
+# Design Of Rebater
 
-- [Design Of Rebator](#design-of-rebator)
+- [Design Of Rebater](#design-of-rebater)
   - [High-level](#high-level)
 
 ## High-level

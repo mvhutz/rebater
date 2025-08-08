@@ -17,7 +17,7 @@ Head over to the [releases page](https://github.com/mvhutz/rebater/releases), an
 To download the Rebater, complete the following steps:
 
 1. Download [Node.js 24](https://nodejs.org/en/download).
-2. [Clone the repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) for Rebator (`mvhutz/rebator`).
+2. [Clone the repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) for Rebater (`mvhutz/rebater`).
 3. Open a Terminal in the folder where you cloned the repository.
 4. Run `npm install`, to install the dependencies of the program.
 5. Finally, to run the program, run the command `npm start` where you cloned the repository.
