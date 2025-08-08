@@ -3,6 +3,7 @@ import { ExcelIndexSchema, getExcelFromIndex } from "../util";
 import { BaseRow } from ".";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
+import assert from "node:assert";
 
 /** ------------------------------------------------------------------------- */
 
@@ -22,7 +23,10 @@ export class ColumnRow implements BaseRow {
   }
 
   async run(_v: string, row: Row): Promise<string> {
-    return row.data[this.index];
+    const value = row.data[this.index];
+    assert.ok(value != null, `Cannot pull column ${this.index + 1} from row: ${row.data}`);
+
+    return value;
   }
 
   public static readonly SCHEMA = z.strictObject({
