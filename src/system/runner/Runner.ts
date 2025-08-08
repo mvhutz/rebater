@@ -14,6 +14,7 @@ import { ExcelRebateFile } from "../information/items/ExcelRebateFile";
 import { UtilityStore } from "../information/stores/UtilityStore";
 import z from "zod/v4";
 import { RebateSet } from "./RebateSet";
+import { bad, good, Reply } from "../../shared/reply";
 
 /** ------------------------------------------------------------------------- */
 
@@ -106,13 +107,18 @@ export class Runner extends EventEmitter<RunnerEvents> {
   /**
    * Load all stores.
    */
-  private async load() {
-    await this.sources.gather();
-    await this.sources.load();
-    await this.references.gather();
-    await this.references.load();
-    await this.truths.gather();
-    await this.truths.load();
+  private async load(): Promise<Reply> {
+    try {
+      await this.sources.gather();
+      await this.sources.load();
+      await this.references.gather();
+      await this.references.load();
+      await this.truths.gather();
+      await this.truths.load();
+      return good(undefined);
+    } catch (err) {
+      return bad(`${err}`);
+    }
   }
 
   /**
@@ -142,7 +148,11 @@ export class Runner extends EventEmitter<RunnerEvents> {
 
     // Load stores.
     yield { type: "loading", message: "Loading sources..." };
-    await this.load();
+    const load_reply = await this.load();
+    if (!load_reply.ok) {
+      yield { type: "error", message: load_reply.reason };
+      return;
+    }
 
     // Run the transformers.
     for (const [i, transformer] of transformers.entries()) {
