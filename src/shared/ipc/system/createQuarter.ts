@@ -50,7 +50,7 @@ export async function createQuarter(_: unknown, options: CreateQuarterOptions): 
   const { data: settings } = settings_reply;
 
   // The new quarter cannot exist already.
-  const current_quarter = quarters.find(new_quarter.is);
+  const current_quarter = quarters.find(q => new_quarter.is(q));
   if (current_quarter != null) {
     return bad(`Quarter ${new_quarter} already exists!`);
   }
@@ -63,7 +63,7 @@ export async function createQuarter(_: unknown, options: CreateQuarterOptions): 
   if (createStructureFrom != null) {
     const copy_quarter = Time.of(createStructureFrom);
 
-    if (!quarters.find(copy_quarter.is)) {
+    if (!quarters.find(q => copy_quarter.is(q))) {
       return bad(`Quarter to create structure from, ${copy_quarter}, does not exist!`);
     }
 
