@@ -3,6 +3,7 @@
 - [Structure](#structure)
   - [Overview](#overview)
   - [Sources Folder](#sources-folder)
+  - [Tables/References Folder](#tablesreferences-folder)
   - [Transformers Folder](#transformers-folder)
   - [Rebates/Destination Folder](#rebatesdestination-folder)
   - [Upload/Output Folder](#uploadoutput-folder)
@@ -44,6 +45,10 @@ This is where the accountant places the files they get from the suppliers. The f
 
 - Each supplier can have multiple types of formats, so do not feel forced to put all files from one supplier in just one folder.
 - The sub-folder for quarter MUST follow the format `YYYY-QQ` (an example is `2024-Q1`). Any folder that do not follow this format are ignored.
+
+## Tables/References Folder
+
+This is where the accountant puts their [reference tables](./supplements.md#reference-tables). The name of each table is important, and most not be changed. References cannot be held in sub-folders.
 
 ## Transformers Folder
 
