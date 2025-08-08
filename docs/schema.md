@@ -460,11 +460,66 @@ The `<add>` tag adds to its input, the resulting value of another set of row ope
 
 ### Character
 
+The `<character>` can select or remove certain characters from its input.
+
+| Attribute | Value | Description |
+|-|-|-|
+| `select` | `string` | The set of operations to perform in parallel. |
+| `action` | `"keep"` or `"drop"` | If `"keep"`, all characters not present in `select` will be removed. If `"drop"`, all characters present in `select` will be removed. |
+
+```xml
+<!-- Remove all but digits. -->
+<character action="keep">1234567890</character>
+
+<!-- Remove all periods in the input. -->
+<character action="drop">.</character>
+```
+
 ### Column
+
+The `<column>` tag discards the input it is given, and returns a specific column value from the given row.
+
+| Attribute | Value | Description |
+|-|-|-|
+| `[INSIDE]` | `string` | The column index to extract from. |
+
+```xml
+<!-- For every row, return its first cell value (column A). -->
+<column>A</column>
+```
 
 ### Concat
 
+The `<concat>` tag append to its input, the resulting value of another set of row operations.
+
+Optionally, to can define "separator" text to go between the two values.
+
+| Attribute | Value | Description |
+|-|-|-|
+| `separator` | `string?` | If specified, is placed between the two values. |
+| `[INSIDE]` | `operation[]` | The set of operations to perform in parallel. |
+
+```xml
+<!-- Combines a row's column A value, and column B value, with ", " in the middle. -->
+<column>A</column>
+<concat separator=", ">
+  <column>B</column>
+</concat>
+
+<!-- If column A was "Apple", and column B was "Banana", these operations would return "Apple, Banana". -->
+```
+
 ### Counter
+
+The `<counter>` tag initially returns 0. But, every time an input is passed through, its value increments by one.
+
+```xml
+<!-- Returns 0. -->
+<counter />
+
+<!-- Returns 1. -->
+<counter />
+```
 
 ### Divide
 
@@ -543,9 +598,100 @@ The `<multiply>` tag multiplies its input by the resulting value of another set 
 
 ### Reference
 
+The `<reference>` tag performs a lookup on a set of tabular data, called a [reference](./supplements.md#reference-tables).
+
+Given a reference `table`, this operation:
+
+- Searches the records in that reference.
+- Finds the first record in with a certain property `match`, which equals the input value.
+- Once found, it returns finds the `take` property of that record, and returns its value.
+
+It only searches records whose `group` property matches those specified. If no record is found, the user is prompted to add a new record that matches this request.
+
+| Attribute | Value | Description |
+|-|-|-|
+| `table` | `string` | The reference table to search in. |
+| `match` | `string` | The name of the property to match against. |
+| `take` | `string` | The name of the property to return. |
+| `group` | `string` | Only recognize records with a group that match this. |
+
+```xml
+<!-- Imagine we have a month value, like January. -->
+<literal>JANUARY</literal>
+
+<!--
+If we want to find out its quarter number, We could use a reference table. The table would contain 12 records each with a "name" property, and a "quarter" property. Then, we can use this tag to extract the correct value.
+
+Note that, because the group property does not apply to this type of table, we can specify "*", which matches all groups.
+-->
+<reference table="MONTHS" match="name" take="quarter" group="*"/>
+
+```
+
 ### Replace
 
+The `<replace>` tag allows user to make granular modifications to parts of any input. The tag has two phases: (1) matching and (2) replacing. There are 3 ways to find matches:
+
+- If you specify a set of `characters`, they will be replaced, each individually.
+- If you specify a `substring`, each matching substring will be replaced.
+- If you specify `all`, the entire string will be replaced if it matches this value.
+
+For each part of the input that is matched, it will be replaced with "put". (Optionally, if you specify "put_meta", a [meta-value](#meta) will be replaced, instead.)
+
+| Attribute | Value | Description |
+|-|-|-|
+| `characters` | `string?` | Matches any characters in the input, that are present in this value. |
+| `substring` | `string?` | Matches any part of the string that equals this value. |
+| `all` | `string?` | Matches the entire input against a specific value. Supports regular expressions. |
+| `put` | `string?` | Replace each instance with this value. |
+| `put_meta` | `string?` | Replace each instance with this meta-value. |
+
+```xml
+<!-- Replace any instances of "12/16/1996" in the input, with "12/31/2024". -->
+<replace substring="12/16/1996" put="12/31/2024" />
+
+<!-- If the input is empty, replace it with the formatted last day of the quarter. -->
+<replace all="" put_meta="quarter.lastday" />
+```
+
 ### Search
+
+The `<search>` tag is a generalized version of [`<reference>`](#reference). Given a reference `table`, it searches that table for a matching record.
+
+| Attribute | Value | Description |
+|-|-|-|
+| `table` | `string` | The reference table to search in. |
+| `take` | `string` | The name of the property to return. |
+
+Inside the tag, the user can place `<match>` tags. These allow the user to add criteria for *what* to search through. Each tag contains a `id` property (what property of the records to match for), and a set of child operations (performed on the input row, to determine what value to match against the property). For example, if you wish to find a record whose "customerName" was equal to "John", you would specify:
+
+```xml
+<match id="customerName">
+  <literal>John</literal>
+</match>
+```
+
+All row operations apply inside the `<match>` tag, allowing for complex operations. The first record matching all criteria specified is returned. When no record is found, it asks the user for input.
+
+| Attribute | Value | Description |
+|-|-|-|
+| `id` | `string` | The name of the property to match against. |
+| `primary` | `boolean?` | The user is given suggestions when asks for input. If `true`, this criterion will be considered. |
+| `optional` | `boolean?` | If `true`, this criterion is ignored when the user is asked for input. |
+| `[INSIDE]` | `operation[]` | The set of operations to determine the value to match against. |
+
+```xml
+<!-- Search "customers" for a record in the "Bostik" group, with a "customerName" equal to column B. Return that record's "fuseId". -->
+<search table="customers" take="fuseId">
+  <match id="customerName" primary="true">
+    <column>B</column>
+  </match>
+  <!-- "group" is a property, after all! -->
+  <match id="group" optional="true">
+    <literal>Bostik</literal>
+  </match>
+</search>
+```
 
 ### Sign
 
@@ -597,6 +743,14 @@ The `<trim>` tag trims any whitespace (spaces, tabs) of the ends of its input.
 ```
 
 ### Utility (Row)
+
+The `<utility>` tag is identical to the [`<reference>`](#reference), but specifically for [utility tables](./supplements.md).
+
+```xml
+<!-- From the example in <reference>: if your table was a utility instead, you would use this. -->
+<utility table="MONTHS" match="name" take="quarter" group="*"/>
+
+```
 
 ## Destinations
 
