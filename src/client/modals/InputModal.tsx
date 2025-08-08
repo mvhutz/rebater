@@ -149,7 +149,7 @@ function InputModal() {
       <ModalOverflow>
         <ModalDialog minWidth={500} layout="center">
           <form onSubmit={handleForm}>
-            <DialogTitle>Rebator needs your help!</DialogTitle>
+            <DialogTitle>Rebater needs your help!</DialogTitle>
             <DialogContent>
               <Stack spacing={2}>
                 {inside}

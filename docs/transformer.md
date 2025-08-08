@@ -1,119 +1,336 @@
-# Data Transformer
+# Transformer
 
-- [Data Transformer](#data-transformer)
-  - [Definition](#definition)
-  - [Background](#background)
-  - [Design](#design)
-    - [Pulling from Sources](#pulling-from-sources)
-    - [Preprocessing Data](#preprocessing-data)
-    - [Extracting Data](#extracting-data)
-    - [Postprocessing Data](#postprocessing-data)
-    - [Destination](#destination)
+- [Transformer](#transformer)
+  - [Overview](#overview)
+  - [Process](#process)
+    - [1 Extract Files](#1-extract-files)
+    - [2 Preprocess Data](#2-preprocess-data)
+    - [3 Extract Properties](#3-extract-properties)
+    - [4 Post-process Data](#4-post-process-data)
+    - [5 Store Data](#5-store-data)
 
-## Definition
+## Overview
 
-A **Transformer** is a process that turns a *specific* format of rebate reports into a FUSE-ready state.
+A transformer extracts from a certain format of source files.
 
-## Background
+## Process
 
-To give some context, there are many types of formats for reports.
+```mermaid
+graph
+  S[(Sources)]
 
-- Report formats differ between suppliers.
-- Per supplier, there are different types of reports, each with different formats. (For example, discrepancy reports.)
-- Inside of a single report, there are different sheets, with different formats. (For example, a specific sheet for Canadian suppliers.)
-- Sometimes, specific rows inside of a table may require different processing.
+  S -- File 1 --> 1
+  S -- File 2 --> 1
+  S -- File 3 --> 1
 
-The point is, generalizing a complex process like rebate processing is futile. Instead the Rebator takes in a set of transformers, each which convert a tiny subset of the data into processable rebates, and run them all concurrently.
+  subgraph 1[1: Extract Files]
+    SI@{ shape: doc, label: "Excel" }
+    SS@{ shape: docs, label: "Table Data" }
+    SI -- Extract --> SS
+  end
 
-This makes the process (1) efficient while also (2) maximizing customization.
+  1 --> SST
+  1 --> SST
+  1 --> SST
 
-## Design
+  SST@{ shape: docs, label: "All Table Data" }
 
-A transformer is split into five phases: (1) pulling from sources, (2) preprocessing files, (3) extracting data, (4) combining and postprocessing data, and finally (5) send it to a single file.
+  SST --> 2
+  SST --> 2
+  SST --> 2
 
-### Pulling from Sources
+  subgraph 2[2: Preprocess Data]
+    IT1@{ shape: doc, label: "Table" }
+    OT1@{ shape: processes, label: "Table Operations" }
+    FT1@{ shape: doc, label: "Modified Table" }
 
-First, the transformer searches for source files (Excel, PDF, *et cetera*), reads the rows of data in those files into a 2D matrix of strings. (Read about [the file structure](./structure.md) for more.)
+    IT1 --> OT1 --> FT1
+  end
 
-For example, for a Excel sheet, it could be read into a matrix of data like below:
+  2 --> SSJ
+  2 --> SSJ
+  2 --> SSJ
 
-| A      | B          | C     | D   | E     | F      |
-| ------ | ---------- | ----- | --- | ----- | ------ |
-| Amount | Rebate ($) | Date  |     | Total | $72.79 |
-| 469.56 | 14.09      | 45933 |     |       |        |
-| 0      | 0          | 45934 |     |       |        |
-| 148.93 | 4.47       | 45940 |     |       |        |
-| 523.03 | 15.69      | 45943 |     |       |        |
-| 314.63 | 9.44       | 45943 |     |       |        |
-| 438.87 | 13.17      | 45943 |     |       |        |
-| 243.10 | 7.29       | 45944 |     |       |        |
+  SSJ[(Joint Table)]
 
-*[(Read more about different types of sources here.)](./configuration.md#sources)*
+  SSJ --> 3
 
-### Preprocessing Data
+  subgraph 3[3: Extract Properties]
+    R@{ shape: doc, label: "Row" }
 
-Next, the Rebator sends each table read from the source files through a set of preprocessing steps. These are run sequentially, one-by-one, for each table. These can include: trimming the top and bottom, removing certain columns or rows based on criteria, and much more. The point of this is to get the data into a format that we can extract information from. *[(Read more about different types of preprocessing transformations here.)](./configuration.md#prepost-processing)*
+    subgraph P1[Property 1]
+      I1((" "))
+      O1@{ shape: processes, label: "Row Operations" }
+      F1((" "))
+    end
 
-In the example above, if we trim the top row of the table, we get the following table:
+    subgraph P2[Property 2]
+      I2((" "))
+      O2@{ shape: processes, label: "Row Operations" }
+      F2((" "))
+    end
 
-| A      | B     | C     |
-| ------ | ----- | ----- |
-| 469.56 | 14.09 | 45933 |
-| 288.29 | 8.65  | 45934 |
-| 0      | 0     | 45940 |
-| 523.03 | 15.69 | 45943 |
-| 314.63 | 9.44  | 45943 |
-| 438.87 | 13.17 | 45943 |
-| 243.10 | 7.29  | 45944 |
+    subgraph P3[Property 3]
+      I3((" "))
+      O3@{ shape: processes, label: "Row Operations" }
+      F3((" "))
+    end
 
-This is much more suitable for data extraction.
+    RO@{ shape: doc, label: "Rebate" }
 
-### Extracting Data
+    I1 -- null --> O1 -- Property Value --> F1 --> RO
+    I2 -- null --> O2 -- Property Value --> F2 --> RO
+    I3 -- null --> O3 -- Property Value --> F3 --> RO
+    R --> P1
+    R --> P2
+    R --> P3
+  end
 
-Now, the data is in a row-by-row format, with the data we desire clearly presented. Now, we must extract the relevant content. Specifically:
+  3 --> RT
+  3 --> RT
+  3 --> RT
 
-1. The transformer reads each table, row by row, and selects a specific set of properties to save. (These are specified within [its schema](./schema.md).)
-2. For each property, the transformers runs a set of defined transformations (much like how we preprocessed the data in the previous step). The intent is to produce a single value from that row, for that property.
-3. Once all proerties are found (for a given row), they are then combined into a new, resulting row.
-4. Finally, once all resulting rows are found, they are combined into a final table.
+  RT[(Rebate Table)]
 
-For our example above, image we want our final table to contain the `rebateAmount`, `purchaseAmount`, and `invoiceDate`. We can define each property to have the following transformations, given a specific row `R`:
+  RT --> 4
 
-- For `purchaseAmount`, take `R`, and get column `A`. Format it as a USD amount, and return.
-- For `rebateAmount`, take `R`, and get column `B`. Format it as a USD amount, and return.
-- For `invoiceDate`, take `R`, and get column `C`. Convert it from a Excel date (which is the number of days since 1900) into the format `MM/DD/YYYY`. Return the formated date.
+  subgraph 4[4: Postprocess Data]
+    IT4@{ shape: doc, label: "Table" }
+    OT4@{ shape: processes, label: "Table Operations" }
+    FT4@{ shape: doc, label: "Modified Table" }
 
-With this set of transformations, we run them all on each row of the table above, and get the resulting table below:
+    IT4 --> OT4 --> FT4
+  end
 
-| purchaseAmount | rebateAmount | invoiceDate |
-| -------------- | ------------ | ----------- |
-| $469.56        | $14.09       | 10/3/2025   |
-| $288.29        | $8.65        | 10/4/2025   |
-| $0.00          | $0.00        | 10/10/2025  |
-| $523.03        | $15.69       | 10/13/2025  |
-| $314.63        | $9.44        | 10/13/2025  |
-| $438.87        | $13.17       | 10/13/2025  |
-| $243.10        | $7.29        | 10/14/2025  |
+  4 --> FT
 
-*[(Read more about different types of extraction transformations here.)](./configuration.md#row-extraction)*
+  FT[(Final Table)]
 
-### Postprocessing Data
+  FT --> D1
+  FT --> D2
+  FT --> D3
 
-Next, the transformation makes any final touches on the data. It uses the same methods as the preprocessing step does. In essense, this is to cull any unneeded data.
+  subgraph 5[5: Store Rebates]
+    D1@{ shape: doc, label: "Destination 1" }
+    D2@{ shape: doc, label: "Destination 2" }
+    D3@{ shape: doc, label: "Destination 3" }
+  end
+```
 
-For our example, let's say we do not want to record rebates that do not reimbuse the supplier at all. In this case, we can chose to drop all rows for with the `rebateAmount` is `$0.00`. Now, our data look like this:
+In brief, a transformer does the following operations:
 
-| purchaseAmount | rebateAmount | invoiceDate |
-| -------------- | ------------ | ----------- |
-| $469.56        | $14.09       | 10/3/2025   |
-| $288.29        | $8.65        | 10/4/2025   |
-| $523.03        | $15.69       | 10/13/2025  |
-| $314.63        | $9.44        | 10/13/2025  |
-| $438.87        | $13.17       | 10/13/2025  |
-| $243.10        | $7.29        | 10/14/2025  |
+1. Extract tabular data from a set of sources.
+2. Transform each table via a certain set of operations. Combine all tables vertically into a single, processed table.
+3. Chop the processed table into a set of rows, and for each row, extract a set of properties. Combine the properties into a new "rebate" object, and store them in a rebate table.
+4. Run a final set of table operations on the rebates.
+5. Store the rebates permanently in various destination locations.
 
-### Destination
+### 1 Extract Files
 
-Finally, each transformer sends their final table into a certain file. This can can in the form of Excel, CSV, or more.
+```mermaid
+graph LR
+  S[(Sources)]
 
-*[(Read more about different types of destinations here.)](./configuration.md#destination)*
+  S -- File 1 --> 1
+  S -- File 2 --> 1
+  S -- File 3 --> 1
+
+  subgraph 1[1: Extract Files]
+    SI@{ shape: doc, label: "Excel" }
+    SS@{ shape: docs, label: "Table Data" }
+    SI -- Extract --> SS
+  end
+
+  1 --> SST
+  1 --> SST
+  1 --> SST
+
+  SST@{ shape: docs, label: "All Table Data" }
+```
+
+First, the transformer searches for a set of sources, and extracts the data from it, in tabular format. This is defined via [various "source" operations](./schema.md#sources).
+
+Each operation is run sequentially, and produces 2D matrices of text data. These are all collected into one set of tables, and moved to pre-processing.
+
+### 2 Preprocess Data
+
+```mermaid
+graph LR
+  SST@{ shape: docs, label: "All Table Data" }
+
+  SST --> 2
+  SST --> 2
+  SST --> 2
+
+  subgraph 2[2: Preprocess Data]
+    IT1@{ shape: doc, label: "Table" }
+    OT1@{ shape: processes, label: "Table Operations" }
+    FT1@{ shape: doc, label: "Modified Table" }
+
+    IT1 --> OT1 --> FT1
+  end
+
+  2 --> SSJ
+  2 --> SSJ
+  2 --> SSJ
+
+  SSJ[(Joint Table)]
+```
+
+Almost always, tables taken directly from Excel sheets are not *ready* for extraction. In this case, *ready* means:
+
+1. Every row represents a rebate.
+2. Every row contains all needed properties about that rebate.
+3. No row contains data about more than one rebate.
+
+To achieve this, each table will need to be refined. This is done through various **"table" operations**. Each operation follows the same format:
+
+- A "table" operation receives some table.
+- That table is copied, and modified in some way.
+- The modified copy is returned.
+
+Each operation is run sequentially, with each one feeding its results to the next. At the end, the final table is ready to move on to the extraction process.
+
+*[(Learn more about the different types of table operations here.)](./schema.md#pre--and-post-processing)*
+
+### 3 Extract Properties
+
+```mermaid
+graph
+  SSJ[(Joint Table)]
+
+  SSJ --> 3
+
+  subgraph 3[3: Extract Properties]
+    R@{ shape: doc, label: "Row" }
+
+    subgraph P1[Property 1]
+      I1((" "))
+      O1@{ shape: processes, label: "Row Operations" }
+      F1((" "))
+    end
+
+    subgraph P2[Property 2]
+      I2((" "))
+      O2@{ shape: processes, label: "Row Operations" }
+      F2((" "))
+    end
+
+    subgraph P3[Property 3]
+      I3((" "))
+      O3@{ shape: processes, label: "Row Operations" }
+      F3((" "))
+    end
+
+    RO@{ shape: doc, label: "Rebate" }
+
+    I1 -- null --> O1 -- Property Value --> F1 --> RO
+    I2 -- null --> O2 -- Property Value --> F2 --> RO
+    I3 -- null --> O3 -- Property Value --> F3 --> RO
+    R --> P1
+    R --> P2
+    R --> P3
+  end
+
+  3 --> RT
+  3 --> RT
+  3 --> RT
+
+  RT[(Rebate Table)]
+```
+
+During extraction, each row is taken individually, and turned into a rebate. What this means is:
+
+1. A row is taken from the preprocessed table.
+2. A set of *properties* are extracted from this row.
+3. These *properties* are combined into an object, representing a rebate.
+4. The rebate object is put in a final "rebate table".
+
+These properties can be a rebate's "purchaseAmount", "invoiceDate", "supplierId", etc. But how are these properties extracted from the row in the first place? Through a set of **row operations**. A "row" operation is a process, that takes (1) in "input" value (string, number, etc.) and (2) a row of data, and returns a modified "output" value.
+
+```mermaid
+graph LR
+  VI((Value))
+  R[[Row]]
+  O@{ shape: diamond, label: "Op." }
+  VF((New Value))
+
+  VI --> O
+  R -. Context .-> O
+  O --> VF
+```
+
+> *(I suppose, it should really be called a "value" operation, with a row as context. But that is just semantics.)*
+
+These operations are chained together, one by one. The initial value given is *null*, and pushed through these operations to generate a final value. This final value is assigned to the rebate's property.
+
+```mermaid
+graph LR
+  VI((*null*))
+  R[[Row]]
+
+  VI --> O1@{ shape: diamond, label: "Op. 1" }
+  R -.-> O1
+  O1 --> O2@{ shape: diamond, label: "Op. 2" }
+  R -.-> O2
+  O2 --> O3@{ shape: diamond, label: "Op. 3" }
+  R -.-> O3
+
+  VF((Result))
+
+  O3 --> VF
+```
+
+This process is done on all rows of the table.
+
+*[(Learn more about the different types of row operations here.)](./schema.md#propertiesrow-transformations)*
+
+### 4 Post-process Data
+
+```mermaid
+graph LR
+  RT[(Rebate Table)]
+
+  RT --> 4
+
+  subgraph 4[4: Postprocess Data]
+    IT4@{ shape: doc, label: "Table" }
+    OT4@{ shape: processes, label: "Table Operations" }
+    FT4@{ shape: doc, label: "Modified Table" }
+
+    IT4 --> OT4 --> FT4
+  end
+
+  4 --> FT
+
+  FT[(Final Table)]
+```
+
+After extraction, the set of rebates are combined vertically, into one giant table of rebates. From here, the transformer is allowed to refine the table further, before it is sent off to storage.
+
+Sometimes, certain rebates should not be considered, based on various factors. It is possible for rebates with null purchases (0.00) to be extracted. So, it is common to filter them out during this stage. The same "table" operations for preprocessing apply here, as well.
+
+*[(Learn more about the different types of table operations here.)](./schema.md#pre--and-post-processing)*
+
+### 5 Store Data
+
+```mermaid
+graph LR
+  FT[(Final Table)]
+
+  FT --> D1
+  FT --> D2
+  FT --> D3
+
+  subgraph 5[5: Store Rebates]
+    D1@{ shape: doc, label: "Destination 1" }
+    D2@{ shape: doc, label: "Destination 2" }
+    D3@{ shape: doc, label: "Destination 3" }
+  end
+```
+
+Finally, now that the rebates have been extracted, they must be placed in their appropriate location. These locations are defined through different **destinations** in the transformer.
+
+Each rebate is copied to each permanent location.
+
+*[(Learn more about the different types of destinations here.)](./schema.md#destinations)*
