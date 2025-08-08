@@ -11,6 +11,8 @@ import { Runner } from "./runner/Runner";
 import builder from "xmlbuilder";
 import { fromText, makeNodeElementSchema, makeTextElementSchema } from "./xml";
 import assert from "assert";
+import { bad, good, Reply } from "../shared/reply";
+import path from "path";
 
 /** ------------------------------------------------------------------------- */
 
@@ -80,26 +82,45 @@ export class Transformer {
    * @param type The format the transformer is in.
    * @returns A new transformer.
    */
-  public static async fromFile(filepath: string, type: "xml" | "json"): Promise<Transformer> {
+  public static async fromFile(filepath: string, type: "xml" | "json"): Promise<Reply<Transformer>> {
     const raw = await readFile(filepath, 'utf-8');
 
     try {
       if (type === "json") {
         const json = JSON.parse(raw);
-        return Transformer.SCHEMA.parse(json);
+        return good(Transformer.SCHEMA.parse(json));
       } else {
         const xml = fromText(raw);
-        return Transformer.XML_SCHEMA.parse(xml);
+        return good(Transformer.XML_SCHEMA.parse(xml));
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw Error(`Invalid schema for ${filepath}: ${z.prettifyError(error)}`);
+        return bad(`Invalid schema for ${filepath}: ${z.prettifyError(error)}`, path.basename(filepath));
       } else if (error instanceof Error) {
-        throw Error(`Invalid schema for ${filepath}: ${error.message}`);
+        return bad(`Invalid schema for ${filepath}: ${error.message}`, path.basename(filepath));
       } else {
-        throw Error(`Thrown: ${error}`);
+        return bad(`Thrown: ${error}`, path.basename(filepath));
       }
     }
+  }
+
+  public static async pullAllAvailable(settings: Settings) {
+    const transformer_json_files = await Array.fromAsync(glob(settings.getTransformerPathGlob()));
+    const transformer_xml_files = await Array.fromAsync(glob(settings.getTransformerPathXMLGlob()));
+
+    const transformers = new Array<Reply<Transformer>>();
+    
+    for (const transformer_file of transformer_json_files) {
+      const transformer_reply = await Transformer.fromFile(transformer_file, "json");
+      transformers.push(transformer_reply);
+    }
+
+    for (const transformer_file of transformer_xml_files) {
+      const transformer_reply = await Transformer.fromFile(transformer_file, "xml");
+      transformers.push(transformer_reply);
+    }
+
+    return transformers;
   }
 
   /**
@@ -116,14 +137,20 @@ export class Transformer {
     const transformers = new Array<Transformer>();
     
     for (const transformer_file of transformer_json_files) {
-      const transformer = await Transformer.fromFile(transformer_file, "json");
+      const transformer_reply = await Transformer.fromFile(transformer_file, "json");
+      if (!transformer_reply.ok) continue;
+
+      const { data: transformer } = transformer_reply;
       if (filter && !settings.willRun(transformer)) continue;
 
       transformers.push(transformer);
     }
 
     for (const transformer_file of transformer_xml_files) {
-      const transformer = await Transformer.fromFile(transformer_file, "xml");
+      const transformer_reply = await Transformer.fromFile(transformer_file, "xml");
+      if (!transformer_reply.ok) continue;
+
+      const { data: transformer } = transformer_reply;
       if (filter && !settings.willRun(transformer)) continue;
 
       transformers.push(transformer);

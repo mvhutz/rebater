@@ -6,7 +6,7 @@ import Typography from '@mui/joy/Typography';
 import AccordionDetails from '@mui/joy/AccordionDetails';
 import React from 'react';
 import { useAppDispatch, useAppSelector } from '../../../client/store/hooks';
-import { getTransformers, getTransformersSettings, setTransformersNames, setTransformersTags } from '../../../client/store/slices/system';
+import { getInvalidTransformers, getTransformers, getTransformersSettings, setTransformersNames, setTransformersTags } from '../../../client/store/slices/system';
 import Chip from '@mui/joy/Chip';
 import FormControl from '@mui/joy/FormControl';
 import Option from '@mui/joy/Option';
@@ -14,12 +14,14 @@ import Select from '@mui/joy/Select';
 import Stack from '@mui/joy/Stack';
 import FormLabel from '@mui/joy/FormLabel';
 import Box from '@mui/joy/Box';
+import { Alert } from '@mui/joy';
 
 /** ------------------------------------------------------------------------- */
 
 function TransformerSettings() {
   const transformers_reply = useAppSelector(getTransformers);
   const { names, tags } = useAppSelector(getTransformersSettings);
+  const invalid_transformers = useAppSelector(getInvalidTransformers);
   const dispatch = useAppDispatch();
 
   const handleIncludeNames = React.useCallback((_: unknown, selected: string[]) => {
@@ -39,7 +41,7 @@ function TransformerSettings() {
     chip = <Chip variant="outlined" color="neutral">{transformers.length}</Chip>
 
     inner = (
-      <Stack spacing={2} pt={1}>
+      <>
         <FormControl>
           <FormLabel>Select Transformers</FormLabel>
           <Select
@@ -76,8 +78,11 @@ function TransformerSettings() {
             ))}
           </Select>
         </FormControl>
-      </Stack>
+      </>
     );
+  } else {
+    inner = transformers_reply.reason;
+    chip = <Chip variant="outlined" color="neutral">??</Chip>
   }
 
   return (
@@ -90,7 +95,16 @@ function TransformerSettings() {
         {chip}
       </AccordionSummary>
       <AccordionDetails>
+        <Stack spacing={2} pt={1}>
         {inner}
+        {invalid_transformers.map(([, reason]) => (
+          <Alert color="danger">
+            <Typography level="body-sm" color="danger" component="pre" fontFamily="monospace" sx={{ border: 0 }}>
+              {reason}
+            </Typography>
+          </Alert>
+        ))}
+        </Stack>
       </AccordionDetails>
     </Accordion>
   );

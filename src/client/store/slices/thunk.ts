@@ -69,7 +69,7 @@ export const killSystem = createAsyncThunk(
 
 export const pullTransformers = createAsyncThunk(
   'system/pullTransformers',
-  async (): Promise<Reply<TransformerInfo[]>> => {
+  async (): Promise<Reply<Reply<TransformerInfo>[]>> => {
     return await invoke.getTransformers();
   }
 );
