@@ -1,8 +1,8 @@
 import { z } from "zod/v4";
 import { BaseTable } from ".";
-import { rewire } from "../util";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema } from "../xml";
+import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
@@ -26,8 +26,7 @@ export class TrimTable implements BaseTable {
   }
 
   async run(table: Table): Promise<Table> {
-    table.data = table.data.slice(this.top, this.bottom);
-    return rewire(table);
+    return table.slice(this.top, this.bottom);
   }
 
   public static readonly SCHEMA = z.strictObject({

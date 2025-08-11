@@ -4,6 +4,7 @@ import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema } from "../xml";
 import assert from "assert";
+import { Row } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 

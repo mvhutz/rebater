@@ -1,8 +1,9 @@
 import { z } from "zod/v4";
-import { ExcelIndexSchema, getExcelFromIndex, rewire } from "../util";
+import { ExcelIndexSchema, getExcelFromIndex } from "../util";
 import { BaseTable } from ".";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema } from "../xml";
+import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
@@ -39,12 +40,9 @@ export class SelectTable implements BaseTable {
   }
 
   async run(table: Table): Promise<Table> {
-    const rows = table.data.filter(row => {
-      const datum = row.data[this.column];
-      return (this.action === "keep") === (this.is === datum);
+    return table.filter(r => {
+      return (this.is === r.get(this.column)) === (this.action === "keep");
     });
-
-    return rewire({ ...table, data: rows });
   }
 
   public static readonly SCHEMA = z.strictObject({

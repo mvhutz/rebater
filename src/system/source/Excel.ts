@@ -1,13 +1,13 @@
 import { z } from "zod/v4";
 import * as XLSX from "xlsx";
 import assert from "assert";
-import { makeTable } from "../util";
 import { BaseSource } from ".";
 import { Runner } from "../runner/Runner";
 import path from "path";
 
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema } from "../xml";
+import { Row, Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
@@ -49,8 +49,9 @@ export class ExcelSource implements BaseSource {
     });
 
     const parsed = z.array(z.array(z.coerce.string())).parse(unclean);
+    const rows = parsed.map(r => new Row(r, filepath));
+    const table = Table.join(...rows);
 
-    const table = makeTable(parsed, filepath);
     results.push(table);
   }
 

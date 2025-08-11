@@ -10,6 +10,7 @@ import { SetTable } from "./Set";
 import { TrimTable } from "./Trim";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
+import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
@@ -18,19 +19,34 @@ import { XMLElement } from "xmlbuilder";
  * 
  * Given a certain resulting table, figure out where to store it.
  */
-export interface BaseTable {
+export abstract class BaseTable {
   /**
    * Run the operation.
    * @param table The table to modify.
    * @param runner The running context.
    */
-  run(table: Table, runner: Runner): Promise<Table>;
+  abstract run(table: Table, runner: Runner): Promise<Table>;
 
   /**
    * Add this tag to an XML document.
    * @param from The document to append to.
    */
-  buildXML(from: XMLElement): void;
+  abstract buildXML(from: XMLElement): void;
+
+  /**
+   * Run a set of table operations in succession.
+   * @param rows The table operations.
+   * @param table The table to begin with.
+   * @param runner The running context.
+   * @returns A modified table.
+   */
+  static async runMany(rows: BaseTable[], table: Table, runner: Runner) {
+    for (const operation of rows) {
+      table = await operation.run(table, runner);
+    }
+
+    return table;
+  }
 }
 
 /** All possible JSON operations. */
@@ -58,19 +74,4 @@ export const TABLE_XML_SCHEMA: z.ZodType<BaseTable> = z.union([
   SetTable.XML_SCHEMA,
   TrimTable.XML_SCHEMA
 ]);
-
-/**
- * Run a set of table operations in succession.
- * @param rows The table operations.
- * @param table The table to begin with.
- * @param runner The running context.
- * @returns A modified table.
- */
-export async function runMany(rows: BaseTable[], table: Table, runner: Runner) {
-  for (const operation of rows) {
-    table = await operation.run(table, runner);
-  }
-
-  return table;
-}
 

@@ -90,29 +90,6 @@ export function getPartition<O extends object, K extends keyof O>(objects: O[], 
 }
 
 /**
- * Create a copy of a table, where all of the rows point back to this new table.
- * @param table The tabe to copy.
- * @returns A new table. The rows are not duplicated.
- */
-export function rewire(table: Table) {
-  table.data.forEach(r => { r.table = table; });
-  return table;
-}
-
-/**
- * Create a new table, based on a matrix of data.
- * @param rows The data.
- * @param path The file path of the table, if required.
- * @returns A new table.
- */
-export function makeTable(rows: string[][], path = "") {
-  const table: Table = { data: [], path };
-  table.data = rows.map(r => ({ data: r, table }));
-
-  return table;
-}
-
-/**
  * Given a directory, find all files in the directory. This is recursive.
  * @param directory The directory to search.
  * @returns All files found. Each file is a list containing (1) its absolute path, and (2) its name.

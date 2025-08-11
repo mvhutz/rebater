@@ -1,8 +1,9 @@
 import { z } from "zod/v4";
-import { ExcelIndexSchema, getExcelFromIndex, rewire } from "../util";
+import { ExcelIndexSchema, getExcelFromIndex } from "../util";
 import { BaseTable } from ".";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema } from "../xml";
+import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
@@ -41,20 +42,25 @@ export class ChopTable implements BaseTable {
   }
 
   async run(table: Table): Promise<Table> {
-    const index = table.data.findIndex(row => this.is.includes(row.data[this.column].trim()));
+    const index = table.split().findIndex(row => {
+      const datum = row.get(this.column);
+      if (datum == null) return;
+      return this.is.includes(datum.trim());
+    });
+
     if (index === -1) {
       if (this.otherwise === "take") {
         return table;
       } else {
-        return { ...table, data: [] };
+        return Table.join();
       }
     }
 
-    const data = this.keep === "top"
-        ? table.data.slice(undefined, index)
-        : table.data.slice(index, undefined);
-
-    return rewire({ ...table, data });
+    if (this.keep === "top") {
+      return table.slice(undefined, index);
+    } else {
+      return table. slice(index, undefined);
+    }
   }
 
   public static readonly SCHEMA = z.strictObject({

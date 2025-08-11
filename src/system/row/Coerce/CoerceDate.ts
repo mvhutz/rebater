@@ -5,6 +5,7 @@ import { BaseRow } from "..";
 import { Runner } from "../../runner/Runner";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema } from "../../xml";
+import { Row } from "../../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
@@ -45,7 +46,7 @@ export class CoerceDateRow implements BaseRow {
     this.format = format;
   }
 
-  async run(value: string, row: Row, runner: Runner): Promise<Maybe<string>> {
+  async run(value: string, _r: Row, runner: Runner): Promise<Maybe<string>> {
     const attemptInt = Number(value);
     let date: Moment;
 

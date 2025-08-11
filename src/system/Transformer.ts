@@ -1,10 +1,9 @@
 import { glob, readFile } from "fs/promises";
 import { z } from "zod/v4";
-import { rewire } from "./util";
 import { BaseDestination, DESTINATION_SCHEMA, DESTINATION_XML_SCHEMA } from "./destination";
 import { BaseSource, SOURCE_SCHEMA, SOURCE_XML_SCHEMA } from "./source";
-import { BaseTable, TABLE_SCHEMA, TABLE_XML_SCHEMA, runMany as runManyTables } from "./table";
-import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, runMany as runManyRows } from "./row";
+import { BaseTable, TABLE_SCHEMA, TABLE_XML_SCHEMA } from "./table";
+import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA } from "./row";
 import { Settings } from "../shared/settings";
 import { TransformerResult } from "../shared/worker/response";
 import { Runner } from "./runner/Runner";
@@ -13,6 +12,7 @@ import { fromText, makeNodeElementSchema, makeTextElementSchema } from "./xml";
 import assert from "assert";
 import { bad, good, Reply } from "../shared/reply";
 import path from "path";
+import { Row, Table } from "./information/Table";
 
 /** ------------------------------------------------------------------------- */
 
@@ -213,11 +213,11 @@ export class Transformer {
    * @param row The row being extracted.
    * @returns The extracted properties.
    */
-  private async runRow(runner: Runner, row: Row) {
+  private async runRow(runner: Runner, row: Row, table: Table) {
     const result = new Array<string>();
 
     for (const { definition } of this.properties) {
-      const output = await runManyRows(definition, row, runner);
+      const output = await BaseRow.runMany(definition, row, runner, table);
       if (output == null) {
         return null;
       }
@@ -225,7 +225,7 @@ export class Transformer {
       result.push(output);
     }
 
-    return result;
+    return new Row(result, row.source);
   }
 
   /**
@@ -240,29 +240,19 @@ export class Transformer {
     const source_data = (await Promise.all(this.sources.map(s => s.run(runner)))).flat(1);
 
     // 2. Pre-process data.
-    const preprocessed_data = (await Promise.all(source_data.map(d => runManyTables(this.preprocess, d, runner))));
+    const preprocessed_data = (await Promise.all(source_data.map(d => BaseTable.runMany(this.preprocess, d, runner))));
+    const total = Table.stack(...preprocessed_data);
     
     // 3. Extract properties.
-    const recombined = rewire({
-      path: "",
-      data: [{
-        data: this.properties.map(p => p.name),
-        table: preprocessed_data[0]
-      }]
+    const processed = await total.updateAsync(async r => {
+      return await this.runRow(runner, r, total);
     });
 
-    const rows = preprocessed_data.map(table => table.data).flat(1);
-
-    for (const row of rows) {
-      const transformed = await this.runRow(runner, row);
-      
-      if (transformed != null) {
-        recombined.data.push({ data: transformed, table: recombined });
-      }
-    }
+    const header = new Row(this.properties.map(p => p.name), "<header>");
+    const final = processed.prepend(header);
 
     // 4. Post-process data.
-    const postprocessed_data = await runManyTables(this.postprocess, recombined, runner);
+    const postprocessed_data = await BaseTable.runMany(this.postprocess, final, runner);
 
     // 5. Send to destinations.
     for (const destination of this.destinations) {

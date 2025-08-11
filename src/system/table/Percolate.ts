@@ -1,8 +1,9 @@
 import { z } from "zod/v4";
-import { ExcelIndexSchema, getExcelFromIndex, getTrueIndex, makeTable } from "../util";
+import { ExcelIndexSchema, getExcelFromIndex, getTrueIndex } from "../util";
 import { BaseTable } from ".";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema } from "../xml";
+import { Row, Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
@@ -31,24 +32,23 @@ export class PercolateTable implements BaseTable {
   }
 
   async run(table: Table): Promise<Table> {
-    let previous: Maybe<string[]>;
-    const rows = new Array<string[]>();
+    const previous_maybe = table.get(0);
+    if (previous_maybe == null) return table;
 
-    for (const row of table.data) {
-      const cells = [...row.data];
+    let previous: Row = previous_maybe;
+    
+    const result = table.update(r => {
+      const updated = r.update((v, i) => {
+        if (!this.columns.includes(i)) return v;
+        if (!this.matches.includes(v)) return v;
+        return previous.get(i) ?? v;
+      });
 
-      for (const index of this.columns) {
-        if (this.matches.includes(cells[index])) {
-          if (previous == null) continue;
-          cells[index] = previous[index];
-        }
-      }
+      previous = updated;
+      return updated;
+    })
 
-      previous = cells;
-      rows.push(cells);
-    }
-
-    return makeTable(rows, table.path);
+    return result;
   }
 
   public static readonly SCHEMA = z.strictObject({

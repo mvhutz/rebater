@@ -1,10 +1,10 @@
 import { z } from "zod/v4";
-import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, runMany } from "../row";
-import { rewire } from "../util";
+import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA } from "../row";
 import { BaseTable } from ".";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema } from "../xml";
+import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
@@ -27,13 +27,10 @@ export class FilterTable implements BaseTable {
   }
 
   async run(table: Table, runner: Runner): Promise<Table> {
-    const rows = new Array<Row>();
-    for (const row of table.data) {
-      const value = await runMany(this.criteria, row, runner);
-      if (value === "true") rows.push(row);
-    }
-
-    return rewire({ ...table, data: rows });
+    return table.filterAsync(async row => {
+      const value = await BaseRow.runMany(this.criteria, row, runner, table);
+      return value === "true";
+    });
   }
 
   public static readonly SCHEMA = z.strictObject({

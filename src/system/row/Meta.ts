@@ -5,6 +5,7 @@ import { BaseRow } from ".";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
+import { Row } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
@@ -55,7 +56,7 @@ export class MetaRow implements BaseRow {
   }
 
   static getRowSource(row: Row) {
-    return path.basename(row.table.path);
+    return path.basename(row.source);
   }
 
   buildXML(from: XMLElement): void {

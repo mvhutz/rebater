@@ -1,8 +1,9 @@
 import { z } from "zod/v4";
-import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, runMany } from ".";
+import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA } from ".";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema } from "../xml";
+import { Row, Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
@@ -21,8 +22,8 @@ export class DivideRow implements BaseRow {
     this.other = other;
   }
 
-  async run(value: string, row: Row, runner: Runner): Promise<string> {
-    const other_value = await runMany(this.other, row, runner);
+  async run(value: string, row: Row, runner: Runner, table: Table): Promise<string> {
+    const other_value = await BaseRow.runMany(this.other, row, runner, table);
     return (Number(value) / Number(other_value)).toString();
   }
 
