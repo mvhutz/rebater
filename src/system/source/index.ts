@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { ExcelSource } from "./Excel";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
+import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 

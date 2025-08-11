@@ -1,9 +1,10 @@
 import { z } from "zod/v4";
-import { ExcelIndexSchema, getExcelFromIndex, getTrueIndex, rewire } from "../util";
+import { ExcelIndexSchema, getExcelFromIndex, getTrueIndex } from "../util";
 import { BaseTable } from ".";
 import assert from "assert";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema } from "../xml";
+import { Row, Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
@@ -42,7 +43,7 @@ export class CoalesceTable implements BaseTable {
    * @returns The hash.
    */
   getHash(row: Row) {
-    const array = this.match.map(m => row.data[m]);
+    const array = this.match.map(m => row.get(m));
     return JSON.stringify(array);
   }
 
@@ -52,36 +53,45 @@ export class CoalesceTable implements BaseTable {
    * @returns A single row, containing all summed columns, and otherwise, the
    * column values of the first row.
    */
-  combineRows(rows: Row[]) {
-    const result = structuredClone(rows.pop());
-    assert.ok(result != null, "Cannot coalesce empty set of arrays.");
+  combineRows(table: Table): Maybe<Row> {
+    const sums = new Map<number, number>();
+    const first = table.get(0);
 
-    for (const row of rows) {
-      for (const index of this.combine) {
-        result.data[index] = (Number(row.data[index]) + Number(result.data[index])).toString()
+    // If no rows, cannot coalesce.
+    if (first == null) return null;
+
+    // Extract sums.
+    for (const index of this.combine) {
+      for (const row of table.split()) {
+        const sum = sums.get(index) ?? 0;
+        const current = parseInt(row.get(index) ?? "null");
+        assert.ok(!isNaN(current), `Value "${current}" is not a number!`);
+
+        sums.set(index, current + sum);
       }
     }
 
-    return result;
+    // Build row.
+    const row = first.update((v, i) => {
+      const sum = sums.get(i);
+      return (sum ?? v).toString();
+    })
+
+    return row;
   }
 
   async run(table: Table): Promise<Table> {
     // Create the buckets.
-    const matched = new Map<string, Row[]>();
-    for (const row of table.data) {
-      const hash = this.getHash(row);
-      const list = matched.get(hash);
-
-      if (list == null) {
-        matched.set(hash, [row]);
-      } else {
-        list.push(row);
-      }
-    }
+    const buckets = table.divide(row => this.getHash(row));
 
     // Combine the buckets.
-    const combined = [...matched.values()].map(r => this.combineRows(r));
-    return rewire({ ...table, data: combined });
+    const coalesced = buckets
+      .values()
+      .toArray()
+      .map(t => this.combineRows(t))
+      .filter(r => r != null);
+  
+    return Table.join(...coalesced);
   }
 
   public static readonly SCHEMA = z.strictObject({

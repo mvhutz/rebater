@@ -1,8 +1,9 @@
 import { z } from "zod/v4";
-import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, runMany } from ".";
+import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA } from ".";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema } from "../xml";
+import { Row, Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
@@ -59,12 +60,12 @@ export class SearchRow implements BaseRow {
     this.primary = primary;
   }
 
-  async run(_value: string, row: Row, runner: Runner): Promise<Maybe<string>> {
+  async run(_value: string, row: Row, runner: Runner, table: Table): Promise<Maybe<string>> {
     const search = runner.references.get(this.table);
 
     const values: Record<string, string> = {};
     for (const [property, rows] of Object.entries(this.matches)) {
-      const value = await runMany(rows, row, runner);
+      const value = await BaseRow.runMany(rows, row, runner, table);
       if (value == null) return null;
 
       values[property] = value;

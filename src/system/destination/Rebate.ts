@@ -6,6 +6,7 @@ import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
 import { CSVRebateFile } from "../information/items/CSVRebateFile";
+import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
@@ -21,7 +22,7 @@ export class RebateDestination implements BaseDestination {
 
   run(table: Table, runner: Runner): void {
     // Convert to a list of Rebates.
-    const data = table.data.map(row => row.data);
+    const data = table.split().map(row => row.split());
     const { data: raw } = Papa.parse(Papa.unparse(data), { header: true });
     const rebates = z.array(RebateSchema).parse(raw);
 

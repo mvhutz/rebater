@@ -1,8 +1,8 @@
 import { z } from "zod/v4";
-import { rewire } from "../util";
 import { BaseTable } from ".";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
+import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
@@ -40,78 +40,20 @@ export class HeaderTable implements BaseTable {
     this.action = action;
   }
 
-  /**
-   * Find the first column whose first row matches the name.
-   * @param name The name to search for.
-   * @param table The table to search in.
-   * @returns The column, represented as a table.
-   */
-  private takeRow(name: string, table: Table) {
-    const index = table.data[0].data.findIndex(r => r === name);
-    if (index === -1) return null;
-
-    const rows = table.data.map(r => ({
-      ...r,
-      data: [r.data[index]]
-    }));
-
-    return rewire({ ...table, data: rows });
-  }
-
-  /**
-   * Combine a set of tables, left to right.
-   * @param a The left table.
-   * @param b The right table.
-   * @returns The combined table.
-   */
-  private combineColumns(a: Table, b: Table) {
-    const rows: Row[] = [];
-
-    for (let i = 0; i < a.data.length; i++) {
-      const a_row = a.data[i];
-      const b_row = b.data[i];
-      rows.push({ table: a, data: a_row.data.concat(b_row.data) });
-    }
-
-    return rewire({ path: a.path, data: rows });
-  }
-
-  /**
-   * Find all columns whose first row matches a name, and delete those columns.
-   * @param name The name to match for.
-   * @param table The table to delete in.
-   * @returns A new table, with the matching columns deleted.
-   */
-  private dropRow(name: string, table: Table) {
-    const index = table.data[0].data.findIndex(r => r === name);
-    if (index === -1) return table;
-
-    const rows = table.data.map(r => ({
-      ...r,
-      data: r.data.toSpliced(index, 1)
-    }));
-
-    return rewire({ ...table, data: rows });
-  }
-
   async run(table: Table): Promise<Table> {
+    const rotated = table.transpose();
+
     if (this.action === "drop") {
-      let result = table;
+      const columns = rotated.filter(c => !this.names.includes(c.get(0) ?? ""));
+      return columns.transpose();
+    }
+    
+    else {
+      const columns = this.names
+        .map(n => rotated.split().find(c => c.get(0) === n))
+        .filter(c => c != null);
 
-      for (const name of this.names) {
-        result = this.dropRow(name, table);
-      }
-      
-      return rewire(result);
-    } else {
-      let result: Table = { path: table.path, data: table.data.map(() => ({ table: table, data: [] })) };
-      for (const name of this.names) {
-        const next = this.takeRow(name, table);
-        if (next == null) continue;
-        result = this.combineColumns(result, next);
-      }
-
-      return rewire(result);
+      return Table.join(...columns).transpose();
     }
   }
 

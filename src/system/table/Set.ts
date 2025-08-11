@@ -1,10 +1,11 @@
 import { z } from "zod/v4";
-import { ExcelIndexSchema, getExcelFromIndex, makeTable } from "../util";
-import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, runMany } from "../row";
+import { ExcelIndexSchema, getExcelFromIndex } from "../util";
+import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA } from "../row";
 import { BaseTable } from ".";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema } from "../xml";
+import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
@@ -31,16 +32,12 @@ export class SetTable implements BaseTable {
   }
 
   async run(table: Table, runner: Runner): Promise<Table> {
-    const new_rows = [];
-    for (const row of table.data) {
-      const value = await runMany(this.to, row, runner);
-      if (value != null) {
-        row.data[this.column] = value;
-        new_rows.push(row.data);
-      }
-    }
+    return table.updateAsync(async r => {
+      const value = await BaseRow.runMany(this.to, r, runner, table);
+      if (value == null) return null;
 
-    return makeTable(new_rows, table.path);
+      return r.set(this.column, value);
+    });
   }
 
   public static readonly SCHEMA = z.strictObject({

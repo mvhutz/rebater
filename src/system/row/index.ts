@@ -21,6 +21,7 @@ import { SubtractRow } from "./Subtract";
 import { SearchRow } from "./Search";
 import { SignumRow } from "./Sign";
 import { AbsoluteRow } from "./Absolute";
+import { Row, Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
@@ -29,20 +30,32 @@ import { AbsoluteRow } from "./Absolute";
  * 
  * Given a value (and a row as context), modify that value.
  */
-export interface BaseRow {
+export abstract class BaseRow {
   /**
    * Run the operation.
    * @param value The value to modify.
    * @param row The row as context.
    * @param runner The running context.
    */
-  run(value: string, row: Row, runner: Runner): Promise<Maybe<string>>;
+  abstract run(value: string, row: Row, runner: Runner, table: Table): Promise<Maybe<string>>;
 
   /**
    * Add this tag to an XML document.
    * @param from The document to append to.
    */
-  buildXML(from: XMLElement): void;
+  abstract buildXML(from: XMLElement): void;
+
+  static async runMany(rows: BaseRow[], row: Row, runner: Runner, table: Table): Promise<Maybe<string>> {
+    let value = "";
+
+    for (const operation of rows) {
+      const result = await operation.run(value, row, runner, table);
+      if (result == null) return result;
+      value = result;
+    }
+
+    return value;
+  }
 }
 
 /** All valid JSON row operations. */
@@ -92,15 +105,3 @@ export const ROW_XML_SCHEMA: z.ZodType<BaseRow> = z.union([
   SignumRow.XML_SCHEMA,
   AbsoluteRow.XML_SCHEMA,
 ]);
-
-export async function runMany(rows: BaseRow[], row: Row, runner: Runner): Promise<Maybe<string>> {
-  let value = "";
-
-  for (const operation of rows) {
-    const result = await operation.run(value, row, runner);
-    if (result == null) return result;
-    value = result;
-  }
-
-  return value;
-}

@@ -3,6 +3,7 @@ import { RebateDestination } from "./Rebate";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
 import { UtilityDestination } from "./Utility";
+import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 

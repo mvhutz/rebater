@@ -4,7 +4,7 @@ import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
 import { UtilityDestination } from "../destination/Utility";
-import path from "path";
+import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
@@ -25,7 +25,7 @@ export class DebugTable implements BaseTable {
 
   async run(table: Table, runner: Runner): Promise<Table> {
     // The debug table is stored as a utility, under the `debug` folder.
-    const true_name = `debug/${this.name}/${path.parse(table.path).name}`;
+    const true_name = `debug/${this.name}/${crypto.randomUUID()}`;
     const utility = new UtilityDestination(true_name);
     utility.run(table, runner);
     return table;

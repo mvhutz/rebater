@@ -4,6 +4,7 @@ import { BaseRow } from ".";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema } from "../xml";
+import { Row } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 

@@ -5,6 +5,7 @@ import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
 import { ReferenceFile, ReferenceSchema } from "../information/items/ReferenceFile";
+import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
@@ -21,7 +22,7 @@ export class UtilityDestination implements BaseDestination {
 
   run(table: Table, runner: Runner): void {
     // Convert to a reference.
-    const data = table.data.map(row => row.data);
+    const data = table.split().map(row => row.split());
     const { data: raw } = Papa.parse(Papa.unparse(data), { header: true });
     const reference_data = ReferenceSchema.parse(raw);
 

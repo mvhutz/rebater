@@ -4,6 +4,7 @@ import { BaseRow } from ".";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
 import assert from "node:assert";
+import { Row } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
@@ -23,8 +24,8 @@ export class ColumnRow implements BaseRow {
   }
 
   async run(_v: string, row: Row): Promise<string> {
-    const value = row.data[this.index];
-    assert.ok(value != null, `Cannot pull column ${this.index + 1} from row: ${row.data}`);
+    const value = row.get(this.index);
+    assert.ok(value != null, `Cannot pull column ${this.index + 1} from row.`);
 
     return value;
   }
