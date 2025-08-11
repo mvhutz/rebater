@@ -66,7 +66,9 @@ export class ReferenceRow implements BaseRow {
 
   run(value: string, row: Row, runner: Runner): Maybe<string> {
     const reference = runner.references.get(this.table);
-    const result = reference.ask({
+    const view = reference.view(this.match);
+
+    const result = view.ask({
       [this.match]: value,
       group: this.group,
     }, this.take);

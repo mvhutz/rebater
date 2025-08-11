@@ -62,6 +62,7 @@ export class SearchRow implements BaseRow {
 
   run(_v: string, row: Row, runner: Runner, table: Table): Maybe<string> {
     const search = runner.references.get(this.table);
+    const view = this.primary == null ? search : search.view(this.primary);
 
     const values: Record<string, string> = {};
     for (const [property, rows] of Object.entries(this.matches)) {
@@ -71,7 +72,7 @@ export class SearchRow implements BaseRow {
       values[property] = value;
     }
 
-    const result = search.ask(values, this.take);
+    const result = view.ask(values, this.take);
     if (result != null) {
       return result;
     }
