@@ -97,8 +97,8 @@ function TransformerSettings() {
       <AccordionDetails>
         <Stack spacing={2} pt={1}>
         {inner}
-        {invalid_transformers.map(([, reason]) => (
-          <Alert color="danger">
+        {invalid_transformers.map(([i, reason]) => (
+          <Alert color="danger" key={i}>
             <Typography level="body-sm" color="danger" component="pre" fontFamily="monospace" sx={{ border: 0 }}>
               {reason}
             </Typography>
