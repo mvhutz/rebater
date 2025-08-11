@@ -60,12 +60,12 @@ export class SearchRow implements BaseRow {
     this.primary = primary;
   }
 
-  async run(_value: string, row: Row, runner: Runner, table: Table): Promise<Maybe<string>> {
+  run(_v: string, row: Row, runner: Runner, table: Table): Maybe<string> {
     const search = runner.references.get(this.table);
 
     const values: Record<string, string> = {};
     for (const [property, rows] of Object.entries(this.matches)) {
-      const value = await BaseRow.runMany(rows, row, runner, table);
+      const value = BaseRow.runMany(rows, row, runner, table);
       if (value == null) return null;
 
       values[property] = value;
@@ -81,7 +81,7 @@ export class SearchRow implements BaseRow {
       suggestions = search.suggest(this.primary, values[this.primary], this.take);
     }
 
-    const { answer } = await runner.asker.ask({
+    runner.asker.ask({
       hash: JSON.stringify([values, this.take]),
       table: this.table,
       unknown: this.take,
@@ -91,10 +91,8 @@ export class SearchRow implements BaseRow {
         `**\`${s.value}\`** for *\`${s.key}\`*, in *${s.group}*.`
       )),
     });
-    if (answer == null) return null;
-  
-    search.insert([answer]);
-    return answer[this.take];
+
+    return null;
   }
 
   public static readonly SCHEMA = z.strictObject({

@@ -61,19 +61,14 @@ export class Asker extends EventEmitter<AskerEvents> {
    * @param question The question to ask.
    * @returns A promise, which will resolve when the question is answered.
    */
-  public ask(question: Question): Promise<Answer> {
-    if (this.ignore_all) {
-      return Promise.resolve({ hash: question.hash, answer: undefined });
-    }
-  
+  public ask(question: Question): void {
     const existing_answer = this.data.get(question.hash);
     if (existing_answer != null) {
-      return existing_answer.promise;
+      return;
     }
 
     const new_answer = Promise.withResolvers<Answer>();
     this.data.set(question.hash, new_answer);
     this.emit("ask", question);
-    return new_answer.promise;
   }
 }

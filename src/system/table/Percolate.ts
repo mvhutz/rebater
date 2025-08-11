@@ -31,7 +31,7 @@ export class PercolateTable implements BaseTable {
     this.matches = matches;
   }
 
-  async run(table: Table): Promise<Table> {
+  run(table: Table): Table {
     const previous_maybe = table.get(0);
     if (previous_maybe == null) return table;
 

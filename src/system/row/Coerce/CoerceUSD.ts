@@ -20,7 +20,7 @@ export class CoerceUSDRow implements BaseRow {
     this.round = round;
   }
 
-  async run(datum: string): Promise<string> {
+  run(datum: string): Maybe<string> {
     let value = Number(datum);
 
     switch (this.round) {

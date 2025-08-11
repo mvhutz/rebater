@@ -11,7 +11,7 @@ import { Row } from "../information/Table";
  * Extract the value of a certain counter.
  */
 export class CounterRow implements BaseRow {
-  async run(_v: string, _r: Row, runner: Runner): Promise<string> {
+  run(_v: string, _r: Row, runner: Runner,): Maybe<string> {
     return runner.counter.getThenIncrement("counter").toString();
   }
 

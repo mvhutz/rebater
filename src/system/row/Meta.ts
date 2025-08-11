@@ -33,7 +33,7 @@ export class MetaRow implements BaseRow {
     this.value = value;
   }
 
-  async run(_v: string, row: Row, runner: Runner): Promise<string> {
+  run(value: string, row: Row, runner: Runner): Maybe<string> {
     switch (this.value) {
       case "quarter.lastday": return MetaRow.getQuarterLastDay(runner);
       case "quarter.number": return MetaRow.getQuarterNumber(runner);

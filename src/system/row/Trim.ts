@@ -9,7 +9,7 @@ import { makeNodeElementSchema } from "../xml";
  * Trim the whitespace off of the current value.
  */
 export class TrimRow implements BaseRow {
-  async run(value: string): Promise<string> {
+  run(value: string): Maybe<string> {
     return value.trim();
   }
 

@@ -37,7 +37,7 @@ export abstract class BaseRow {
    * @param row The row as context.
    * @param runner The running context.
    */
-  abstract run(value: string, row: Row, runner: Runner, table: Table): Promise<Maybe<string>>;
+  abstract run(value: string, row: Row, runner: Runner, table: Table): Maybe<string>;
 
   /**
    * Add this tag to an XML document.
@@ -45,11 +45,11 @@ export abstract class BaseRow {
    */
   abstract buildXML(from: XMLElement): void;
 
-  static async runMany(rows: BaseRow[], row: Row, runner: Runner, table: Table): Promise<Maybe<string>> {
+  static runMany(rows: BaseRow[], row: Row, runner: Runner, table: Table): Maybe<string> {
     let value = "";
 
     for (const operation of rows) {
-      const result = await operation.run(value, row, runner, table);
+      const result = operation.run(value, row, runner, table);
       if (result == null) return result;
       value = result;
     }

@@ -20,7 +20,7 @@ export class LiteralRow implements BaseRow {
     this.value = value;
   }
 
-  async run(): Promise<string> {
+  run(): string {
     return this.value;
   }
 

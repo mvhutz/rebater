@@ -25,8 +25,8 @@ export class EqualsRow implements BaseRow {
     this.other = other;
   }
 
-  async run(value: string, row: Row, runner: Runner, table: Table): Promise<string> {
-    const other_value = await BaseRow.runMany(this.other, row, runner, table);
+  run(value: string, row: Row, runner: Runner, table: Table): Maybe<string> {
+    const other_value = BaseRow.runMany(this.other, row, runner, table);
     return (value === other_value).toString();
   }
 

@@ -9,7 +9,7 @@ import { makeNodeElementSchema } from "../xml";
  * Get the sign of the current value.
  */
 export class SignumRow implements BaseRow {
-  async run(value: string): Promise<string> {
+  run(value: string): Maybe<string> {
     return Math.sign(parseFloat(value)).toString();
   }
 

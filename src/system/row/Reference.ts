@@ -64,7 +64,7 @@ export class ReferenceRow implements BaseRow {
     return `For *${this.group}*, what is the **\`${this.take}\`** of this **\`${this.table}\`**?\n\n *\`${value}\`*`;
   }
 
-  async run(value: string, row: Row, runner: Runner): Promise<Maybe<string>> {
+  run(value: string, row: Row, runner: Runner): Maybe<string> {
     const reference = runner.references.get(this.table);
     const result = reference.ask({
       [this.match]: value,
@@ -78,7 +78,7 @@ export class ReferenceRow implements BaseRow {
     const question = this.getQuestionFormat(value);
     const suggestions = reference.suggest(this.match, value, this.take);
 
-    const { answer } = await runner.asker.ask({
+    runner.asker.ask({
       table: this.table,
       hash: question,
       // We only want to match the required property, and the group.
@@ -91,10 +91,8 @@ export class ReferenceRow implements BaseRow {
       unknown: this.take,
       suggestions: suggestions.slice(0, 3).map(s => this.getSuggestionFormat(s)),
     });
-    if (answer == null) return null;
-    
-    reference.insert([answer]);
-    return answer[this.take];
+
+    return null;
   }
 
   public static readonly SCHEMA = z.strictObject({

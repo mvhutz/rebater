@@ -27,7 +27,7 @@ export class SumRow implements BaseRow {
     this.column = column;
   }
 
-  async run(_value: string, row: Row, _r: Runner, table: Table): Promise<string> {
+  run(_v: string, _r: Row, _R: Runner, table: Table): Maybe<string> {
     // Get table sums.
     let cached_table = this.cache.get(table);
     if (cached_table == null) {

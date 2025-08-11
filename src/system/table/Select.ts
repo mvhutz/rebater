@@ -39,7 +39,7 @@ export class SelectTable implements BaseTable {
     this.is = is;
   }
 
-  async run(table: Table): Promise<Table> {
+  run(table: Table): Table {
     return table.filter(r => {
       return (this.is === r.get(this.column)) === (this.action === "keep");
     });

@@ -25,7 +25,7 @@ export abstract class BaseTable {
    * @param table The table to modify.
    * @param runner The running context.
    */
-  abstract run(table: Table, runner: Runner): Promise<Table>;
+  abstract run(table: Table, runner: Runner): Table;
 
   /**
    * Add this tag to an XML document.
@@ -40,9 +40,9 @@ export abstract class BaseTable {
    * @param runner The running context.
    * @returns A modified table.
    */
-  static async runMany(rows: BaseTable[], table: Table, runner: Runner) {
+  static runMany(rows: BaseTable[], table: Table, runner: Runner) {
     for (const operation of rows) {
-      table = await operation.run(table, runner);
+      table = operation.run(table, runner);
     }
 
     return table;

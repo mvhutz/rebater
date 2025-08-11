@@ -158,7 +158,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     for (const [i, transformer] of transformers.entries()) {
       yield { type: "running", progress: i / transformers.length };
       try {
-        results.config.push(await transformer.run(this));
+        results.config.push(transformer.run(this));
       } catch (error) {
         const start = `While running ${transformer.name}:\n\n`;
         if (error instanceof z.ZodError) {
