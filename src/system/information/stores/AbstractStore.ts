@@ -27,6 +27,14 @@ export abstract class AbstractStore<Item extends AbstractItem<ItemData>, Meta, I
   }
 
   /**
+   * Size of store.
+   * @returns Number of items is store.
+   */
+  public size(): number {
+    return this.items.size;
+  }
+
+  /**
    * Return all items currently in the store.
    * @returns A list of all items in the store.
    */

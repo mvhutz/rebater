@@ -1,0 +1,53 @@
+import path from "path";
+import { bad, good, Reply } from "../../../shared/reply";
+import { Transformer } from "../../Transformer";
+import { fromText } from "../../xml";
+import { AbstractFile } from "./AbstractFile";
+import z from "zod/v4";
+
+/** ------------------------------------------------------------------------- */
+
+interface Meta { type: "json" | "xml" };
+
+/**
+ * An AbstractFile which holds source data.
+ */
+export class TransformerFile extends AbstractFile<Reply<Transformer>, Meta> {
+  constructor(path: string, meta: Meta) {
+    super(path, bad("Not loaded!"), meta);
+  }
+
+  serialize(): Buffer {
+    if (!this.data.ok) {
+      throw new Error("Not loaded!");
+    } else {
+      return Buffer.from(this.data.data.toXML());
+    }
+  }
+
+  deserialize(data: Buffer): Reply<Transformer> {    
+    try {
+      if (this.meta.type === "json") {
+        const json = JSON.parse(data.toString());
+        return good(Transformer.SCHEMA.parse(json));
+      } else {
+        const xml = fromText(data.toString());
+        return good(Transformer.XML_SCHEMA.parse(xml));
+      }
+    } catch (error) {
+      const name = path.basename(this.path);
+
+      if (error instanceof z.ZodError) {
+        return bad(`Invalid schema for ${this.path}: ${z.prettifyError(error)}`, name);
+      } else if (error instanceof Error) {
+        return bad(`Invalid schema for ${this.path}: ${error.message}`, name);
+      } else {
+        return bad(`Thrown for ${this.path}: ${error}`, name);
+      }
+    }
+  }
+
+  insert(): void {
+    throw new Error("Cannot add to transformers!");
+  }
+}
