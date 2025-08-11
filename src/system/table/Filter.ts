@@ -26,9 +26,9 @@ export class FilterTable implements BaseTable {
     this.criteria = criteria;
   }
 
-  async run(table: Table, runner: Runner): Promise<Table> {
-    return table.filterAsync(async row => {
-      const value = await BaseRow.runMany(this.criteria, row, runner, table);
+  run(table: Table, runner: Runner): Table {
+    return table.filter(row => {
+      const value = BaseRow.runMany(this.criteria, row, runner, table);
       return value === "true";
     });
   }

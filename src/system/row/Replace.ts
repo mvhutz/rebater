@@ -46,12 +46,12 @@ export class ReplaceRow implements BaseRow {
     this.put_meta = put_meta && new MetaRow(put_meta);
   }
 
-  async run(value: string, row: Row, runner: Runner): Promise<string> {
+  run(value: string, row: Row, runner: Runner): Maybe<string> {
     let result = value;
 
     let truePut = this.put;
     if (this.put_meta) {
-      truePut = await this.put_meta.run("", row, runner);
+      truePut = this.put_meta.run("", row, runner) ?? "";
     }
 
     if (this.characters != null) {

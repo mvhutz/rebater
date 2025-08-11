@@ -41,7 +41,7 @@ export class ChopTable implements BaseTable {
     this.otherwise = otherwise;
   }
 
-  async run(table: Table): Promise<Table> {
+  run(table: Table): Table {
     const index = table.split().findIndex(row => {
       const datum = row.get(this.column);
       if (datum == null) return;

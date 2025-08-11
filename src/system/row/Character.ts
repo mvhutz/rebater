@@ -28,7 +28,7 @@ export class CharacterRow implements BaseRow {
     this.action = action;
   }
 
-  async run(value: string): Promise<string> {
+  run(value: string): Maybe<string> {
     const characters = value.split("");
     return characters
       .filter(c => this.select.includes(c) === (this.action === "keep"))

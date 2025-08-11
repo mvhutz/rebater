@@ -23,7 +23,7 @@ export class ColumnRow implements BaseRow {
     this.index = index;
   }
 
-  async run(_v: string, row: Row): Promise<string> {
+  run(_v: string, row: Row): Maybe<string> {
     const value = row.get(this.index);
     assert.ok(value != null, `Cannot pull column ${this.index + 1} from row.`);
 

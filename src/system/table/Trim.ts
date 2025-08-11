@@ -25,7 +25,7 @@ export class TrimTable implements BaseTable {
     this.bottom = bottom == null ? undefined : -bottom;
   }
 
-  async run(table: Table): Promise<Table> {
+  run(table: Table): Table {
     return table.slice(this.top, this.bottom);
   }
 

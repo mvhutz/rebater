@@ -55,8 +55,8 @@ export class Table {
     return this.data[index];
   }
 
-  public update(fn: (value: Row, index: number) => Row): Table {
-    return new Table(this.data.map(fn));
+  public update(fn: (value: Row, index: number) => Maybe<Row>): Table {
+    return new Table(this.data.map(fn).filter(r => r != null));
   }
 
   public async updateAsync(fn: (value: Row, index: number) => Promise<Maybe<Row>>): Promise<Table> {

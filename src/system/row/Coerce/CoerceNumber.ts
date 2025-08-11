@@ -20,7 +20,7 @@ export class CoerceNumberRow implements BaseRow {
     this.otherwise = otherwise;
   }
 
-  async run(value: string): Promise<string> {
+  run(value: string): Maybe<string> {
     const float = parseFloat(value);
 
     if (isNaN(float) && this.otherwise != null) {

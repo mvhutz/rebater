@@ -23,7 +23,7 @@ export class DebugTable implements BaseTable {
     this.name = name;
   }
 
-  async run(table: Table, runner: Runner): Promise<Table> {
+  run(table: Table, runner: Runner): Table {
     // The debug table is stored as a utility, under the `debug` folder.
     const true_name = `debug/${this.name}/${crypto.randomUUID()}`;
     const utility = new UtilityDestination(true_name);

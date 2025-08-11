@@ -29,8 +29,8 @@ export class ConcatRow implements BaseRow {
     this.separator = separator;
   }
 
-  async run(value: string, row: Row, runner: Runner, table: Table): Promise<string> {
-    const other_value = await BaseRow.runMany(this.other, row, runner, table);
+  run(value: string, row: Row, runner: Runner, table: Table): Maybe<string> {
+    const other_value = BaseRow.runMany(this.other, row, runner, table);
     return value + this.separator + other_value;
   }
 

@@ -9,7 +9,7 @@ import { makeNodeElementSchema } from "../xml";
  * Get the absolute value of a value.
  */
 export class AbsoluteRow implements BaseRow {
-  async run(value: string): Promise<string> {
+  run(value: string): Maybe<string> {
     return Math.abs(parseFloat(value)).toString();
   }
 

@@ -213,11 +213,11 @@ export class Transformer {
    * @param row The row being extracted.
    * @returns The extracted properties.
    */
-  private async runRow(runner: Runner, row: Row, table: Table) {
+  private runRow(runner: Runner, row: Row, table: Table) {
     const result = new Array<string>();
 
     for (const { definition } of this.properties) {
-      const output = await BaseRow.runMany(definition, row, runner, table);
+      const output = BaseRow.runMany(definition, row, runner, table);
       if (output == null) {
         return null;
       }
@@ -233,26 +233,24 @@ export class Transformer {
    * @param runner The context to run in.
    * @returns Information as to how well the transformer ran.
    */
-  public async run(runner: Runner): Promise<TransformerResult> {
+  public run(runner: Runner): TransformerResult {
     const start = performance.now();
 
     // 1. Pull sources.
-    const source_data = (await Promise.all(this.sources.map(s => s.run(runner)))).flat(1);
+    const source_data = this.sources.map(s => s.run(runner)).flat(1);
 
     // 2. Pre-process data.
-    const preprocessed_data = (await Promise.all(source_data.map(d => BaseTable.runMany(this.preprocess, d, runner))));
+    const preprocessed_data = source_data.map(d => BaseTable.runMany(this.preprocess, d, runner));
     const total = Table.stack(...preprocessed_data);
     
     // 3. Extract properties.
-    const processed = await total.updateAsync(async r => {
-      return await this.runRow(runner, r, total);
-    });
+    const processed = total.update(r => this.runRow(runner, r, total));
 
     const header = new Row(this.properties.map(p => p.name), "<header>");
     const final = processed.prepend(header);
 
     // 4. Post-process data.
-    const postprocessed_data = await BaseTable.runMany(this.postprocess, final, runner);
+    const postprocessed_data = BaseTable.runMany(this.postprocess, final, runner);
 
     // 5. Send to destinations.
     for (const destination of this.destinations) {

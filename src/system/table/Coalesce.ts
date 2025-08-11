@@ -80,7 +80,7 @@ export class CoalesceTable implements BaseTable {
     return row;
   }
 
-  async run(table: Table): Promise<Table> {
+  run(table: Table): Table {
     // Create the buckets.
     const buckets = table.divide(row => this.getHash(row));
 

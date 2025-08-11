@@ -28,9 +28,11 @@ export class UtilityRow implements BaseRow {
     this.group = group;
   }
 
-  async run(value: string, row: Row, runner: Runner): Promise<Maybe<string>> {
+  run(value: string, _r: Row, runner: Runner): Maybe<string> {
     const utility = runner.utilities.get(this.table);
-    const result = utility.ask({
+    const view = utility.view(this.match);
+
+    const result = view.ask({
       [this.match]: value,
       group: this.group,
     }, this.take);

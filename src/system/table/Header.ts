@@ -40,7 +40,7 @@ export class HeaderTable implements BaseTable {
     this.action = action;
   }
 
-  async run(table: Table): Promise<Table> {
+  run(table: Table): Table {
     const rotated = table.transpose();
 
     if (this.action === "drop") {

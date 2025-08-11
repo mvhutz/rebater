@@ -46,7 +46,7 @@ export class CoerceDateRow implements BaseRow {
     this.format = format;
   }
 
-  async run(value: string, _r: Row, runner: Runner): Promise<Maybe<string>> {
+  run(value: string, _r: Row, runner: Runner): Maybe<string> {
     const attemptInt = Number(value);
     let date: Moment;
 

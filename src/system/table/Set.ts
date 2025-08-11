@@ -31,9 +31,9 @@ export class SetTable implements BaseTable {
     this.to = to;
   }
 
-  async run(table: Table, runner: Runner): Promise<Table> {
-    return table.updateAsync(async r => {
-      const value = await BaseRow.runMany(this.to, r, runner, table);
+  run(table: Table, runner: Runner): Table {
+    return table.update(r => {
+      const value = BaseRow.runMany(this.to, r, runner, table);
       if (value == null) return null;
 
       return r.set(this.column, value);
