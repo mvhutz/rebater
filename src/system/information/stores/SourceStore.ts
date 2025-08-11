@@ -1,30 +1,7 @@
 import { Time } from "../../../shared/time";
 import { AbstractStore } from "./AbstractStore";
 import { getSubFiles, getSubFolders } from "../../util";
-import { AbstractFile } from "../items/AbstractFile";
-
-/** ------------------------------------------------------------------------- */
-
-/**
- * An AbstractFile which holds source data.
- */
-class Source extends AbstractFile<Buffer, { group: string, quarter: Time }> {
-  constructor(path: string, meta: { group: string, quarter: Time }) {
-    super(path, Buffer.from(""), meta);
-  }
-
-  serialize(): Buffer {
-    return this.data;
-  }
-
-  deserialize(data: Buffer): Buffer<ArrayBufferLike> {
-    return data;
-  }
-
-  insert(datum: Buffer<ArrayBufferLike>): void {
-    this.data = Buffer.concat([this.data, datum]);
-  }
-}
+import { SourceFile } from "../items/SourceFile";
 
 /** ------------------------------------------------------------------------- */
 
@@ -33,7 +10,7 @@ interface Meta { directory: string };
 /**
  * Holds all the sources pulled by the transformers.
  */
-export class SourceStore extends AbstractStore<Source, Meta> {
+export class SourceStore extends AbstractStore<SourceFile, Meta> {
   public readonly name = "sources";
 
   public async gather() {
@@ -43,7 +20,7 @@ export class SourceStore extends AbstractStore<Source, Meta> {
 
       for (const [group_path, group] of await getSubFolders(time_path)) {
         for (const [file_path] of await getSubFiles(group_path)) {
-          this.add(new Source(file_path, { group, quarter: time }));
+          this.add(new SourceFile(file_path, { group, quarter: time }));
         }
       }
     }
