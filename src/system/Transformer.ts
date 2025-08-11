@@ -56,7 +56,7 @@ export class Transformer {
   private readonly properties: { name: string, definition: BaseRow[] }[];
   private readonly postprocess: BaseTable[];
   private readonly destinations: BaseDestination[];
-  private readonly requirements: string[];
+  public readonly requirements: string[];
 
   public constructor(name: string, tags: string[], sources: BaseSource[], preprocess: BaseTable[], properties: { name: string, definition: BaseRow[] }[], postprocess: BaseTable[], destinations: BaseDestination[], requirements: string[]) {
     this.name = name;

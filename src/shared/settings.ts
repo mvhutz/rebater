@@ -226,7 +226,14 @@ export class Settings {
    * @param name The name of the transformer.
    */
   getTransformerPath(name: string) {
-    return path.join(this.directory, "transformer", `${name}.json`);
+    return path.join(this.directory, "transformers", `${name}.json`);
+  }
+  
+  /**
+   * Get the  location of all transformers.
+   */
+  getAllTransformerPath() {
+    return path.join(this.directory, "transformers");
   }
   
   /**

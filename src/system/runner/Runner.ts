@@ -1,4 +1,3 @@
-import { Transformer } from "../Transformer";
 import { getPartition, getRebateHash } from "../util";
 import EventEmitter from "events";
 import { Settings } from "../../shared/settings";
@@ -15,6 +14,7 @@ import { UtilityStore } from "../information/stores/UtilityStore";
 import z from "zod/v4";
 import { RebateSet } from "./RebateSet";
 import { bad, good, Reply } from "../../shared/reply";
+import { TransformerStore } from "../information/stores/TransformerStore";
 
 /** ------------------------------------------------------------------------- */
 
@@ -35,6 +35,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
   public readonly truths: TruthStore;
   public readonly outputs: OutputStore;
   public readonly utilities: UtilityStore;
+  public readonly transformers: TransformerStore;
   public readonly asker = new Asker();
 
   private running: boolean;
@@ -49,7 +50,8 @@ export class Runner extends EventEmitter<RunnerEvents> {
     this.destinations = new DestinationStore({ directory: settings.getAllDestinationPath() });
     this.outputs = new OutputStore({ directory: settings.getAllOutputPath() });
     this.truths = new TruthStore({ directory: settings.getAllTruthPath() });
-    this.utilities = new UtilityStore({ directory: settings.getAllUtilityPath() })
+    this.utilities = new UtilityStore({ directory: settings.getAllUtilityPath() });
+    this.transformers = new TransformerStore({ directory: settings.getAllTransformerPath() })
     this.running = false;
 
     this.emit("status", { type: "idle" });
@@ -115,6 +117,8 @@ export class Runner extends EventEmitter<RunnerEvents> {
       await this.references.load();
       await this.truths.gather();
       await this.truths.load();
+      await this.transformers.gather();
+      await this.transformers.load();
       return good(undefined);
     } catch (err) {
       return bad(`${err}`);
@@ -141,11 +145,6 @@ export class Runner extends EventEmitter<RunnerEvents> {
       discrepency: undefined,
     }
 
-    // Load the transformers.
-    yield { type: "loading", message: "Reading transformers..." };
-    const transformers_unordered = await Transformer.pullAll(this.settings, true);
-    const transformers = Transformer.findValidOrder(transformers_unordered);
-
     // Load stores.
     yield { type: "loading", message: "Loading sources..." };
     const load_reply = await this.load();
@@ -155,8 +154,8 @@ export class Runner extends EventEmitter<RunnerEvents> {
     }
 
     // Run the transformers.
-    for (const [i, transformer] of transformers.entries()) {
-      yield { type: "running", progress: i / transformers.length };
+    for (const [i, transformer] of this.transformers.getOrdered().entries()) {
+      yield { type: "running", progress: i / this.transformers.size() };
       try {
         results.config.push(transformer.run(this));
       } catch (error) {
