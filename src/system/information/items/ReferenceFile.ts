@@ -55,8 +55,8 @@ export class ReferenceFile<Meta = unknown> extends AbstractFile<Reference, Meta>
    * @returns True, if it matches.
    */
   private match(ask: Record<string, string>, datum: Record<string, string>) {
-    for (const [property, value] of Object.entries(ask)) {
-      if (datum[property] !== "*" && datum[property] !== value) {
+    for (const property in ask) {
+      if (datum[property] !== "*" && datum[property] !== ask[property]) {
         return false;
       }
     }

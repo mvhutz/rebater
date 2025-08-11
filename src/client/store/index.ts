@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { pushQuestion, setStatus, SystemSlice } from './slices/system';
 import { UISlice } from './slices/ui';
 import { pullAllQuarters, pullSystemSettings, pullTransformers } from './slices/thunk';
+import { good } from '../../shared/reply';
 
 /** ------------------------------------------------------------------------- */
 
@@ -28,10 +29,12 @@ load();
 // Handle system responses.
 handle.runnerUpdate(async (_, { data }) => {
   Store.dispatch(setStatus(data));
+  return good(undefined);
 });
 
 handle.runnerQuestion(async (_, { data }) => {
   Store.dispatch(pushQuestion(data));
+  return good(undefined);
 });
 
 /** ------------------------------------------------------------------------- */
