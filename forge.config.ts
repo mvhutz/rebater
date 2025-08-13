@@ -10,8 +10,11 @@ const config: ForgeConfig = {
   packagerConfig: {
     name: "Rebater",
     executableName: "Rebater",
-    asar: true,
+    asar: {
+      unpack: "**/.vite/build/**/*"
+    },
     icon: './images/icon',
+    
   },
   makers: [new MakerSquirrel({}), new MakerZIP({}), new MakerDMG({})],
   plugins: [
@@ -22,6 +25,7 @@ const config: ForgeConfig = {
         {
           entry: 'src/worker.ts',
           config: 'vite.main.config.ts',
+
         },
         {
           // `entry` is just an alias for `build.lib.entry` in the corresponding file of `config`.
