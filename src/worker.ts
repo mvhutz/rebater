@@ -58,23 +58,7 @@ function main() {
   // Create runner.
   const runner = new Runner(settings_reply.data);
   runner.on("status", status => send({ type: "status", status }));
-  runner.asker.on("ask", question => send({ type: "question", ...question }));
-
-  // Handle messages from main.
-  onReceive(async request => {
-    switch (request.type) {
-      case "answer":
-        runner.asker.answer(request);
-        break;
-      case "exit":
-        runner.asker.ignoreAll();
-        runner.stop();
-        break;
-      case "ignore_all":
-        runner.asker.ignoreAll();
-        break;
-    }
-  })
+  runner.on("ask", question => send({ type: "question", ...question }));
 
   // Run it.
   runner.run()

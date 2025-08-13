@@ -82,7 +82,7 @@ export class SearchRow implements BaseRow {
       suggestions = search.suggest(this.primary, values[this.primary], this.take);
     }
 
-    runner.asker.ask({
+    runner.emit("ask", {
       hash: JSON.stringify([values, this.take]),
       table: this.table,
       unknown: this.take,
