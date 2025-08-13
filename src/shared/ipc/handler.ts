@@ -1,12 +1,11 @@
-import path from "path";
-import { Worker } from 'worker_threads';
 import { bad, good } from "../reply";
 import { SettingsData } from "../settings";
 import { Answer, WorkerRequest } from "../worker/request";
-import { SystemStatus, WorkerResponseSchema } from "../worker/response";
+import { SystemStatus, WorkerResponse } from "../worker/response";
 import { BrowserWindow } from "electron";
 import IPC from ".";
-import z from "zod/v4";
+import { spawn, Worker } from "threads";
+import { System } from "../../worker";
 
 /** ------------------------------------------------------------------------- */
 
@@ -80,20 +79,13 @@ export class IPCHandler {
    * @param mainWindow The current window.
    * @param message The message.
    */
-  private handleWorkerMessage(message: unknown) {
-    const response_parse = WorkerResponseSchema.safeParse(message);
-    if (!response_parse.success) {
-      ipcMain.invoke.runnerUpdate(this.window, { type: "error", message: z.prettifyError(response_parse.error) });
-      return;
-    }
-
-    const { data } = response_parse;
-    switch (data.type) {
+  private handleWorkerMessage(message: WorkerResponse) {
+    switch (message.type) {
       case "status":
-        this.handleWorkerStatus(data.status);
+        this.handleWorkerStatus(message.status);
         break;
       case "question":
-        ipcMain.invoke.runnerQuestion(this.window, data);
+        ipcMain.invoke.runnerQuestion(this.window, message);
         break;
     }
   }
@@ -102,7 +94,7 @@ export class IPCHandler {
    * Handle all interaction between the main thread and the renderer.
    * @param mainWindow The renderer.
    */
-  handleRunProgram(workerData: Maybe<SettingsData>) {
+  async handleRunProgram(settings: Maybe<SettingsData>) {
     // Kill the worker, if running.
     if (this.worker != null) {
       this.worker.terminate();
@@ -110,14 +102,17 @@ export class IPCHandler {
     }
     
     // There must be data.
-    if (workerData == null) {
+    if (settings == null) {
       return bad("Cannot give empty settings.");
     }
     
     // Create new worker.
-    this.worker = new Worker(path.join(__dirname, 'worker.js'), { workerData });
-    this.worker.on("message", m => this.handleWorkerMessage(m));
-    this.worker.on("exit", () => {
+    this.worker = new Worker('worker.js');
+    const thread = await spawn<System>(this.worker);
+
+    const observable = thread.run(settings);
+    observable.subscribe(m => this.handleWorkerMessage(m));
+    observable.finally(() => {
       this.worker = null
     });
 
