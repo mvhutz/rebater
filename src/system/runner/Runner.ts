@@ -152,8 +152,10 @@ export class Runner extends EventEmitter<RunnerEvents> {
       return;
     }
 
+    const transformers = TransformerStore.getOrdered(this.transformers.getValid().filter(t => this.settings.willRun(t)));
+
     // Run the transformers.
-    for (const [i, transformer] of this.transformers.getOrdered().entries()) {
+    for (const [i, transformer] of transformers.entries()) {
       yield { type: "running", progress: i / this.transformers.size() };
       try {
         results.config.push(transformer.run(this));
