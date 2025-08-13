@@ -61,6 +61,8 @@ function InputModal() {
     }
 
     const answer = data.get("answer")?.toString();
+    event.currentTarget.reset();
+    
     if (answer == null) {
       invoke.answerQuestion({ answer: undefined, hash });
     } else {
