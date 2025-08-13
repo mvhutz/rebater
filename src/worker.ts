@@ -4,6 +4,7 @@ import { Settings, SettingsData } from "./shared/settings";
 import { WorkerResponse } from "./shared/worker/response";
 import { expose } from "threads/worker";
 import { Observable } from "observable-fns";
+import { Answer } from "./shared/worker/request";
 
 /** ------------------------------------------------------------------------- */
 
@@ -17,11 +18,23 @@ function sendError(message?: string): WorkerResponse {
 
 /** ------------------------------------------------------------------------- */
 
+let runner: Maybe<Runner>;
+
 const SYSTEM = {
+  async saveAnswer(answer: Answer) {
+    if (runner == null) {
+      console.log("Runner does not exist!");
+      return;
+    }
+    const table = runner.references.get(answer.reference);
+    table.insert([answer.answer]);
+    await table.save();
+  },
+
   /**
    * Run the program.
    */
-  run(data: Maybe<SettingsData>): Observable<WorkerResponse> {
+  run(data: SettingsData): Observable<WorkerResponse> {
     return new Observable(observer => {
       // Get settings.
       const settings_reply = Settings.from(data);
@@ -32,21 +45,28 @@ const SYSTEM = {
       }
       
       // Create runner.
-      const runner = new Runner(settings_reply.data);
+      runner = new Runner(settings_reply.data);
       runner.on("status", status => observer.next({ type: "status", status }));
       runner.on("ask", question => observer.next({ type: "question", ...question }));
 
       // Run it.
       runner.run()
         .catch(async error => {
+          if (runner == null) return;
+
           await runner.save();
           if (error instanceof z.ZodError) {
-            return observer.next(sendError(z.prettifyError(error)));
+            observer.next(sendError(z.prettifyError(error)));
           } else if (error instanceof Error) {
-            return observer.next(sendError(error.message));
+            observer.next(sendError(error.message));
           } else {
-            return observer.next(error(`${error}`));
+            observer.next(error(`${error}`));
           }
+
+          observer.complete();
+        })
+        .then(() => {
+          observer.complete();
         });
     })
   }

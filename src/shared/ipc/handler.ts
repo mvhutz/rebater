@@ -4,7 +4,7 @@ import { Answer, WorkerRequest } from "../worker/request";
 import { SystemStatus, WorkerResponse } from "../worker/response";
 import { BrowserWindow } from "electron";
 import IPC from ".";
-import { spawn, Worker } from "threads";
+import { ModuleThread, spawn, Worker } from "threads";
 import { System } from "../../worker";
 
 /** ------------------------------------------------------------------------- */
@@ -13,32 +13,40 @@ const { ipcMain } = IPC;
 
 export class IPCHandler {
   private window: BrowserWindow;
-  private worker: Maybe<Worker>;
+  private worker: Worker;
+  private thread: ModuleThread<System>;
 
-  constructor(window: BrowserWindow) {
-    this.worker = null;
+  constructor(window: BrowserWindow, worker: Worker, thread: ModuleThread<System>) {
+    this.worker = worker;
+    this.thread = thread;
     this.window = window;
+  }
+
+  static async create(window: BrowserWindow): Promise<IPCHandler> {
+    const worker = new Worker('worker.js');
+    const thread = await spawn<System>(worker);
+
+    return new IPCHandler(window, worker, thread);
   }
 
   /**
    * The user wants to answer a question.
    * @param answer Their answer.
    */
-  handleAnswerQuestion(answer: Answer) {
-    if (this.worker == null) return bad("System is not running!");
-
-    this.worker.postMessage({ type: "answer", ...answer } as WorkerRequest);
+  async handleAnswerQuestion(answer: Answer) {
+    console.log("HANDLER");
+    await this.thread.saveAnswer(answer);
     return good(undefined);
   }
 
   /**
    * The user wants to ungracefully kill the program.
    */
-  handleCancelProgram() {
-    if (this.worker == null) return bad("System is not running!");
-
+  async handleCancelProgram() {
+    console.log("CANCEL");
     this.worker.terminate();
-    this.worker = null;
+    this.worker = new Worker('worker.js');
+    this.thread = await spawn<System>(this.worker);
 
     return good(undefined);
   }
@@ -47,19 +55,8 @@ export class IPCHandler {
    * The user wants to gracefully exit the program.
    */
   handleExitProgram() {
-    if (this.worker == null) return bad("System is not running!");
-
+    console.log("EXIT");
     this.worker.postMessage({ type: "exit" } as WorkerRequest);
-    return good(undefined);
-  }
-
-  /**
-   * The user wishes to ignore all future questions from the worker.
-   */
-  handleIgnoreAll() {
-    if (this.worker == null) return bad("System is not running!");
-    
-    this.worker.postMessage({ type: "ignore_all" } as WorkerRequest);
     return good(undefined);
   }
 
@@ -67,10 +64,6 @@ export class IPCHandler {
    * The worker sends the handler a status message.
    */
   private handleWorkerStatus(status: SystemStatus) {
-    if (status.type === "error" || status.type === "done") {
-      this.worker?.terminate();
-    }
-
     ipcMain.invoke.runnerUpdate(this.window, status);
   }
 
@@ -95,26 +88,16 @@ export class IPCHandler {
    * @param mainWindow The renderer.
    */
   async handleRunProgram(settings: Maybe<SettingsData>) {
-    // Kill the worker, if running.
-    if (this.worker != null) {
-      this.worker.terminate();
-      this.worker = null;
-    }
-    
     // There must be data.
     if (settings == null) {
       return bad("Cannot give empty settings.");
     }
     
     // Create new worker.
-    this.worker = new Worker('worker.js');
-    const thread = await spawn<System>(this.worker);
+    await this.handleCancelProgram();
 
-    const observable = thread.run(settings);
+    const observable = this.thread.run(settings);
     observable.subscribe(m => this.handleWorkerMessage(m));
-    observable.finally(() => {
-      this.worker = null
-    });
 
     return good(undefined);
   }
@@ -131,11 +114,10 @@ export class IPCHandler {
     ipcMain.handle.getAllQuarters();
     ipcMain.handle.createQuarter();
 
-    ipcMain.handle.answerQuestion(async (_, { data }) => this.handleAnswerQuestion(data));
-    ipcMain.handle.cancelProgram(async () => this.handleCancelProgram());
+    ipcMain.handle.answerQuestion(async (_, { data }) => await this.handleAnswerQuestion(data));
+    ipcMain.handle.cancelProgram(async () => await this.handleCancelProgram());
     ipcMain.handle.exitProgram(async () => this.handleExitProgram());
-    ipcMain.handle.ignoreAll(async () => this.handleIgnoreAll());
-    ipcMain.handle.runProgram(async (_, { data }) => this.handleRunProgram(data));
+    ipcMain.handle.runProgram(async (_, { data }) => await this.handleRunProgram(data));
 
     // Remove on window close.
     this.window.on("close", () => {
@@ -150,7 +132,6 @@ export class IPCHandler {
       ipcMain.remove.openOutputFile();
       ipcMain.remove.getAllQuarters();
       ipcMain.remove.createQuarter();
-      ipcMain.remove.ignoreAll();
     });
   }
 }

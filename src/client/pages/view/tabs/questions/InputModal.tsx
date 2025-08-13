@@ -1,27 +1,20 @@
 import React from 'react';
 import Button from '@mui/joy/Button';
-import DialogContent from '@mui/joy/DialogContent';
-import DialogTitle from '@mui/joy/DialogTitle';
 import FormControl from '@mui/joy/FormControl';
 import FormLabel from '@mui/joy/FormLabel';
 import Input from '@mui/joy/Input';
-import Modal from '@mui/joy/Modal';
-import ModalDialog from '@mui/joy/ModalDialog';
-import { clearQuestions, getCurrentQuestion, popQuestion } from '../store/slices/system';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { Box, ButtonGroup, Checkbox, DialogActions, IconButton, ModalOverflow, Stack, Table } from '@mui/joy';
-import NotificationsPausedRoundedIcon from '@mui/icons-material/NotificationsPausedRounded';
-import { Typography } from '@mui/material';
+import { deleteQuestion } from '../../../../store/slices/system';
+import { useAppDispatch } from '../../../../store/hooks';
+import { CardContent, Typography, Card, CardActions, Checkbox, Stack, Table } from '@mui/joy';
 import Markdown from 'react-markdown';
+import { Question } from '../../../../../shared/worker/response';
 
 /** ------------------------------------------------------------------------- */
 
 const { invoke } = window.api;
 
-function InputModal() {
-  const question = useAppSelector(getCurrentQuestion);
+function InputModal({ question }: { question: Question }) {
   const dispatch = useAppDispatch();
-  const open = question != null;
 
   const [known, setKnown] = React.useState<Record<string, string>>({});
   const [optional, setOptional] = React.useState<string[]>([]);
@@ -63,38 +56,24 @@ function InputModal() {
     const answer = data.get("answer")?.toString();
     event.currentTarget.reset();
     
-    if (answer == null) {
-      invoke.answerQuestion({ answer: undefined, hash });
-    } else {
-      invoke.answerQuestion({
-        hash,
-        answer: {
-          ...known_copy,
-          [unknown]: answer
-        }
-      });
-    }
+    if (answer == null) return;
 
-    dispatch(popQuestion());
+    invoke.answerQuestion({
+      hash,
+      answer: {
+        ...known_copy,
+        [unknown]: answer
+      },
+      reference: question.table
+    });
+
+    dispatch(deleteQuestion(question));
   }, [dispatch, known, optional, question]);
-
-  const handleClose = React.useCallback(async (event: React.UIEvent) => {
-    event.preventDefault();
-    invoke.exitProgram({});
-    dispatch(clearQuestions());
-  }, [dispatch]);
 
   const handleIgnore = React.useCallback((event: React.UIEvent) => {
     event.preventDefault();
-    invoke.answerQuestion({ answer: undefined, hash: question.hash });
-    dispatch(popQuestion());
+    dispatch(deleteQuestion(question));
   }, [dispatch, question]);
-
-  const handleIgnoreAll = React.useCallback((event: React.UIEvent) => {
-    event.preventDefault();
-    invoke.ignoreAll({});
-    dispatch(clearQuestions());
-  }, [dispatch]);
 
   const toggleOptional = React.useCallback((value: string) => {
     setOptional(o => {
@@ -147,33 +126,24 @@ function InputModal() {
   }
 
   return (
-    <Modal open={open} onClose={handleClose}>
-      <ModalOverflow>
-        <ModalDialog minWidth={500} layout="center">
-          <form onSubmit={handleForm}>
-            <DialogTitle>Rebater needs your help!</DialogTitle>
-            <DialogContent>
-              <Stack spacing={2}>
-                {inside}
-                <FormControl>
-                  <FormLabel>Answer</FormLabel>
-                  <Input name="answer" required autoFocus={true} />
-                </FormControl>
-              </Stack>
-            </DialogContent>
-            <DialogActions sx={{ mt: 2 }}>
-              <Button type="submit">Submit</Button>
-              <ButtonGroup variant="outlined" color="neutral">
-                <Button onClick={handleIgnore}>Later</Button>
-                <IconButton onClick={handleIgnoreAll}><NotificationsPausedRoundedIcon /></IconButton>
-              </ButtonGroup>
-              <Box width={1} />
-              <Button type="button" variant="outlined" color="danger" onClick={handleClose}>Quit</Button>
-            </DialogActions>
-          </form>
-        </ModalDialog>
-      </ModalOverflow>
-    </Modal>
+    <Card>
+      <form onSubmit={handleForm}>
+        <Typography>Rebater needs your help!</Typography>
+        <CardContent>
+          <Stack spacing={2}>
+            {inside}
+            <FormControl>
+              <FormLabel>Answer</FormLabel>
+              <Input name="answer" required autoFocus={true} />
+            </FormControl>
+          </Stack>
+        </CardContent>
+        <CardActions sx={{ mt: 2 }}>
+          <Button type="submit">Submit</Button>
+          <Button onClick={handleIgnore}>Ignore</Button>
+        </CardActions>
+      </form>
+    </Card>
   );
 }
 
