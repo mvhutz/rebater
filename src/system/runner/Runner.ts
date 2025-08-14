@@ -156,7 +156,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
 
     // Run the transformers.
     for (const [i, transformer] of transformers.entries()) {
-      yield { type: "running", progress: i / this.transformers.size() };
+      yield { type: "running", progress: i / transformers.length };
       try {
         results.config.push(transformer.run(this));
       } catch (error) {

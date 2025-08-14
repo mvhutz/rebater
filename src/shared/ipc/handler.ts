@@ -34,7 +34,6 @@ export class IPCHandler {
    * @param answer Their answer.
    */
   async handleAnswerQuestion(answer: Answer) {
-    console.log("HANDLER");
     await this.thread.saveAnswer(answer);
     return good(undefined);
   }
@@ -43,7 +42,6 @@ export class IPCHandler {
    * The user wants to ungracefully kill the program.
    */
   async handleCancelProgram() {
-    console.log("CANCEL");
     this.worker.terminate();
     this.worker = new Worker('worker.js');
     this.thread = await spawn<System>(this.worker);
@@ -55,7 +53,6 @@ export class IPCHandler {
    * The user wants to gracefully exit the program.
    */
   handleExitProgram() {
-    console.log("EXIT");
     this.worker.postMessage({ type: "exit" } as WorkerRequest);
     return good(undefined);
   }
