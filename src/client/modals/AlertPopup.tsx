@@ -37,7 +37,7 @@ function AlertPopup() {
       size="sm"
       onClose={handleUnmount}
       autoHideDuration={5000}
-      anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       startDecorator={icon}
       endDecorator={
         <IconButton onClick={handleUnmount} color={color}>

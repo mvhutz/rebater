@@ -10,21 +10,19 @@ import InputModal from './InputModal';
 
 /** ------------------------------------------------------------------------- */
 
-// const { invoke } = window.api;
-
 function QuestionsTab() {
   const display = useAppSelector(getDisplayTab("questions"));
   const questions = useAppSelector(getSystemQuestions);
+  
+  const first = Object.entries(questions)[0];
 
   return (
     <Stack padding={0} display={display}>
       <TabMenu>
         <Typography level="body-lg" pt={0.5} color="neutral"><i>Questions</i></Typography>
       </TabMenu>
-      <Stack padding={2}>
-        {Object.entries(questions).map(([hash, q]) => (
-          <InputModal key={hash} question={q} />
-        ))}
+      <Stack padding={2} spacing={2}>
+        {first != null && <InputModal key={first[0]} question={first[1]} />}
       </Stack>
     </Stack>
   );

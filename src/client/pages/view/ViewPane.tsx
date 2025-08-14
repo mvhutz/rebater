@@ -4,7 +4,7 @@ import Stack from '@mui/joy/Stack';
 import NightsStayRoundedIcon from '@mui/icons-material/NightsStayRounded';
 import DoneRoundedIcon from '@mui/icons-material/DoneRounded';
 import PriorityHighRoundedIcon from '@mui/icons-material/PriorityHighRounded';
-import { getSystemQuestions, getSystemStatus } from '../../store/slices/system';
+import { getSystemQuestionCount, getSystemStatus } from '../../store/slices/system';
 import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded';
@@ -59,7 +59,7 @@ function ViewPane() {
   const { tabs: show_tabs } = useAppSelector(getVisible);
   const tab = useAppSelector(getTab);
   const dispatch = useAppDispatch();
-  const questions = useAppSelector(getSystemQuestions);
+  const questions_count = useAppSelector(getSystemQuestionCount);
 
   const handleTab = React.useCallback((_: unknown, tab: Maybe<string | number>) => {
     switch (tab) {
@@ -95,7 +95,7 @@ function ViewPane() {
               <ListItemDecorator>
                 <QuestionMarkRoundedIcon fontSize="small" />
               </ListItemDecorator>
-              Questions <Chip variant="outlined" size='sm'>{Object.keys(questions).length}</Chip>
+              Questions {questions_count > 0 && <Chip color="primary" variant="solid" size='sm'>{questions_count}</Chip>}
             </Tab>
           </TabList>
         }

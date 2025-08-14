@@ -139,8 +139,8 @@ function InputModal({ question }: { question: Question }) {
           </Stack>
         </CardContent>
         <CardActions sx={{ mt: 2 }}>
-          <Button type="submit">Submit</Button>
-          <Button onClick={handleIgnore}>Ignore</Button>
+          <Button fullWidth color="neutral" variant="outlined" onClick={handleIgnore}>Ignore</Button>
+          <Button fullWidth type="submit">Submit</Button>
         </CardActions>
       </form>
     </Card>

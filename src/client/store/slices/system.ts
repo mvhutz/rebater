@@ -162,6 +162,7 @@ export const getTestAll = (state: RootState) => state.system.settings.data.advan
 export const getTransformers = (state: RootState) => state.system.transformers;
 export const getTransformersSettings = (state: RootState) => state.system.settings.data.transformers;
 export const getSystemQuestions = (state: RootState) => state.system.questions;
+export const getSystemQuestionCount = (state: RootState) => Object.keys(state.system.questions).length;
 export const getInvalidTransformers = (state: RootState) => state.system.invalid_transformers;
 
 export const isSystemLoading = (state: RootState) => {
