@@ -4,7 +4,7 @@ import { pullAllQuarters, pushSystemSettings } from './thunk';
 
 /** ------------------------------------------------------------------------- */
 
-export type Tab = "system" | "documentation";
+export type Tab = "system" | "documentation" | "questions";
 
 interface Message {
   type: "error" | "info";

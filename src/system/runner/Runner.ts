@@ -1,11 +1,10 @@
 import { getPartition, getRebateHash } from "../util";
 import EventEmitter from "events";
 import { Settings } from "../../shared/settings";
-import { DiscrepencyResult, Rebate, RunResults, SystemStatus } from "../../shared/worker/response";
+import { DiscrepencyResult, Question, Rebate, RunResults, SystemStatus } from "../../shared/worker/response";
 import { ReferenceStore } from "../information/stores/ReferenceStore";
 import { SourceStore } from "../information/stores/SourceStore";
 import { DestinationStore } from "../information/stores/DestinationStore";
-import { Asker } from "./Asker";
 import { OutputStore } from "../information/stores/OutputStore";
 import { TruthStore } from "../information/stores/TruthStore";
 import { Counter } from "../information/Counter";
@@ -21,6 +20,7 @@ import { TransformerStore } from "../information/stores/TransformerStore";
 /** Runner events to subscribe to. */
 interface RunnerEvents {
   status: [SystemStatus];
+  ask: [Question];
 }
 
 /**
@@ -36,7 +36,6 @@ export class Runner extends EventEmitter<RunnerEvents> {
   public readonly outputs: OutputStore;
   public readonly utilities: UtilityStore;
   public readonly transformers: TransformerStore;
-  public readonly asker = new Asker();
 
   private running: boolean;
 
@@ -111,6 +110,14 @@ export class Runner extends EventEmitter<RunnerEvents> {
    */
   private async load(): Promise<Reply> {
     try {
+      this.sources.wipe();
+      this.references.wipe();
+      this.truths.wipe();
+      this.transformers.wipe();
+      this.destinations.wipe();
+      this.outputs.wipe();
+      this.utilities.wipe();
+
       await this.sources.gather();
       await this.sources.load();
       await this.references.gather();
@@ -153,9 +160,11 @@ export class Runner extends EventEmitter<RunnerEvents> {
       return;
     }
 
+    const transformers = TransformerStore.getOrdered(this.transformers.getValid().filter(t => this.settings.willRun(t)));
+
     // Run the transformers.
-    for (const [i, transformer] of this.transformers.getOrdered().entries()) {
-      yield { type: "running", progress: i / this.transformers.size() };
+    for (const [i, transformer] of transformers.entries()) {
+      yield { type: "running", progress: i / transformers.length };
       try {
         results.config.push(transformer.run(this));
       } catch (error) {

@@ -80,7 +80,7 @@ export class ReferenceRow implements BaseRow {
     const question = this.getQuestionFormat(value);
     const suggestions = reference.suggest(this.match, value, this.take);
 
-    runner.asker.ask({
+    runner.emit("ask", {
       table: this.table,
       hash: question,
       // We only want to match the required property, and the group.

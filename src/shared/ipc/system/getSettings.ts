@@ -4,7 +4,7 @@ import path from "path";
 import { existsSync } from "fs";
 import { lstat, readFile } from "fs/promises";
 import z from "zod/v4";
-import { Settings, SettingsData } from "../../../shared/settings";
+import { Settings, SettingsData } from "../../settings";
 
 /** ------------------------------------------------------------------------- */
 

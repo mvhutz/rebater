@@ -48,8 +48,7 @@ export class TransformerStore extends AbstractStore<TransformerFile, Meta> {
    * another `<utility>` transformer to run beforehand.
    * @returns The same transformers, ordered in a way that causes no conflicts.
    */
-  public getOrdered() {
-    const transformers = this.getValid();
+  public static getOrdered(transformers: Transformer[]): Transformer[] {
     const by_name = new Map<string, Transformer>();
     
     // No duplicates.

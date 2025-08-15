@@ -74,8 +74,9 @@ export class ExcelSource implements BaseSource {
     }
 
     for (const sheetName of sheetsToTake) {
-
       const sheet = workbook.Sheets[sheetName];
+      const props = workbook.Workbook?.Sheets?.find(p => p.name === sheetName);
+      if (props?.Hidden) continue;
       assert.ok(sheet != null, `Sheet '${sheetName}' does not exist on workbook!`);
 
       this.extractWorkSheet(sheet, filepath, results);
@@ -86,7 +87,7 @@ export class ExcelSource implements BaseSource {
     // Get the needed files.
     const glob = runner.settings.getSourcePathGlob(this.group, this.file, ".xls*");
     const files = runner.sources.filter(s => path.matchesGlob(s.path, glob));
-
+    
     // Extract tables.
     const results = new Array<Table>();
     for (const file of files) {

@@ -16,7 +16,7 @@ interface SystemState {
   transformers: Reply<TransformerInfo[]>;
   invalid_transformers: [string, string][];
   quarters: Resource<TimeData[]>;
-  questions: Question[];
+  questions: Record<string, Question>;
 }
 
 const initialState: SystemState = {
@@ -25,7 +25,7 @@ const initialState: SystemState = {
   quarters: resource([], ResourceStatus.LOADING),
   transformers: bad("Loading transformers..."),
   invalid_transformers: [],
-  questions: []
+  questions: {}
 }
 
 /** ------------------------------------------------------------------------- */
@@ -58,14 +58,15 @@ export const SystemSlice = createSlice({
     setTransformersTags: (state, action: PayloadAction<Maybe<string[]>>) => {
       state.settings.data.transformers.tags.include = action.payload ?? undefined;
     },
-    pushQuestion: (state, action: PayloadAction<Question>) => {
-      state.questions.push(action.payload);
+    deleteQuestion: (state, action: PayloadAction<Question>) => {
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      delete state.questions[action.payload.hash];
     },
-    popQuestion: (state) => {
-      state.questions.shift();
+    addQuestion: (state, action: PayloadAction<Question>) => {
+      state.questions[action.payload.hash] = action.payload;
     },
     clearQuestions: (state) => {
-      state.questions = [];
+      state.questions = {};
     }
   },
   extraReducers(builder) {
@@ -149,8 +150,8 @@ export const SystemSlice = createSlice({
 
 export const {
   setStatus, setSystemTarget, setSystemQuarter, setSystemYear, setSystemTesting,
-  setTransformersNames, setTransformersTags, pushQuestion, popQuestion, clearQuestions,
-  setSystemTestAll
+  setTransformersNames, setTransformersTags, deleteQuestion, clearQuestions,
+  setSystemTestAll, addQuestion
 } = SystemSlice.actions
 
 export const getSystemStatus = (state: RootState) => state.system.status;
@@ -160,7 +161,8 @@ export const getTestSettings = (state: RootState) => state.system.settings.data.
 export const getTestAll = (state: RootState) => state.system.settings.data.advanced.doCompareAll;
 export const getTransformers = (state: RootState) => state.system.transformers;
 export const getTransformersSettings = (state: RootState) => state.system.settings.data.transformers;
-export const getCurrentQuestion = (state: RootState) => state.system.questions[0];
+export const getSystemQuestions = (state: RootState) => state.system.questions;
+export const getSystemQuestionCount = (state: RootState) => Object.keys(state.system.questions).length;
 export const getInvalidTransformers = (state: RootState) => state.system.invalid_transformers;
 
 export const isSystemLoading = (state: RootState) => {

@@ -25,7 +25,7 @@ async function createWindow() {
   });
 
   // Handle interaction between threads.
-  const handler = new IPCHandler(mainWindow);
+  const handler = await IPCHandler.create(mainWindow);
   handler.handleIPC();
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {

@@ -4,7 +4,7 @@ import Stack from '@mui/joy/Stack';
 import NightsStayRoundedIcon from '@mui/icons-material/NightsStayRounded';
 import DoneRoundedIcon from '@mui/icons-material/DoneRounded';
 import PriorityHighRoundedIcon from '@mui/icons-material/PriorityHighRounded';
-import { getSystemStatus } from '../../store/slices/system';
+import { getSystemQuestionCount, getSystemStatus } from '../../store/slices/system';
 import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded';
@@ -17,6 +17,9 @@ import { getTab, getVisible, pushMessage, setTab } from '../../store/slices/ui';
 import SystemTab from './tabs/system/SystemTab';
 import DocumentationTab from './tabs/documentation/DocumentationTab';
 import { SystemStatus } from '../../../shared/worker/response';
+import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
+import QuestionsTab from './tabs/questions/QuestionsTab';
+import Chip from '@mui/joy/Chip';
 
 /** ------------------------------------------------------------------------- */
 
@@ -56,11 +59,13 @@ function ViewPane() {
   const { tabs: show_tabs } = useAppSelector(getVisible);
   const tab = useAppSelector(getTab);
   const dispatch = useAppDispatch();
+  const questions_count = useAppSelector(getSystemQuestionCount);
 
   const handleTab = React.useCallback((_: unknown, tab: Maybe<string | number>) => {
     switch (tab) {
       case "system":
       case "documentation":
+      case "questions":
         dispatch(setTab(tab));
         break;
       default:
@@ -86,10 +91,17 @@ function ViewPane() {
               </ListItemDecorator>
               Documentation
             </Tab>
+            <Tab value="questions" indicatorPlacement="top">
+              <ListItemDecorator>
+                <QuestionMarkRoundedIcon fontSize="small" />
+              </ListItemDecorator>
+              Questions {questions_count > 0 && <Chip color="primary" variant="solid" size='sm'>{questions_count}</Chip>}
+            </Tab>
           </TabList>
         }
         <DocumentationTab />
         <SystemTab />
+        <QuestionsTab />
       </Tabs>
     </Stack>
   );

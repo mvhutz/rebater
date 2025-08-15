@@ -1,12 +1,11 @@
-import path from "path";
-import { Worker } from 'worker_threads';
 import { bad, good } from "../reply";
 import { SettingsData } from "../settings";
 import { Answer, WorkerRequest } from "../worker/request";
-import { SystemStatus, WorkerResponseSchema } from "../worker/response";
+import { SystemStatus, WorkerResponse } from "../worker/response";
 import { BrowserWindow } from "electron";
 import IPC from ".";
-import z from "zod/v4";
+import { ModuleThread, spawn, Worker } from "threads";
+import { System } from "../../worker";
 
 /** ------------------------------------------------------------------------- */
 
@@ -14,32 +13,38 @@ const { ipcMain } = IPC;
 
 export class IPCHandler {
   private window: BrowserWindow;
-  private worker: Maybe<Worker>;
+  private worker: Worker;
+  private thread: ModuleThread<System>;
 
-  constructor(window: BrowserWindow) {
-    this.worker = null;
+  constructor(window: BrowserWindow, worker: Worker, thread: ModuleThread<System>) {
+    this.worker = worker;
+    this.thread = thread;
     this.window = window;
+  }
+
+  static async create(window: BrowserWindow): Promise<IPCHandler> {
+    const worker = new Worker('worker.js');
+    const thread = await spawn<System>(worker);
+
+    return new IPCHandler(window, worker, thread);
   }
 
   /**
    * The user wants to answer a question.
    * @param answer Their answer.
    */
-  handleAnswerQuestion(answer: Answer) {
-    if (this.worker == null) return bad("System is not running!");
-
-    this.worker.postMessage({ type: "answer", ...answer } as WorkerRequest);
+  async handleAnswerQuestion(answer: Answer) {
+    await this.thread.saveAnswer(answer);
     return good(undefined);
   }
 
   /**
    * The user wants to ungracefully kill the program.
    */
-  handleCancelProgram() {
-    if (this.worker == null) return bad("System is not running!");
-
+  async handleCancelProgram() {
     this.worker.terminate();
-    this.worker = null;
+    this.worker = new Worker('worker.js');
+    this.thread = await spawn<System>(this.worker);
 
     return good(undefined);
   }
@@ -48,19 +53,7 @@ export class IPCHandler {
    * The user wants to gracefully exit the program.
    */
   handleExitProgram() {
-    if (this.worker == null) return bad("System is not running!");
-
     this.worker.postMessage({ type: "exit" } as WorkerRequest);
-    return good(undefined);
-  }
-
-  /**
-   * The user wishes to ignore all future questions from the worker.
-   */
-  handleIgnoreAll() {
-    if (this.worker == null) return bad("System is not running!");
-    
-    this.worker.postMessage({ type: "ignore_all" } as WorkerRequest);
     return good(undefined);
   }
 
@@ -68,10 +61,6 @@ export class IPCHandler {
    * The worker sends the handler a status message.
    */
   private handleWorkerStatus(status: SystemStatus) {
-    if (status.type === "error" || status.type === "done") {
-      this.worker?.terminate();
-    }
-
     ipcMain.invoke.runnerUpdate(this.window, status);
   }
 
@@ -80,20 +69,13 @@ export class IPCHandler {
    * @param mainWindow The current window.
    * @param message The message.
    */
-  private handleWorkerMessage(message: unknown) {
-    const response_parse = WorkerResponseSchema.safeParse(message);
-    if (!response_parse.success) {
-      ipcMain.invoke.runnerUpdate(this.window, { type: "error", message: z.prettifyError(response_parse.error) });
-      return;
-    }
-
-    const { data } = response_parse;
-    switch (data.type) {
+  private handleWorkerMessage(message: WorkerResponse) {
+    switch (message.type) {
       case "status":
-        this.handleWorkerStatus(data.status);
+        this.handleWorkerStatus(message.status);
         break;
       case "question":
-        ipcMain.invoke.runnerQuestion(this.window, data);
+        ipcMain.invoke.runnerQuestion(this.window, message);
         break;
     }
   }
@@ -102,24 +84,17 @@ export class IPCHandler {
    * Handle all interaction between the main thread and the renderer.
    * @param mainWindow The renderer.
    */
-  handleRunProgram(workerData: Maybe<SettingsData>) {
-    // Kill the worker, if running.
-    if (this.worker != null) {
-      this.worker.terminate();
-      this.worker = null;
-    }
-    
+  async handleRunProgram(settings: Maybe<SettingsData>) {
     // There must be data.
-    if (workerData == null) {
+    if (settings == null) {
       return bad("Cannot give empty settings.");
     }
     
     // Create new worker.
-    this.worker = new Worker(path.join(__dirname, 'worker.js'), { workerData });
-    this.worker.on("message", m => this.handleWorkerMessage(m));
-    this.worker.on("exit", () => {
-      this.worker = null
-    });
+    await this.handleCancelProgram();
+
+    const observable = this.thread.run(settings);
+    observable.subscribe(m => this.handleWorkerMessage(m));
 
     return good(undefined);
   }
@@ -136,11 +111,10 @@ export class IPCHandler {
     ipcMain.handle.getAllQuarters();
     ipcMain.handle.createQuarter();
 
-    ipcMain.handle.answerQuestion(async (_, { data }) => this.handleAnswerQuestion(data));
-    ipcMain.handle.cancelProgram(async () => this.handleCancelProgram());
+    ipcMain.handle.answerQuestion(async (_, { data }) => await this.handleAnswerQuestion(data));
+    ipcMain.handle.cancelProgram(async () => await this.handleCancelProgram());
     ipcMain.handle.exitProgram(async () => this.handleExitProgram());
-    ipcMain.handle.ignoreAll(async () => this.handleIgnoreAll());
-    ipcMain.handle.runProgram(async (_, { data }) => this.handleRunProgram(data));
+    ipcMain.handle.runProgram(async (_, { data }) => await this.handleRunProgram(data));
 
     // Remove on window close.
     this.window.on("close", () => {
@@ -155,7 +129,6 @@ export class IPCHandler {
       ipcMain.remove.openOutputFile();
       ipcMain.remove.getAllQuarters();
       ipcMain.remove.createQuarter();
-      ipcMain.remove.ignoreAll();
     });
   }
 }
