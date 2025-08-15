@@ -5,6 +5,44 @@ import { WorkerResponse } from "./shared/worker/response";
 import { expose } from "threads/worker";
 import { Observable } from "observable-fns";
 import { Answer } from "./shared/worker/request";
+// import { workerData } from "node:worker_threads";
+// import { bad, good, Reply } from "./shared/reply";
+// import { State } from "./system/State";
+
+/** ------------------------------------------------------------------------- */
+
+// export class API {
+//   private settings_path: string;
+//   private state: Maybe<State>;
+
+//   constructor(settings_path: string) {
+//     this.settings_path = settings_path;
+//   }
+
+//   async refreshSettings(): Promise<Reply> {
+//     const settings = await Settings.fromFile(this.settings_path);
+//     if (settings.ok) {
+//       this.state = new State(settings.data);
+//       await this.state.load();
+//       return good(undefined);
+//     } else {
+//       this.state = null;
+//       return settings;
+//     }
+//   }
+
+//   async saveAnswer(answer: Answer) {
+//     if (this.state == null) {
+//       return bad("Settings are improper!");
+//     }
+
+//     const table = this.state.references.get(answer.reference);
+//     table.insert([answer.answer]);
+//     await table.save();
+//   }
+// }
+
+// const api = new API(workerData)
 
 /** ------------------------------------------------------------------------- */
 

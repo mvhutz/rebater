@@ -110,6 +110,14 @@ export class Runner extends EventEmitter<RunnerEvents> {
    */
   private async load(): Promise<Reply> {
     try {
+      this.sources.wipe();
+      this.references.wipe();
+      this.truths.wipe();
+      this.transformers.wipe();
+      this.destinations.wipe();
+      this.outputs.wipe();
+      this.utilities.wipe();
+
       await this.sources.gather();
       await this.sources.load();
       await this.references.gather();
