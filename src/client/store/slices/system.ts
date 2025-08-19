@@ -5,15 +5,14 @@ import { resource, Resource, ResourceStatus } from '../../../shared/resource';
 import { killSystem, pullAllQuarters, pullSystemSettings, pullTransformers, pushSystemSettings, startSystem } from './thunk';
 import { TimeData } from '../../../shared/time';
 import { Question, SystemStatus } from '../../../shared/worker/response';
-import { AdvancedTransformerData, MalformedTransformerFileInfo } from '../../../system/transformer/AdvancedTransformer';
+import { TransformerFileInfo } from '../../../system/transformer/AdvancedTransformer';
 
 /** ------------------------------------------------------------------------- */
 
 interface SystemState {
   status: SystemStatus;
   settings: Resource<SettingsData>;
-  transformers: AdvancedTransformerData[];
-  invalid_transformers: MalformedTransformerFileInfo[];
+  transformers: TransformerFileInfo[];
   quarters: Resource<TimeData[]>;
   questions: Record<string, Question>;
 }
@@ -23,7 +22,6 @@ const initialState: SystemState = {
   settings: resource(Settings.DEFAULT_SETTINGS),
   quarters: resource([], ResourceStatus.LOADING),
   transformers: [],
-  invalid_transformers: [],
   questions: {}
 }
 
@@ -118,15 +116,12 @@ export const SystemSlice = createSlice({
       })
       .addCase(pullTransformers.pending, state => {
         state.transformers = [];
-        state.invalid_transformers = [];
       })
       .addCase(pullTransformers.fulfilled, (state, { payload }) => {
         if (payload.ok) {
-          state.transformers = payload.data.filter(d => d.type !== "malformed").map(d => d.data);
-          state.invalid_transformers = payload.data.filter(d => d.type === "malformed");
+          state.transformers = payload.data;
         } else {
           state.transformers = [];
-          state.invalid_transformers = [];
         }
       })
       .addCase(pullAllQuarters.pending, state => {
@@ -161,8 +156,7 @@ export const getTestAll = (state: RootState) => state.system.settings.data.advan
 export const getTransformers = (state: RootState) => state.system.transformers;
 export const getTransformersSettings = (state: RootState) => state.system.settings.data.transformers;
 export const getSystemQuestions = (state: RootState) => state.system.questions;
-export const getSystemQuestionCount = (state: RootState) => Object.keys(state.system.questions).length;
-export const getInvalidTransformers = (state: RootState) => state.system.invalid_transformers;
+export const getSystemQuestionCount = (state: RootState) => Object.keys(state.system.questions).length; 
 
 export const isSystemLoading = (state: RootState) => {
   return state.system.status.type === "loading";

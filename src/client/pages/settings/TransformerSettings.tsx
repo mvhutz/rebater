@@ -6,7 +6,7 @@ import Typography from '@mui/joy/Typography';
 import AccordionDetails from '@mui/joy/AccordionDetails';
 import React from 'react';
 import { useAppDispatch, useAppSelector } from '../../../client/store/hooks';
-import { getInvalidTransformers, getTransformers, getTransformersSettings, setTransformersNames, setTransformersTags } from '../../../client/store/slices/system';
+import { getTransformers, getTransformersSettings, setTransformersNames, setTransformersTags } from '../../../client/store/slices/system';
 import Chip from '@mui/joy/Chip';
 import FormControl from '@mui/joy/FormControl';
 import Option from '@mui/joy/Option';
@@ -21,7 +21,6 @@ import { Alert } from '@mui/joy';
 function TransformerSettings() {
   const transformers = useAppSelector(getTransformers);
   const { names, tags } = useAppSelector(getTransformersSettings);
-  const invalid_transformers = useAppSelector(getInvalidTransformers);
   const dispatch = useAppDispatch();
 
   const handleIncludeNames = React.useCallback((_: unknown, selected: string[]) => {
@@ -32,7 +31,7 @@ function TransformerSettings() {
     dispatch(setTransformersTags(selected));
   }, [dispatch]);
 
-  const all_tags = new Set(transformers.map(t => t.tags).flat());
+  const all_tags = new Set(transformers.filter(t => t.type !== "malformed").map(t => t.data.tags).flat());
   const chip = <Chip variant="outlined" color="neutral">{transformers.length === 0 ? "..." : transformers.length}</Chip>
   const inner = (
     <>
@@ -45,7 +44,7 @@ function TransformerSettings() {
           placeholder={<Typography color="neutral">All Selected</Typography>}
           renderValue={(selected) => `${selected.length} Selected`}
         >
-          {transformers.map(t => (
+          {transformers.filter(t => t.type !== "malformed").map(({ data: t }) => (
             <Option value={t.name} key={t.name}>{t.name}</Option>
           ))}
         </Select>
@@ -87,7 +86,7 @@ function TransformerSettings() {
       <AccordionDetails>
         <Stack spacing={2} pt={1}>
         {inner}
-        {invalid_transformers.map(({ error }) => (
+        {transformers.filter(t => t.type === "malformed").map(({ error }) => (
           <Alert color="danger">
             <Typography level="body-sm" color="danger" component="pre" fontFamily="monospace" sx={{ border: 0 }}>
               {error}
