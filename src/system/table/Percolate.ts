@@ -7,6 +7,14 @@ import { Row, Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
+export interface PercolateTableData {
+  type: "percolate";
+  columns: (string | number)[];
+  matches?: string[];
+}
+
+/** ------------------------------------------------------------------------- */
+
 /**
  * Fill in certain cells based on the values above them.
  * 
@@ -51,7 +59,11 @@ export class PercolateTable implements BaseTable {
     return result;
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): PercolateTableData {
+    return { type: "percolate", columns: this.columns.map(getExcelFromIndex), matches: this.matches };
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseTable, PercolateTableData> = z.strictObject({
     type: z.literal("percolate"),
     columns: z.array(ExcelIndexSchema),
     matches: z.array(z.string()).default([""])

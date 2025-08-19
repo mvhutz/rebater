@@ -7,6 +7,16 @@ import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
+export interface ChopTableData {
+  type: "chop",
+  column: string | number,
+  is: string[]
+  keep?: "top" | "bottom";
+  otherwise?: "drop" | "take";
+}
+
+/** ------------------------------------------------------------------------- */
+
 /**
  * Chops a table in two, given specific criteria.
  * 
@@ -61,6 +71,10 @@ export class ChopTable implements BaseTable {
     } else {
       return table. slice(index, undefined);
     }
+  }
+
+  buildJSON(): ChopTableData {
+    return { type: "chop", column: this.column, is: this.is, keep: this.keep };
   }
 
   public static readonly SCHEMA = z.strictObject({

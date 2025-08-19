@@ -1,9 +1,16 @@
 import { z } from "zod/v4";
-import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA } from ".";
+import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, RowData } from ".";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema } from "../xml";
 import { Row, Table } from "../information/Table";
+
+/** ------------------------------------------------------------------------- */
+
+export interface MultiplyRowData {
+  type: "multiply",
+  with: RowData[];
+}
 
 /** ------------------------------------------------------------------------- */
 
@@ -27,7 +34,11 @@ export class MultiplyRow implements BaseRow {
     return (Number(value) * Number(other_value)).toString();
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): MultiplyRowData {
+    return { type: "multiply", with: this.other.map(o => o.buildJSON()) };
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseRow, MultiplyRowData> = z.strictObject({
     type: z.literal("multiply"),
     with: z.lazy(() => z.array(ROW_SCHEMA)),
   }).transform(s => new MultiplyRow(s.with));

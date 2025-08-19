@@ -4,10 +4,18 @@ import assert from "assert";
 import { BaseSource } from ".";
 import { Runner } from "../runner/Runner";
 import path from "path";
-
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema } from "../xml";
 import { Row, Table } from "../information/Table";
+
+/** ------------------------------------------------------------------------- */
+
+export interface ExcelSourceData {
+  type: "excel";
+  group: string;
+  file?: string;
+  sheets?: string[];
+}
 
 /** ------------------------------------------------------------------------- */
 
@@ -101,7 +109,11 @@ export class ExcelSource implements BaseSource {
     return results;
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): ExcelSourceData {
+    return { type: "excel", file: this.file, group: this.group, sheets: this.sheets };
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseSource, ExcelSourceData> = z.strictObject({
     type: z.literal("excel"),
     group: z.string(),
     file: z.string().default("*"),

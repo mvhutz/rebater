@@ -5,6 +5,12 @@ import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+export interface SignumRowData {
+  type: "sign";
+}
+
+/** ------------------------------------------------------------------------- */
+
 /**
  * Get the sign of the current value.
  */
@@ -13,12 +19,16 @@ export class SignumRow implements BaseRow {
     return Math.sign(parseFloat(value)).toString();
   }
 
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("abs"),
+  buildJSON(): SignumRowData {
+    return { type: "sign" };
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseRow, SignumRowData> = z.strictObject({
+    type: z.literal("sign"),
   }).transform(() => new SignumRow());
 
   buildXML(from: XMLElement): void {
-    from.element("abs");
+    from.element("sign");
   }
 
   public static readonly XML_SCHEMA = makeNodeElementSchema("sign", 

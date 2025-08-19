@@ -1,9 +1,17 @@
 import { z } from "zod/v4";
-import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA } from ".";
+import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, RowData } from ".";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema } from "../xml";
 import { Row, Table } from "../information/Table";
+
+/** ------------------------------------------------------------------------- */
+
+export interface ConcatRowData {
+  type: "concat";
+  with: RowData[];
+  separator?: string;
+}
 
 /** ------------------------------------------------------------------------- */
 
@@ -34,7 +42,11 @@ export class ConcatRow implements BaseRow {
     return value + this.separator + other_value;
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): ConcatRowData {
+    return { type: "concat", with: this.other.map(o => o.buildJSON()), separator: this.separator };
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseRow, ConcatRowData> = z.strictObject({
     type: z.literal("concat"),
     with: z.lazy(() => z.array(ROW_SCHEMA)),
     separator: z.string().default("")

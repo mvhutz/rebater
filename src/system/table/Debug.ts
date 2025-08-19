@@ -8,6 +8,13 @@ import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
+export interface DebugTableData {
+  type: "debug";
+  name?: string;
+}
+
+/** ------------------------------------------------------------------------- */
+
 /**
  * A utility operation, that prints any table that goes through it.
  */
@@ -31,7 +38,11 @@ export class DebugTable implements BaseTable {
     return table;
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): DebugTableData {
+    return { type: "debug", name: this.name };
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseTable, DebugTableData> = z.strictObject({
     type: z.literal("debug"),
     name: z.string().default("default"),
   }).transform(s => new DebugTable(s.name));

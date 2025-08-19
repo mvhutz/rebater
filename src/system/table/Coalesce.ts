@@ -8,6 +8,14 @@ import { Row, Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
+export interface CoalesceTableData {
+  type: "coalesce";
+  match: (string | number)[];
+  combine?: (string | number)[];
+}
+
+/** ------------------------------------------------------------------------- */
+
 /**
  * Combines specific rows.
  * 
@@ -94,7 +102,11 @@ export class CoalesceTable implements BaseTable {
     return Table.join(...coalesced);
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): CoalesceTableData {
+    return { type: "coalesce", combine: this.combine.map(getExcelFromIndex), match: this.match.map(getExcelFromIndex) };
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseTable, CoalesceTableData> = z.strictObject({
     type: z.literal("coalesce"),
     match: z.array(ExcelIndexSchema),
     combine: z.array(ExcelIndexSchema).default([])

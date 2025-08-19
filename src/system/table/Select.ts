@@ -7,6 +7,15 @@ import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
+export interface SelectTableData {
+  type: "select";
+  column: string | number;
+  is: string;
+  action?: "drop" | "keep";
+}
+
+/** ------------------------------------------------------------------------- */
+
 /**
  * Filters rows based on their value in a specific column.
  * 
@@ -45,7 +54,11 @@ export class SelectTable implements BaseTable {
     });
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): SelectTableData {
+    return { type: "select", column: getExcelFromIndex(this.column), is: this.is, action: this.action };
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseTable, SelectTableData> = z.strictObject({
     type: z.literal("select"),
     column: ExcelIndexSchema,
     is: z.string(),

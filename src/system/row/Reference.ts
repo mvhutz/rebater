@@ -7,6 +7,16 @@ import { Row } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
+export interface ReferenceRowData {
+  type: "reference";
+  table: string;
+  match: string;
+  take: string;
+  group: string;
+}
+
+/** ------------------------------------------------------------------------- */
+
 /**
  * Perform a lookup on a set of tabular data.
  * 
@@ -97,7 +107,11 @@ export class ReferenceRow implements BaseRow {
     return null;
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): ReferenceRowData {
+    return { type: "reference", table: this.table, match: this.match, take: this.take, group: this.group };
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseRow, ReferenceRowData> = z.strictObject({
     type: z.literal("reference"),
     table: z.string(),
     match: z.string(),

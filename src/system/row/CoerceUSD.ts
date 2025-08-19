@@ -1,7 +1,15 @@
 import { z } from "zod/v4";
-import { BaseRow } from "..";
+import { BaseRow } from ".";
 import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema } from "../../xml";
+import { makeNodeElementSchema } from "../xml";
+
+/** ------------------------------------------------------------------------- */
+
+export interface CoerceUSDRowData {
+  type: "coerce";
+  as: "usd";
+  round?: "up" | "down" | "default"
+}
 
 /** ------------------------------------------------------------------------- */
 
@@ -32,7 +40,15 @@ export class CoerceUSDRow implements BaseRow {
     return value.toFixed(2);
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): CoerceUSDRowData {
+    return {
+      type: "coerce",
+      as: "usd",
+      round: this.round,
+    }
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseRow, CoerceUSDRowData> = z.strictObject({
     type: z.literal("coerce"),
     as: z.literal("usd"),
     round: z.union([z.literal("up"), z.literal("down"), z.literal("default")]).default("default"),

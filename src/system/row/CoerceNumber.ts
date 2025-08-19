@@ -1,7 +1,15 @@
 import { z } from "zod/v4";
-import { BaseRow } from "..";
+import { BaseRow } from ".";
 import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema } from "../../xml";
+import { makeNodeElementSchema } from "../xml";
+
+/** ------------------------------------------------------------------------- */
+
+export interface CoerceNumberRowData {
+  type: "coerce";
+  as: "number";
+  otherwise?: string;
+}
 
 /** ------------------------------------------------------------------------- */
 
@@ -29,8 +37,16 @@ export class CoerceNumberRow implements BaseRow {
       return float.toString();
     }
   }
+  
+  buildJSON(): CoerceNumberRowData {
+    return {
+      type: "coerce",
+      as: "number",
+      otherwise: this.otherwise,
+    }
+  }
 
-  public static readonly SCHEMA = z.strictObject({
+  public static readonly SCHEMA: z.ZodType<BaseRow, CoerceNumberRowData> = z.strictObject({
     type: z.literal("coerce"),
     as: z.literal("number"),
     otherwise: z.string().optional(),

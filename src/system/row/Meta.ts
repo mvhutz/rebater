@@ -9,6 +9,13 @@ import { Row } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
+export interface MetaRowData {
+  type: "meta",
+  value: "quarter.lastday" | "quarter.number" | "row.source";
+}
+
+/** ------------------------------------------------------------------------- */
+
 export const META_TYPE = z.enum(["quarter.lastday", "quarter.number", "row.source"]);
 export type MetaType = z.infer<typeof META_TYPE>;
 
@@ -41,11 +48,6 @@ export class MetaRow implements BaseRow {
     }
   }
 
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("meta"),
-    value: META_TYPE
-  }).transform(s => new MetaRow(s.value));
-
   static getQuarterLastDay(runner: Runner): string {
     const { year, quarter } = runner.settings.time;
     return moment().year(year).quarter(quarter).endOf("quarter").format("MM/DD/YYYY");
@@ -58,6 +60,15 @@ export class MetaRow implements BaseRow {
   static getRowSource(row: Row) {
     return path.basename(row.source);
   }
+
+  buildJSON(): MetaRowData {
+    return { type: "meta", value: this.value };
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseRow, MetaRowData> = z.strictObject({
+    type: z.literal("meta"),
+    value: META_TYPE
+  }).transform(s => new MetaRow(s.value));
 
   buildXML(from: XMLElement): void {
     from.element("meta", undefined, this.value);

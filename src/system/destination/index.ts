@@ -1,8 +1,8 @@
 import { z } from "zod/v4";
-import { RebateDestination } from "./Rebate";
+import { RebateDestination, RebateDestinationData } from "./Rebate";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
-import { UtilityDestination } from "./Utility";
+import { UtilityDestination, UtilityDestinationData } from "./Utility";
 import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
@@ -25,10 +25,18 @@ export interface BaseDestination {
    * @param from The document to append to.
    */
   buildXML(from: XMLElement): void;
+
+  buildJSON(): DestinationData;
 }
 
+/** ------------------------------------------------------------------------- */
+
+export type DestinationData =
+  | RebateDestinationData
+  | UtilityDestinationData;
+
 /** All possible JSON destinations. */
-export const DESTINATION_SCHEMA: z.ZodType<BaseDestination> = z.union([
+export const DESTINATION_SCHEMA: z.ZodType<BaseDestination, DestinationData> = z.union([
   RebateDestination.SCHEMA,
   UtilityDestination.SCHEMA
 ]);

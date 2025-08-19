@@ -1,5 +1,5 @@
 import Papa from "papaparse";
-import { z } from "zod/v4";
+import { z, ZodType } from "zod/v4";
 import { BaseDestination } from ".";
 import { RebateSchema } from "../../shared/worker/response";
 import { Runner } from "../runner/Runner";
@@ -7,6 +7,13 @@ import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
 import { CSVRebateFile } from "../information/items/CSVRebateFile";
 import { Table } from "../information/Table";
+
+/** ------------------------------------------------------------------------- */
+
+export interface RebateDestinationData {
+  type: "rebate"
+  name: string;
+}
 
 /** ------------------------------------------------------------------------- */
 
@@ -37,7 +44,11 @@ export class RebateDestination implements BaseDestination {
     runner.destinations.add(destination);
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): RebateDestinationData {
+    return { type: "rebate", name: this.name };
+  }
+
+  public static readonly SCHEMA: ZodType<BaseDestination, RebateDestinationData> = z.strictObject({
     type: z.literal("rebate"),
     name: z.string(),
   }).transform(s => new RebateDestination(s.name));

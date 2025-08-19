@@ -5,6 +5,13 @@ import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+export interface LiteralRowData {
+  type: "literal";
+  value: unknown;
+}
+
+/** ------------------------------------------------------------------------- */
+
 /**
  * Replace the current value with another.
  */
@@ -24,7 +31,11 @@ export class LiteralRow implements BaseRow {
     return this.value;
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): LiteralRowData {
+    return { type: "literal", value: this.value };
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseRow, LiteralRowData> = z.strictObject({
     type: z.literal("literal"),
     value: z.coerce.string()
   }).transform(s => new LiteralRow(s.value));
