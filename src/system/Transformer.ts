@@ -1,9 +1,9 @@
 import { glob, readFile } from "fs/promises";
 import { z } from "zod/v4";
-import { BaseDestination, DESTINATION_SCHEMA, DESTINATION_XML_SCHEMA } from "./destination";
-import { BaseSource, SOURCE_SCHEMA, SOURCE_XML_SCHEMA } from "./source";
-import { BaseTable, TABLE_SCHEMA, TABLE_XML_SCHEMA } from "./table";
-import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA } from "./row";
+import { BaseDestination, DESTINATION_SCHEMA, DESTINATION_XML_SCHEMA, DestinationData } from "./destination";
+import { BaseSource, SOURCE_SCHEMA, SOURCE_XML_SCHEMA, SourceData } from "./source";
+import { BaseTable, TABLE_SCHEMA, TABLE_XML_SCHEMA, TableData } from "./table";
+import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, RowData } from "./row";
 import { Settings } from "../shared/settings";
 import { TransformerResult } from "../shared/worker/response";
 import { Runner } from "./runner/Runner";
@@ -13,6 +13,22 @@ import assert from "assert";
 import { bad, good, Reply } from "../shared/reply";
 import path from "path";
 import { Row, Table } from "./information/Table";
+
+/** ------------------------------------------------------------------------- */
+
+export interface TransformerData {
+  name: string;
+  tags: string[];
+  sources: SourceData[];
+  requirements: string[];
+  preprocess: TableData[];
+  properties: {
+    name: string,
+    definition: RowData[];
+  }[],
+  postprocess: TableData[];
+  destination: DestinationData[];
+}
 
 /** ------------------------------------------------------------------------- */
 
@@ -261,6 +277,22 @@ export class Transformer {
     return { start, end, name: this.name };
   }
 
+  toJSON(): TransformerData {
+    return {
+      name: this.name,
+      tags: this.tags,
+      sources: this.sources.map(o => o.buildJSON()),
+      requirements: this.requirements,
+      preprocess: this.preprocess.map(o => o.buildJSON()),
+      properties: this.properties.map(p => ({
+        name: p.name,
+        definition: p.definition.map(o => o.buildJSON()),
+      })),
+      postprocess: this.postprocess.map(o => o.buildJSON()),
+      destination: this.destinations.map(o => o.buildJSON())
+    }
+  }
+
   /**
    * Serialize the transformer in XML.
    */
@@ -328,19 +360,19 @@ export class Transformer {
   /**
    * The JSON schema of a Transformer.
    */
-  public static readonly SCHEMA = z.strictObject({
+  public static readonly SCHEMA: z.ZodType<Transformer, TransformerData> = z.strictObject({
     name: z.string(),
-    tags: z.array(z.string()).default([]),
+    tags: z.array(z.string()),
     sources: z.array(SOURCE_SCHEMA),
-    requirements: z.array(z.string()).default([]),
-    preprocess: z.array(TABLE_SCHEMA).default([]),
+    requirements: z.array(z.string()),
+    preprocess: z.array(TABLE_SCHEMA),
     properties: z.array(z.strictObject({
       name: z.string(),
       definition: z.array(ROW_SCHEMA)
     })),
-    postprocess: z.array(TABLE_SCHEMA).default([]),
-    destination: DESTINATION_SCHEMA,
-  }).transform(s => new Transformer(s.name, s.tags, s.sources, s.preprocess, s.properties, s.postprocess, [s.destination], s.requirements));
+    postprocess: z.array(TABLE_SCHEMA),
+    destination: z.array(DESTINATION_SCHEMA),
+  }).transform(s => new Transformer(s.name, s.tags, s.sources, s.preprocess, s.properties, s.postprocess, s.destination, s.requirements));
 
   private static parseInitialXML(data: z.infer<typeof Transformer.XML_SCHEMA_INITIAL>) {
     const { children } = data;

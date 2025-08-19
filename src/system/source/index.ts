@@ -34,7 +34,7 @@ export type SourceData =
   | ExcelSourceData;
 
 /** All possible JSON sources. */
-export const SOURCE_SCHEMA: z.ZodType<BaseSource> = z.union([
+export const SOURCE_SCHEMA: z.ZodType<BaseSource, SourceData> = z.union([
   ExcelSource.SCHEMA
 ]);
 
