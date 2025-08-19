@@ -9,7 +9,7 @@ import React from 'react';
 import AccordionGroup from '@mui/joy/AccordionGroup';
 import Chip from '@mui/joy/Chip';
 import Sheet from '@mui/joy/Sheet';
-import { DiscrepencyResult } from '../../../../../shared/worker/response';
+import { DiscrepencyResult } from '../../../shared/worker/response';
 
 /** ------------------------------------------------------------------------- */
 

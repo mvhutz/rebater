@@ -4,21 +4,21 @@ import Stack from '@mui/joy/Stack';
 import NightsStayRoundedIcon from '@mui/icons-material/NightsStayRounded';
 import DoneRoundedIcon from '@mui/icons-material/DoneRounded';
 import PriorityHighRoundedIcon from '@mui/icons-material/PriorityHighRounded';
-import { getSystemQuestionCount, getSystemStatus } from '../../store/slices/system';
+import { getSystemQuestionCount, getSystemStatus } from '../store/slices/system';
 import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded';
 import ListItemDecorator from '@mui/joy/ListItemDecorator';
 import Tab, { tabClasses } from '@mui/joy/Tab';
 import TabList from '@mui/joy/TabList';
 import Tabs from '@mui/joy/Tabs';
 import { SxProps } from '@mui/joy/styles/types';
-import { getTab, getVisible, pushMessage, setTab } from '../../store/slices/ui';
-import SystemTab from './tabs/system/SystemTab';
-import DocumentationTab from './tabs/documentation/DocumentationTab';
-import { SystemStatus } from '../../../shared/worker/response';
+import { getTab, getVisible, pushMessage, setTab } from '../store/slices/ui';
+import SystemTab from '../tabs/system/SystemTab';
+import DocumentationTab from '../tabs/documentation/DocumentationTab';
+import { SystemStatus } from '../../shared/worker/response';
 import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
-import QuestionsTab from './tabs/questions/QuestionsTab';
+import QuestionsTab from '../tabs/questions/QuestionsTab';
 import Chip from '@mui/joy/Chip';
 
 /** ------------------------------------------------------------------------- */

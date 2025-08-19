@@ -6,8 +6,8 @@ import Menu from '@mui/joy/Menu';
 import MenuButton from '@mui/joy/MenuButton';
 import MenuItem from '@mui/joy/MenuItem';
 import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
-import { useAppDispatch, useAppSelector } from '../../../client/store/hooks';
-import { getVisible, toggleSettings, toggleTabs } from '../../../client/store/slices/ui';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { getVisible, toggleSettings, toggleTabs } from '../store/slices/ui';
 
 /** ------------------------------------------------------------------------- */
 
