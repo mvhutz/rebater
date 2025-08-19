@@ -5,6 +5,14 @@ import { XMLElement } from "xmlbuilder";
 
 /** ------------------------------------------------------------------------- */
 
+export interface CharacterRowData {
+  type: "character";
+  select: string;
+  action?: "keep" | "drop";
+}
+
+/** ------------------------------------------------------------------------- */
+
 /**
  * Filter out certain characters from a string.
  * 
@@ -35,7 +43,15 @@ export class CharacterRow implements BaseRow {
       .join("");
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): CharacterRowData {
+    return {
+      type: "character",
+      select: this.select,
+      action: this.action
+    }
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseRow, CharacterRowData> = z.strictObject({
     type: z.literal("character"),
     select: z.string(),
     action: z.union([z.literal("keep"), z.literal("drop")]).default("keep")

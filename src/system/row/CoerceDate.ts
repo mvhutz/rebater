@@ -1,11 +1,21 @@
 import z from "zod/v4";
 import moment, { Moment } from "moment";
 import assert from "assert";
-import { BaseRow } from "..";
-import { Runner } from "../../runner/Runner";
+import { BaseRow } from ".";
+import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema } from "../../xml";
-import { Row } from "../../information/Table";
+import { makeNodeElementSchema } from "../xml";
+import { Row } from "../information/Table";
+
+/** ------------------------------------------------------------------------- */
+
+export interface CoerceDateRowData {
+  type: "coerce";
+  as: "date";
+  year?: "assume" | "keep",
+  parse?: string[];
+  format?: string;
+}
 
 /** ------------------------------------------------------------------------- */
 
@@ -40,10 +50,10 @@ export class CoerceDateRow implements BaseRow {
    * current quarter.
    * @param parse The format that the date will be parsed to.
    */
-  public constructor(format: string, year: "assume" | "keep", parse: string[]) {
-    this.year = year;
-    this.parse = parse;
-    this.format = format;
+  public constructor(data: CoerceDateRowData) {
+    this.year = data.year ?? "keep";
+    this.parse = data.parse ?? [];
+    this.format = data.format ?? "M/D/YYYY";
   }
 
   run(value: string, _r: Row, runner: Runner): Maybe<string> {
@@ -68,13 +78,23 @@ export class CoerceDateRow implements BaseRow {
     return date.format(this.format);
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): CoerceDateRowData {
+    return {
+      year: this.year,
+      format: this.format,
+      parse: this.parse,
+      type: "coerce",
+      as: "date"
+    }
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseRow, CoerceDateRowData> = z.strictObject({
     type: z.literal("coerce"),
     as: z.literal("date"),
-    year: z.union([z.literal("assume"), z.literal("keep")]).default("keep"),
-    parse: z.array(z.string()).default([]),
-    format: z.string().default("M/D/YYYY")
-  }).transform(s => new CoerceDateRow(s.format, s.year, s.parse));
+    year: z.union([z.literal("assume"), z.literal("keep")]).optional(),
+    parse: z.array(z.string()).optional(),
+    format: z.string().optional()
+  }).transform(s => new CoerceDateRow(s));
 
   buildXML(from: XMLElement): void {
     from.element("coerce", {
@@ -93,5 +113,5 @@ export class CoerceDateRow implements BaseRow {
       format: z.string().default("M/D/YYYY")
     }),
     z.undefined())
-    .transform(({ attributes: a }) => new CoerceDateRow(a.format, a.year, a.parse))
+    .transform(({ attributes: a }) => new CoerceDateRow({ ...a, type: "coerce" }))
 }

@@ -8,6 +8,13 @@ import { Row } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
+export interface ColumnRowData {
+  type: "column";
+  index: number | string;
+}
+
+/** ------------------------------------------------------------------------- */
+
 /**
  * Extract a specific column value from a row.
  */
@@ -30,7 +37,11 @@ export class ColumnRow implements BaseRow {
     return value;
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): ColumnRowData {
+    return { type: "column", index: getExcelFromIndex(this.index) };
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseRow, ColumnRowData> = z.strictObject({
     type: z.literal("column"),
     index: ExcelIndexSchema
   }).transform(s => new ColumnRow(s.index));

@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA } from ".";
+import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, RowData } from ".";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema } from "../xml";
@@ -7,11 +7,18 @@ import { Row, Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
+export interface SubtractRowData {
+  type: "subtract";
+  with: RowData[];
+}
+
+/** ------------------------------------------------------------------------- */
+
 /**
  * Subtract the current value, with the result of another set of row
  * transformations.
  */
-export class SubtractRow implements BaseRow {
+export class SubtractRow extends BaseRow {
   /** The other set of row transformations. */
   private readonly other: BaseRow[];
 
@@ -20,6 +27,8 @@ export class SubtractRow implements BaseRow {
    * @param other THe other set of row transformations.
    */
   public constructor(other: BaseRow[]) {
+    super();
+    
     this.other = other;
   }
 
@@ -28,7 +37,11 @@ export class SubtractRow implements BaseRow {
     return (Number(value) - Number(other_value)).toString();
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): SubtractRowData {
+    return { type: "subtract", with: this.other.map(o => o.buildJSON()) };
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseRow, SubtractRowData> = z.strictObject({
     type: z.literal("subtract"),
     with: z.lazy(() => z.array(ROW_SCHEMA))
   }).transform(s => new SubtractRow(s.with));

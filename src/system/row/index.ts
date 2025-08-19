@@ -1,27 +1,29 @@
 import { z } from "zod/v4";
-import { ColumnRow } from "./Column";
-import { LiteralRow } from "./Literal";
-import { ReplaceRow } from "./Replace";
-import { ReferenceRow } from "./Reference";
-import { TrimRow } from "./Trim";
-import { CharacterRow } from "./Character";
-import { CounterRow } from "./Counter";
-import { MultiplyRow } from "./Multiply";
-import { MetaRow } from "./Meta";
-import { AddRow } from "./Add";
-import { EqualsRow } from "./Equals";
-import { ConcatRow } from "./Concat";
-import { DivideRow } from "./Divide";
-import { SumRow } from "./Sum";
-import { getCoerceSchema, getCoerceXMLSchema } from "./Coerce";
+import { ColumnRow, ColumnRowData } from "./Column";
+import { LiteralRow, LiteralRowData } from "./Literal";
+import { ReplaceRow, ReplaceRowData } from "./Replace";
+import { ReferenceRow, ReferenceRowData } from "./Reference";
+import { TrimRow, TrimRowData } from "./Trim";
+import { CharacterRow, CharacterRowData } from "./Character";
+import { CounterRow, CounterRowData } from "./Counter";
+import { MultiplyRow, MultiplyRowData } from "./Multiply";
+import { MetaRow, MetaRowData } from "./Meta";
+import { AddRow, AddRowData } from "./Add";
+import { EqualsRow, EqualsRowData } from "./Equals";
+import { ConcatRow, ConcatRowData } from "./Concat";
+import { DivideRow, DivideRowData } from "./Divide";
+import { SumRow, SumRowData } from "./Sum";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
-import { UtilityRow } from "./Utility";
-import { SubtractRow } from "./Subtract";
-import { SearchRow } from "./Search";
-import { SignumRow } from "./Sign";
-import { AbsoluteRow } from "./Absolute";
+import { UtilityRow, UtilityRowData } from "./Utility";
+import { SubtractRow, SubtractRowData } from "./Subtract";
+import { SearchRow, SearchRowData } from "./Search";
+import { SignumRow, SignumRowData } from "./Sign";
+import { AbsoluteRow, AbsoluteRowData } from "./Absolute";
 import { Row, Table } from "../information/Table";
+import { CoerceNumberRow, CoerceNumberRowData } from "./CoerceNumber";
+import { CoerceDateRow, CoerceDateRowData } from "./CoerceDate";
+import { CoerceUSDRow, CoerceUSDRowData } from "./CoerceUSD";
 
 /** ------------------------------------------------------------------------- */
 
@@ -45,6 +47,8 @@ export abstract class BaseRow {
    */
   abstract buildXML(from: XMLElement): void;
 
+  abstract buildJSON(): RowData;
+
   static runMany(rows: BaseRow[], row: Row, runner: Runner, table: Table): Maybe<string> {
     let value = "";
 
@@ -58,9 +62,37 @@ export abstract class BaseRow {
   }
 }
 
+/** ------------------------------------------------------------------------- */
+
+export type RowData =
+  | CoerceDateRowData
+  | CoerceNumberRowData
+  | CoerceUSDRowData
+  | AbsoluteRowData
+  | AddRowData
+  | CharacterRowData
+  | ColumnRowData
+  | ConcatRowData
+  | CounterRowData
+  | DivideRowData
+  | EqualsRowData
+  | LiteralRowData
+  | MetaRowData
+  | MultiplyRowData
+  | ReferenceRowData
+  | ReplaceRowData
+  | SearchRowData
+  | SignumRowData
+  | SubtractRowData
+  | SumRowData
+  | TrimRowData
+  | UtilityRowData;
+
 /** All valid JSON row operations. */
-export const ROW_SCHEMA: z.ZodType<BaseRow> = z.union([
-  getCoerceSchema(),
+export const ROW_SCHEMA: z.ZodType<BaseRow, RowData> = z.union([
+  CoerceDateRow.SCHEMA,
+  CoerceNumberRow.SCHEMA,
+  CoerceUSDRow.SCHEMA,
   ColumnRow.SCHEMA,
   CounterRow.SCHEMA,
   LiteralRow.SCHEMA,
@@ -84,7 +116,9 @@ export const ROW_SCHEMA: z.ZodType<BaseRow> = z.union([
 
 /** All valid XML row operations. */
 export const ROW_XML_SCHEMA: z.ZodType<BaseRow> = z.union([
-  getCoerceXMLSchema(),
+  CoerceDateRow.XML_SCHEMA,
+  CoerceNumberRow.XML_SCHEMA,
+  CoerceUSDRow.XML_SCHEMA,
   ColumnRow.XML_SCHEMA,
   CounterRow.XML_SCHEMA,
   LiteralRow.XML_SCHEMA,

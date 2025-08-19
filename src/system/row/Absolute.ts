@@ -5,6 +5,12 @@ import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
+export interface AbsoluteRowData {
+  type: "abs"
+}
+
+/** ------------------------------------------------------------------------- */
+
 /**
  * Get the absolute value of a value.
  */
@@ -13,7 +19,11 @@ export class AbsoluteRow implements BaseRow {
     return Math.abs(parseFloat(value)).toString();
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): AbsoluteRowData {
+    return { type: "abs" };
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseRow, AbsoluteRowData> = z.strictObject({
     type: z.literal("abs"),
   }).transform(() => new AbsoluteRow());
   

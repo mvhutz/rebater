@@ -1,9 +1,22 @@
 import { z } from "zod/v4";
-import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA } from ".";
+import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, RowData } from ".";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema } from "../xml";
 import { Row, Table } from "../information/Table";
+
+/** ------------------------------------------------------------------------- */
+
+export interface SearchRowData {
+  type: "search";
+  table: string;
+  matches?: Record<string, {
+    optional?: boolean;
+    primary?: boolean;
+    definition: RowData[];
+  }>;
+  take: string;
+}
 
 /** ------------------------------------------------------------------------- */
 
@@ -96,15 +109,35 @@ export class SearchRow implements BaseRow {
     return null;
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): SearchRowData {
+    return {
+      type: "search",
+      table: this.table, 
+      take: this.take,
+      matches: Object.fromEntries(Object.entries(this.matches).map(([k, v]) => [k, {
+        optional: this.optional.includes(k),
+        primary: this.primary === k,
+        definition: v.map(vi => vi.buildJSON()),
+    }]))
+    }
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseRow, SearchRowData> = z.strictObject({
     type: z.literal("search"),
     table: z.string(),
     matches: z.record(z.string(), z.strictObject({
       optional: z.boolean().default(false),
+      primary: z.boolean().default(false),
       definition: z.array(z.lazy(() => ROW_SCHEMA))
     })).default({}),
     take: z.string(),
-  }).transform(s => new SearchRow(s.table, s.take, Object.fromEntries(Object.entries(s.matches).map(m => m[1].definition))));
+  }).transform(s => {
+    const matches_entries = Object.entries(s.matches);
+    const definitions = Object.fromEntries(matches_entries.map(m => m[1].definition));
+    const primary = matches_entries.filter(o => o[1].primary).map(o => o[0]);
+    const optional = matches_entries.filter(o => o[1].optional).map(o => o[0]);
+    return new SearchRow(s.table, s.take, definitions, optional, primary[0]);
+  });
 
   buildXML(from: XMLElement): void {
     const parent = from.element("search", {

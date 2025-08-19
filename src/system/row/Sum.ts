@@ -9,10 +9,17 @@ import assert from "assert";
 
 /** ------------------------------------------------------------------------- */
 
+export interface SumRowData {
+  type: "sum";
+  column: string | number;
+}
+
+/** ------------------------------------------------------------------------- */
+
 /**
  * Find the combined sum of a specific column of the table that the row is from.
  */
-export class SumRow implements BaseRow {
+export class SumRow extends BaseRow {
   /** The column to sum. */
   private readonly column: number;
 
@@ -24,6 +31,8 @@ export class SumRow implements BaseRow {
    * @param column The column to be summed.
    */
   public constructor(column: number) {
+    super();
+
     this.column = column;
   }
 
@@ -52,7 +61,11 @@ export class SumRow implements BaseRow {
     return sum.toString();
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): SumRowData {
+    return { type: "sum", column: getExcelFromIndex(this.column) };
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseRow, SumRowData> = z.strictObject({
     type: z.literal("sum"),
     column: ExcelIndexSchema,
   }).transform(s => new SumRow(s.column));

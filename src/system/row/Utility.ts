@@ -8,6 +8,16 @@ import { Row } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
+export interface UtilityRowData {
+  type: "utility";
+  table: string;
+  match: string;
+  take: string;
+  group: string;
+}
+
+/** ------------------------------------------------------------------------- */
+
 /**
  * A `<reference>` tag, but for utilities.
  * 
@@ -42,7 +52,11 @@ export class UtilityRow implements BaseRow {
     return result;
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): UtilityRowData {
+    return { type: "utility", table: this.table, match: this.match, take: this.take, group: this.group };
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseRow, UtilityRowData> = z.strictObject({
     type: z.literal("utility"),
     table: z.string(),
     match: z.string(),

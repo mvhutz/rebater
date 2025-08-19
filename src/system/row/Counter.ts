@@ -7,6 +7,12 @@ import { Row } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
+export interface CounterRowData {
+  type: "counter"
+}
+
+/** ------------------------------------------------------------------------- */
+
 /**
  * Extract the value of a certain counter.
  */
@@ -15,7 +21,11 @@ export class CounterRow implements BaseRow {
     return runner.counter.getThenIncrement("counter").toString();
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): CounterRowData {
+    return { type: "counter" };
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseRow, CounterRowData> = z.strictObject({
     type: z.literal("counter"),
   }).transform(() => new CounterRow());
 
