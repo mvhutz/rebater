@@ -9,6 +9,13 @@ import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
+export interface UtilityDestinationData {
+  type: "utility";
+  name: string;
+}
+
+/** ------------------------------------------------------------------------- */
+
 /**
  * Convert the table to a "utility". This can be referenced in future transformers
  * using the `<utility>` row operation.
@@ -37,7 +44,11 @@ export class UtilityDestination implements BaseDestination {
     runner.utilities.add(utility);
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): UtilityDestinationData {
+    return { type: "utility", name: this.name };
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseDestination, UtilityDestinationData> = z.strictObject({
     type: z.literal("utility"),
     name: z.string(),
   }).transform(s => new UtilityDestination(s.name));
