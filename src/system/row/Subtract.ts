@@ -18,7 +18,7 @@ export interface SubtractRowData {
  * Subtract the current value, with the result of another set of row
  * transformations.
  */
-export class SubtractRow extends BaseRow {
+export class SubtractRow implements BaseRow {
   /** The other set of row transformations. */
   private readonly other: BaseRow[];
 
@@ -27,8 +27,6 @@ export class SubtractRow extends BaseRow {
    * @param other THe other set of row transformations.
    */
   public constructor(other: BaseRow[]) {
-    super();
-    
     this.other = other;
   }
 

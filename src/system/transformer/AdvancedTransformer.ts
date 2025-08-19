@@ -10,8 +10,6 @@ import { Runner } from "../runner/Runner";
 import builder from "xmlbuilder";
 import { fromText, makeNodeElementSchema, makeTextElementSchema } from "../xml";
 import assert from "assert";
-import { bad, good, Reply } from "../../shared/reply";
-import path from "path";
 import { Row, Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
@@ -30,13 +28,22 @@ export interface AdvancedTransformerData {
   destination: DestinationData[];
 }
 
-/** ------------------------------------------------------------------------- */
+export interface MalformedTransformerFileInfo {
+  type: "malformed",
+  path: string,
+  error: string,
+  text: string,
+};
 
-/** Statistics for the client to view. */
-export interface TransformerInfo {
-  name: string;
-  tags: string[];
-}
+export interface AdvancedTransformerFileInfo {
+  type: "advanced",
+  path: string,
+  data: AdvancedTransformerData,
+};
+
+export type TransformerFileInfo = AdvancedTransformerFileInfo | MalformedTransformerFileInfo;
+
+/** ------------------------------------------------------------------------- */
 
 /**
  * An individual extractor for the Rebater.
@@ -86,45 +93,42 @@ export class AdvancedTransformer {
   }
 
   /**
-   * Get statistics about the transformer.
-   */
-  public getInfo(): TransformerInfo {
-    return { name: this.name, tags: this.tags };
-  }
-
-  /**
    * Parse a transformer from a file.
    * @param filepath The location of the file.
    * @param type The format the transformer is in.
    * @returns A new transformer.
    */
-  public static async fromFile(filepath: string, type: "xml" | "json"): Promise<Reply<AdvancedTransformer>> {
+  public static async fromFile(filepath: string, type: "xml" | "json"): Promise<TransformerFileInfo> {
     const raw = await readFile(filepath, 'utf-8');
 
     try {
       if (type === "json") {
         const json = JSON.parse(raw);
-        return good(AdvancedTransformer.SCHEMA.parse(json));
+        return { type: "advanced", path: filepath, data: AdvancedTransformer.SCHEMA.parse(json).toJSON() };
       } else {
         const xml = fromText(raw);
-        return good(AdvancedTransformer.XML_SCHEMA.parse(xml));
+        return { type: "advanced", path: filepath, data: AdvancedTransformer.XML_SCHEMA.parse(xml).toJSON() };
       }
     } catch (error) {
+      let message;
+
       if (error instanceof z.ZodError) {
-        return bad(`Invalid schema for ${filepath}: ${z.prettifyError(error)}`, path.basename(filepath));
+        message = `Invalid schema for ${filepath}: ${z.prettifyError(error)}`;
       } else if (error instanceof Error) {
-        return bad(`Invalid schema for ${filepath}: ${error.message}`, path.basename(filepath));
+        message = `Invalid schema for ${filepath}: ${error.message}`;
       } else {
-        return bad(`Thrown: ${error}`, path.basename(filepath));
+        message = `Thrown: ${error}`;
       }
+
+      return { type: "malformed", path: filepath, text: raw, error: message };
     }
   }
 
-  public static async pullAllAvailable(settings: Settings) {
+  public static async pullAllAvailable(settings: Settings): Promise<TransformerFileInfo[]> {
     const transformer_json_files = await Array.fromAsync(glob(settings.getTransformerPathGlob()));
     const transformer_xml_files = await Array.fromAsync(glob(settings.getTransformerPathXMLGlob()));
 
-    const transformers = new Array<Reply<AdvancedTransformer>>();
+    const transformers = new Array<TransformerFileInfo>();
     
     for (const transformer_file of transformer_json_files) {
       const transformer_reply = await AdvancedTransformer.fromFile(transformer_file, "json");
@@ -146,15 +150,15 @@ export class AdvancedTransformer {
    * be run.
    * @returns A list of transformers found.
    */
-  public static async pullAll(settings: Settings, filter = false) {
+  public static async pullAll(settings: Settings, filter = false): Promise<AdvancedTransformerData[]> {
     const transformer_json_files = await Array.fromAsync(glob(settings.getTransformerPathGlob()));
     const transformer_xml_files = await Array.fromAsync(glob(settings.getTransformerPathXMLGlob()));
 
-    const transformers = new Array<AdvancedTransformer>();
+    const transformers = new Array<AdvancedTransformerData>();
     
     for (const transformer_file of transformer_json_files) {
       const transformer_reply = await AdvancedTransformer.fromFile(transformer_file, "json");
-      if (!transformer_reply.ok) continue;
+      if (transformer_reply.type === "malformed") continue;
 
       const { data: transformer } = transformer_reply;
       if (filter && !settings.willRun(transformer)) continue;
@@ -164,7 +168,7 @@ export class AdvancedTransformer {
 
     for (const transformer_file of transformer_xml_files) {
       const transformer_reply = await AdvancedTransformer.fromFile(transformer_file, "xml");
-      if (!transformer_reply.ok) continue;
+      if (transformer_reply.type === "malformed") continue;
 
       const { data: transformer } = transformer_reply;
       if (filter && !settings.willRun(transformer)) continue;

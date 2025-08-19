@@ -3,18 +3,17 @@ import { type RootState } from '..'
 import { Settings, type SettingsData } from '../../../shared/settings';
 import { resource, Resource, ResourceStatus } from '../../../shared/resource';
 import { killSystem, pullAllQuarters, pullSystemSettings, pullTransformers, pushSystemSettings, startSystem } from './thunk';
-import { bad, good, Reply } from '../../../shared/reply';
 import { TimeData } from '../../../shared/time';
 import { Question, SystemStatus } from '../../../shared/worker/response';
-import { TransformerInfo } from '../../../system/transformer/AdvancedTransformer';
+import { AdvancedTransformerData, MalformedTransformerFileInfo } from '../../../system/transformer/AdvancedTransformer';
 
 /** ------------------------------------------------------------------------- */
 
 interface SystemState {
   status: SystemStatus;
   settings: Resource<SettingsData>;
-  transformers: Reply<TransformerInfo[]>;
-  invalid_transformers: [string, string][];
+  transformers: AdvancedTransformerData[];
+  invalid_transformers: MalformedTransformerFileInfo[];
   quarters: Resource<TimeData[]>;
   questions: Record<string, Question>;
 }
@@ -23,7 +22,7 @@ const initialState: SystemState = {
   status: { type: "idle" },
   settings: resource(Settings.DEFAULT_SETTINGS),
   quarters: resource([], ResourceStatus.LOADING),
-  transformers: bad("Loading transformers..."),
+  transformers: [],
   invalid_transformers: [],
   questions: {}
 }
@@ -118,15 +117,15 @@ export const SystemSlice = createSlice({
         state.status = { type: "error", message: error.message ?? "Unknown error!" };
       })
       .addCase(pullTransformers.pending, state => {
-        state.transformers = bad("Loading transformers...");
+        state.transformers = [];
         state.invalid_transformers = [];
       })
       .addCase(pullTransformers.fulfilled, (state, { payload }) => {
         if (payload.ok) {
-          state.transformers = good(payload.data.filter(d => d.ok).map(d => d.data));
-          state.invalid_transformers = payload.data.filter(d => !d.ok).map(d => [d.message ?? "Unknown file.", d.reason]);
+          state.transformers = payload.data.filter(d => d.type !== "malformed").map(d => d.data);
+          state.invalid_transformers = payload.data.filter(d => d.type === "malformed");
         } else {
-          state.transformers = payload;
+          state.transformers = [];
           state.invalid_transformers = [];
         }
       })

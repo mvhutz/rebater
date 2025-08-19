@@ -14,7 +14,7 @@ export interface TrimRowData {
 /**
  * Trim the whitespace off of the current value.
  */
-export class TrimRow extends BaseRow {
+export class TrimRow implements BaseRow {
   run(value: string): Maybe<string> {
     return value.trim();
   }

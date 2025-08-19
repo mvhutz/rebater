@@ -19,7 +19,7 @@ import { Alert } from '@mui/joy';
 /** ------------------------------------------------------------------------- */
 
 function TransformerSettings() {
-  const transformers_reply = useAppSelector(getTransformers);
+  const transformers = useAppSelector(getTransformers);
   const { names, tags } = useAppSelector(getTransformersSettings);
   const invalid_transformers = useAppSelector(getInvalidTransformers);
   const dispatch = useAppDispatch();
@@ -32,58 +32,48 @@ function TransformerSettings() {
     dispatch(setTransformersTags(selected));
   }, [dispatch]);
 
-  let chip = null;
-  let inner = null;
-
-  if (transformers_reply.ok) {
-    const { data: transformers } = transformers_reply;
-    const all_tags = new Set(transformers.map(t => t.tags).flat());
-    chip = <Chip variant="outlined" color="neutral">{transformers.length}</Chip>
-
-    inner = (
-      <>
-        <FormControl>
-          <FormLabel>Select Transformers</FormLabel>
-          <Select
-            multiple
-            value={names.include ?? []}
-            onChange={handleIncludeNames}
-            placeholder={<Typography color="neutral">All Selected</Typography>}
-            renderValue={(selected) => `${selected.length} Selected`}
-          >
-            {transformers.map(t => (
-              <Option value={t.name} key={t.name}>{t.name}</Option>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl>
-          <FormLabel>Required Tags</FormLabel>
-          <Select
-            multiple
-            value={tags.include ?? []}
-            onChange={handleIncludeTags}
-            renderValue={selected => (
-              <Box sx={{ display: 'flex', gap: '0.25rem', m: 0 }}>
-                {selected.map((selectedOption) => (
-                  <Chip variant="soft" color="primary" key={selectedOption.id}>
-                    {selectedOption.label}
-                  </Chip>
-                ))}
-              </Box>
-            )}
-            placeholder={<Typography color="neutral">None Required</Typography>}
-          >
-            {[...all_tags].map(t => (
-              <Option value={t} key={t}>{t}</Option>
-            ))}
-          </Select>
-        </FormControl>
-      </>
-    );
-  } else {
-    inner = transformers_reply.reason;
-    chip = <Chip variant="outlined" color="neutral">??</Chip>
-  }
+  const all_tags = new Set(transformers.map(t => t.tags).flat());
+  const chip = <Chip variant="outlined" color="neutral">{transformers.length === 0 ? "..." : transformers.length}</Chip>
+  const inner = (
+    <>
+      <FormControl>
+        <FormLabel>Select Transformers</FormLabel>
+        <Select
+          multiple
+          value={names.include ?? []}
+          onChange={handleIncludeNames}
+          placeholder={<Typography color="neutral">All Selected</Typography>}
+          renderValue={(selected) => `${selected.length} Selected`}
+        >
+          {transformers.map(t => (
+            <Option value={t.name} key={t.name}>{t.name}</Option>
+          ))}
+        </Select>
+      </FormControl>
+      <FormControl>
+        <FormLabel>Required Tags</FormLabel>
+        <Select
+          multiple
+          value={tags.include ?? []}
+          onChange={handleIncludeTags}
+          renderValue={selected => (
+            <Box sx={{ display: 'flex', gap: '0.25rem', m: 0 }}>
+              {selected.map((selectedOption) => (
+                <Chip variant="soft" color="primary" key={selectedOption.id}>
+                  {selectedOption.label}
+                </Chip>
+              ))}
+            </Box>
+          )}
+          placeholder={<Typography color="neutral">None Required</Typography>}
+        >
+          {[...all_tags].map(t => (
+            <Option value={t} key={t}>{t}</Option>
+          ))}
+        </Select>
+      </FormControl>
+    </>
+  );
 
   return (
     <Accordion>
@@ -97,10 +87,10 @@ function TransformerSettings() {
       <AccordionDetails>
         <Stack spacing={2} pt={1}>
         {inner}
-        {invalid_transformers.map(([, reason]) => (
+        {invalid_transformers.map(({ error }) => (
           <Alert color="danger">
             <Typography level="body-sm" color="danger" component="pre" fontFamily="monospace" sx={{ border: 0 }}>
-              {reason}
+              {error}
             </Typography>
           </Alert>
         ))}
