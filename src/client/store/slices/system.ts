@@ -6,7 +6,7 @@ import { killSystem, pullAllQuarters, pullSystemSettings, pullTransformers, push
 import { bad, good, Reply } from '../../../shared/reply';
 import { TimeData } from '../../../shared/time';
 import { Question, SystemStatus } from '../../../shared/worker/response';
-import { TransformerInfo } from '../../../system/Transformer';
+import { TransformerInfo } from '../../../system/transformer/AdvancedTransformer';
 
 /** ------------------------------------------------------------------------- */
 

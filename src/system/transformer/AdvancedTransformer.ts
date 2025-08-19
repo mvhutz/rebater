@@ -1,22 +1,22 @@
 import { glob, readFile } from "fs/promises";
 import { z } from "zod/v4";
-import { BaseDestination, DESTINATION_SCHEMA, DESTINATION_XML_SCHEMA, DestinationData } from "./destination";
-import { BaseSource, SOURCE_SCHEMA, SOURCE_XML_SCHEMA, SourceData } from "./source";
-import { BaseTable, TABLE_SCHEMA, TABLE_XML_SCHEMA, TableData } from "./table";
-import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, RowData } from "./row";
-import { Settings } from "../shared/settings";
-import { TransformerResult } from "../shared/worker/response";
-import { Runner } from "./runner/Runner";
+import { BaseDestination, DESTINATION_SCHEMA, DESTINATION_XML_SCHEMA, DestinationData } from "../destination";
+import { BaseSource, SOURCE_SCHEMA, SOURCE_XML_SCHEMA, SourceData } from "../source";
+import { BaseTable, TABLE_SCHEMA, TABLE_XML_SCHEMA, TableData } from "../table";
+import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, RowData } from "../row";
+import { Settings } from "../../shared/settings";
+import { TransformerResult } from "../../shared/worker/response";
+import { Runner } from "../runner/Runner";
 import builder from "xmlbuilder";
-import { fromText, makeNodeElementSchema, makeTextElementSchema } from "./xml";
+import { fromText, makeNodeElementSchema, makeTextElementSchema } from "../xml";
 import assert from "assert";
-import { bad, good, Reply } from "../shared/reply";
+import { bad, good, Reply } from "../../shared/reply";
 import path from "path";
-import { Row, Table } from "./information/Table";
+import { Row, Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
-export interface TransformerData {
+export interface AdvancedTransformerData {
   name: string;
   tags: string[];
   sources: SourceData[];
@@ -64,7 +64,7 @@ export interface TransformerInfo {
  * 5. Finally, the process rebates are written to a set of `<destinations>`.
  *    Examples are in the `destination` folder.
  */
-export class Transformer {
+export class AdvancedTransformer {
   public readonly name: string;
   public readonly tags: string[];
   private readonly sources: BaseSource[];
@@ -98,16 +98,16 @@ export class Transformer {
    * @param type The format the transformer is in.
    * @returns A new transformer.
    */
-  public static async fromFile(filepath: string, type: "xml" | "json"): Promise<Reply<Transformer>> {
+  public static async fromFile(filepath: string, type: "xml" | "json"): Promise<Reply<AdvancedTransformer>> {
     const raw = await readFile(filepath, 'utf-8');
 
     try {
       if (type === "json") {
         const json = JSON.parse(raw);
-        return good(Transformer.SCHEMA.parse(json));
+        return good(AdvancedTransformer.SCHEMA.parse(json));
       } else {
         const xml = fromText(raw);
-        return good(Transformer.XML_SCHEMA.parse(xml));
+        return good(AdvancedTransformer.XML_SCHEMA.parse(xml));
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -124,15 +124,15 @@ export class Transformer {
     const transformer_json_files = await Array.fromAsync(glob(settings.getTransformerPathGlob()));
     const transformer_xml_files = await Array.fromAsync(glob(settings.getTransformerPathXMLGlob()));
 
-    const transformers = new Array<Reply<Transformer>>();
+    const transformers = new Array<Reply<AdvancedTransformer>>();
     
     for (const transformer_file of transformer_json_files) {
-      const transformer_reply = await Transformer.fromFile(transformer_file, "json");
+      const transformer_reply = await AdvancedTransformer.fromFile(transformer_file, "json");
       transformers.push(transformer_reply);
     }
 
     for (const transformer_file of transformer_xml_files) {
-      const transformer_reply = await Transformer.fromFile(transformer_file, "xml");
+      const transformer_reply = await AdvancedTransformer.fromFile(transformer_file, "xml");
       transformers.push(transformer_reply);
     }
 
@@ -150,10 +150,10 @@ export class Transformer {
     const transformer_json_files = await Array.fromAsync(glob(settings.getTransformerPathGlob()));
     const transformer_xml_files = await Array.fromAsync(glob(settings.getTransformerPathXMLGlob()));
 
-    const transformers = new Array<Transformer>();
+    const transformers = new Array<AdvancedTransformer>();
     
     for (const transformer_file of transformer_json_files) {
-      const transformer_reply = await Transformer.fromFile(transformer_file, "json");
+      const transformer_reply = await AdvancedTransformer.fromFile(transformer_file, "json");
       if (!transformer_reply.ok) continue;
 
       const { data: transformer } = transformer_reply;
@@ -163,7 +163,7 @@ export class Transformer {
     }
 
     for (const transformer_file of transformer_xml_files) {
-      const transformer_reply = await Transformer.fromFile(transformer_file, "xml");
+      const transformer_reply = await AdvancedTransformer.fromFile(transformer_file, "xml");
       if (!transformer_reply.ok) continue;
 
       const { data: transformer } = transformer_reply;
@@ -183,8 +183,8 @@ export class Transformer {
    * @param transformers The transformers to sort.
    * @returns The same transformers, ordered in a way that causes no conflicts.
    */
-  public static findValidOrder(transformers: Transformer[]) {
-    const by_name = new Map<string, Transformer>();
+  public static findValidOrder(transformers: AdvancedTransformer[]) {
+    const by_name = new Map<string, AdvancedTransformer>();
     
     // No duplicates.
     for (const transformer of transformers) {
@@ -200,10 +200,10 @@ export class Transformer {
     }
 
     // Find topological ordering.
-    const stack: Transformer[] = [];
-    const visited = new WeakSet<Transformer>();
+    const stack: AdvancedTransformer[] = [];
+    const visited = new WeakSet<AdvancedTransformer>();
 
-    function DFS(node: Transformer) {
+    function DFS(node: AdvancedTransformer) {
       visited.add(node);
 
       for (const neighbor_hash of node.requirements) {
@@ -277,7 +277,7 @@ export class Transformer {
     return { start, end, name: this.name };
   }
 
-  toJSON(): TransformerData {
+  toJSON(): AdvancedTransformerData {
     return {
       name: this.name,
       tags: this.tags,
@@ -357,10 +357,14 @@ export class Transformer {
     return root.end({ pretty: true, spaceBeforeSlash: " " });
   }
 
+  public static fromJSON(data: AdvancedTransformerData): AdvancedTransformer {
+    return AdvancedTransformer.SCHEMA.parse(data);
+  }
+
   /**
    * The JSON schema of a Transformer.
    */
-  public static readonly SCHEMA: z.ZodType<Transformer, TransformerData> = z.strictObject({
+  public static readonly SCHEMA: z.ZodType<AdvancedTransformer, AdvancedTransformerData> = z.strictObject({
     name: z.string(),
     tags: z.array(z.string()),
     sources: z.array(SOURCE_SCHEMA),
@@ -372,9 +376,9 @@ export class Transformer {
     })),
     postprocess: z.array(TABLE_SCHEMA),
     destination: z.array(DESTINATION_SCHEMA),
-  }).transform(s => new Transformer(s.name, s.tags, s.sources, s.preprocess, s.properties, s.postprocess, s.destination, s.requirements));
+  }).transform(s => new AdvancedTransformer(s.name, s.tags, s.sources, s.preprocess, s.properties, s.postprocess, s.destination, s.requirements));
 
-  private static parseInitialXML(data: z.infer<typeof Transformer.XML_SCHEMA_INITIAL>) {
+  private static parseInitialXML(data: z.infer<typeof AdvancedTransformer.XML_SCHEMA_INITIAL>) {
     const { children } = data;
 
     let name = "";
@@ -419,7 +423,7 @@ export class Transformer {
       }
     }
 
-    return new Transformer(name, tags, sources, preprocess, properties, postprocess, destinations, requirements);
+    return new AdvancedTransformer(name, tags, sources, preprocess, properties, postprocess, destinations, requirements);
   }
 
   private static readonly XML_SCHEMA_INITIAL = makeNodeElementSchema("transformer", z.undefined(),
@@ -454,7 +458,7 @@ export class Transformer {
   /**
    * The XML schema of a Transformer.
    */
-  public static readonly XML_SCHEMA: z.ZodType<Transformer> = z.strictObject({
-    children: z.tuple([Transformer.XML_SCHEMA_INITIAL])
-  }).transform(x => Transformer.parseInitialXML(x.children[0]));
+  public static readonly XML_SCHEMA: z.ZodType<AdvancedTransformer> = z.strictObject({
+    children: z.tuple([AdvancedTransformer.XML_SCHEMA_INITIAL])
+  }).transform(x => AdvancedTransformer.parseInitialXML(x.children[0]));
 }

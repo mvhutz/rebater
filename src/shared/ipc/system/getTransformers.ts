@@ -1,5 +1,5 @@
 import { bad, good, Reply } from "../../reply";
-import { Transformer, TransformerInfo } from "../../../system/Transformer";
+import { AdvancedTransformer, TransformerInfo } from "../../../system/transformer/AdvancedTransformer";
 import { getSettingsInterface } from "./getSettings";
 
 /** ------------------------------------------------------------------------- */
@@ -14,7 +14,7 @@ export async function getTransformers(): Promise<Reply<Reply<TransformerInfo>[]>
   const { data: isettings } = settings_reply;
 
   try {
-    const available_transformers = await Transformer.pullAllAvailable(isettings);
+    const available_transformers = await AdvancedTransformer.pullAllAvailable(isettings);
     const transformer_info = available_transformers.map(t => t.ok ? good(t.data.getInfo()) : t)
     return good(transformer_info);
   } catch (err) {

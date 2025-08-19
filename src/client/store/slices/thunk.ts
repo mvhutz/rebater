@@ -3,7 +3,7 @@ import { Reply } from "../../../shared/reply";
 import { RootState } from "..";
 import { ResourceStatus } from "../../../shared/resource";
 import { SettingsData } from "../../../shared/settings";
-import { TransformerInfo } from "../../../system/Transformer";
+import { TransformerInfo } from "../../../system/transformer/AdvancedTransformer";
 import { TimeData } from "../../../shared/time";
 
 /** ------------------------------------------------------------------------- */
