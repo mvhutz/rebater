@@ -4,7 +4,7 @@ import Stack from '@mui/joy/Stack';
 import NightsStayRoundedIcon from '@mui/icons-material/NightsStayRounded';
 import DoneRoundedIcon from '@mui/icons-material/DoneRounded';
 import PriorityHighRoundedIcon from '@mui/icons-material/PriorityHighRounded';
-import { getSystemQuestionCount, getSystemStatus } from '../store/slices/system';
+import { getSystemQuestionCount, getSystemStatus, getTransformers } from '../store/slices/system';
 import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded';
@@ -20,6 +20,8 @@ import { SystemStatus } from '../../shared/worker/response';
 import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
 import QuestionsTab from '../tabs/questions/QuestionsTab';
 import Chip from '@mui/joy/Chip';
+import { FlashOnRounded } from '@mui/icons-material';
+import TransformersTab from '../tabs/transformers/TransformersTab';
 
 /** ------------------------------------------------------------------------- */
 
@@ -52,7 +54,12 @@ const TAB_LIST_SX: SxProps = {
       },
     },
   },
+  overflow: 'auto',
+  scrollSnapType: 'x mandatory',
+  '&::-webkit-scrollbar': { display: 'none' },
 };
+
+const TAB_SX_PROPS: SxProps = { flex: 'none', scrollSnapAlign: 'start' };
 
 function ViewPane() {
   const status = useAppSelector(getSystemStatus);
@@ -60,12 +67,14 @@ function ViewPane() {
   const tab = useAppSelector(getTab);
   const dispatch = useAppDispatch();
   const questions_count = useAppSelector(getSystemQuestionCount);
+  const transformers = useAppSelector(getTransformers);
 
   const handleTab = React.useCallback((_: unknown, tab: Maybe<string | number>) => {
     switch (tab) {
       case "system":
       case "documentation":
       case "questions":
+      case "transformers":
         dispatch(setTab(tab));
         break;
       default:
@@ -79,29 +88,36 @@ function ViewPane() {
       <Tabs size="sm" value={tab} onChange={handleTab} sx={{ flex: 1 }}>
         {show_tabs &&
           <TabList color="neutral" variant="soft" sx={TAB_LIST_SX} sticky="top">
-            <Tab value="system" indicatorPlacement="top">
+            <Tab value="system" indicatorPlacement="top" sx={TAB_SX_PROPS}>
               <ListItemDecorator>
                 <SystemIcon status={status} />
               </ListItemDecorator>
               System
             </Tab>
-            <Tab value="documentation" indicatorPlacement="top">
+            <Tab value="documentation" indicatorPlacement="top" sx={TAB_SX_PROPS}>
               <ListItemDecorator>
                 <BookmarkRoundedIcon />
               </ListItemDecorator>
               Documentation
             </Tab>
-            <Tab value="questions" indicatorPlacement="top">
+            <Tab value="questions" indicatorPlacement="top" sx={TAB_SX_PROPS}>
               <ListItemDecorator>
                 <QuestionMarkRoundedIcon fontSize="small" />
               </ListItemDecorator>
               Questions {questions_count > 0 && <Chip color="primary" variant="solid" size='sm'>{questions_count}</Chip>}
+            </Tab>
+            <Tab value="transformers" indicatorPlacement="top" sx={TAB_SX_PROPS}>
+              <ListItemDecorator>
+                <FlashOnRounded fontSize="small" />
+              </ListItemDecorator>
+              Transformers {transformers.length > 0 && <Chip color="neutral" variant="outlined" size='sm'>{transformers.length}</Chip>}
             </Tab>
           </TabList>
         }
         <DocumentationTab />
         <SystemTab />
         <QuestionsTab />
+        <TransformersTab />
       </Tabs>
     </Stack>
   );
