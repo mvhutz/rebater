@@ -6,6 +6,14 @@ import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
+export interface TrimTableData {
+  type: "trim";
+  top?: number;
+  bottom?: number;
+}
+
+/** ------------------------------------------------------------------------- */
+
 /**
  * Trim rows on the top or bottom of a table.
  */
@@ -29,7 +37,11 @@ export class TrimTable implements BaseTable {
     return table.slice(this.top, this.bottom);
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): TrimTableData {
+    return { type: "trim", top: this.top, bottom: this.bottom };
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseTable, TrimTableData> = z.strictObject({
     type: z.literal("trim"),
     top: z.number().optional(),
     bottom: z.number().optional(),

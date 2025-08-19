@@ -1,13 +1,13 @@
 import { z } from "zod/v4";
-import { ChopTable } from "./Chop";
-import { CoalesceTable } from "./Coalesce";
-import { DebugTable } from "./Debug";
-import { FilterTable } from "./Filter";
-import { HeaderTable } from "./Header";
-import { PercolateTable } from "./Percolate";
-import { SelectTable } from "./Select";
-import { SetTable } from "./Set";
-import { TrimTable } from "./Trim";
+import { ChopTable, ChopTableData } from "./Chop";
+import { CoalesceTable, CoalesceTableData } from "./Coalesce";
+import { DebugTable, DebugTableData } from "./Debug";
+import { FilterTable, FilterTableData } from "./Filter";
+import { HeaderTable, HeaderTableData } from "./Header";
+import { PercolateTable, PercolateTableData } from "./Percolate";
+import { SelectTable, SelectTableData } from "./Select";
+import { SetTable, SetTableData } from "./Set";
+import { TrimTable, TrimTableData } from "./Trim";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
 import { Table } from "../information/Table";
@@ -33,6 +33,8 @@ export abstract class BaseTable {
    */
   abstract buildXML(from: XMLElement): void;
 
+  abstract buildJSON(): TableData;
+
   /**
    * Run a set of table operations in succession.
    * @param rows The table operations.
@@ -49,8 +51,19 @@ export abstract class BaseTable {
   }
 }
 
+export type TableData =
+  | ChopTableData
+  | CoalesceTableData
+  | DebugTableData
+  | FilterTableData
+  | HeaderTableData
+  | PercolateTableData
+  | SelectTableData
+  | SetTableData
+  | TrimTableData;
+
 /** All possible JSON operations. */
-export const TABLE_SCHEMA: z.ZodType<BaseTable> = z.union([
+export const TABLE_SCHEMA: z.ZodType<BaseTable, TableData> = z.union([
   ChopTable.SCHEMA,
   CoalesceTable.SCHEMA,
   DebugTable.SCHEMA,

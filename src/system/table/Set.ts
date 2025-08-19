@@ -1,11 +1,19 @@
 import { z } from "zod/v4";
 import { ExcelIndexSchema, getExcelFromIndex } from "../util";
-import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA } from "../row";
+import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, RowData } from "../row";
 import { BaseTable } from ".";
 import { Runner } from "../runner/Runner";
 import { XMLElement } from "xmlbuilder";
 import { makeNodeElementSchema } from "../xml";
 import { Table } from "../information/Table";
+
+/** ------------------------------------------------------------------------- */
+
+export interface SetTableData {
+  type: "set";
+  column: number | string;
+  to: RowData[];
+}
 
 /** ------------------------------------------------------------------------- */
 
@@ -40,7 +48,11 @@ export class SetTable implements BaseTable {
     });
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): SetTableData {
+    return { type: "set", column: getExcelFromIndex(this.column), to: this.to.map(o => o.buildJSON()) };
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseTable, SetTableData> = z.strictObject({
     type: z.literal("set"),
     column: ExcelIndexSchema,
     to: z.lazy(() => z.array(ROW_SCHEMA)),

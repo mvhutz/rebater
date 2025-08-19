@@ -6,6 +6,14 @@ import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
 
+export interface HeaderTableData {
+  type:"header";
+  names: string[];
+  action: "drop" | "keep";
+}
+
+/** ------------------------------------------------------------------------- */
+
 /**
  * Alter the available columns, based on the values within the first row
  * (header).
@@ -57,7 +65,11 @@ export class HeaderTable implements BaseTable {
     }
   }
 
-  public static readonly SCHEMA = z.strictObject({
+  buildJSON(): HeaderTableData {
+    return { type: "header", names: this.names, action: this.action };
+  }
+
+  public static readonly SCHEMA: z.ZodType<BaseTable, HeaderTableData> = z.strictObject({
     type: z.literal("header"),
     names: z.array(z.string()),
     action: z.union([z.literal("drop"), z.literal("keep")]),
