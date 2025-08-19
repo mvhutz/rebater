@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import Button from '@mui/joy/Button';
 import DialogContent from '@mui/joy/DialogContent';
 import DialogTitle from '@mui/joy/DialogTitle';
@@ -9,12 +9,12 @@ import Input from '@mui/joy/Input';
 import Modal from '@mui/joy/Modal';
 import ModalDialog from '@mui/joy/ModalDialog';
 import Stack from '@mui/joy/Stack';
-import { getNewQuarterModal, pushMessage, toggleNewQuarterModal } from '../../store/slices/ui';
+import { getNewQuarterModal, pushMessage, toggleNewQuarterModal } from '../store/slices/ui';
 import { DialogActions, Option, Select, Switch } from '@mui/joy';
 import { FormHelperText } from '@mui/material';
-import { getSystemSettings } from '../../store/slices/system';
+import { getSystemSettings } from '../store/slices/system';
 import z from 'zod/v4';
-import { TimeData } from '../../../shared/time';
+import { TimeData } from '../../shared/time';
 
 /** ------------------------------------------------------------------------- */
 

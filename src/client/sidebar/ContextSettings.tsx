@@ -13,12 +13,12 @@ import FormLabel from '@mui/joy/FormLabel';
 import Option from '@mui/joy/Option';
 import Select from '@mui/joy/Select';
 import Stack from '@mui/joy/Stack';
-import { useAppDispatch, useAppSelector } from '../../../client/store/hooks';
-import { getContextSettings, getQuarterList, setSystemQuarter, setSystemYear } from '../../../client/store/slices/system';
-import { ResourceStatus } from '../../../shared/resource';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { getContextSettings, getQuarterList, setSystemQuarter, setSystemYear } from '../store/slices/system';
+import { ResourceStatus } from '../../shared/resource';
 import moment from 'moment';
 import { IconButton } from '@mui/joy';
-import { toggleNewQuarterModal } from '../../store/slices/ui';
+import { toggleNewQuarterModal } from '../store/slices/ui';
 
 /** ------------------------------------------------------------------------- */
 

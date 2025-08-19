@@ -12,9 +12,9 @@ import ListItemContent from '@mui/joy/ListItemContent';
 import Typography from '@mui/joy/Typography';
 import AccordionDetails from '@mui/joy/AccordionDetails';
 import React from 'react';
-import { useAppDispatch, useAppSelector } from '../../../client/store/hooks';
-import { getSystemSettings, getTestAll, getTestSettings, setSystemTarget, setSystemTestAll, setSystemTesting } from '../../../client/store/slices/system';
+import { getSystemSettings, getTestAll, getTestSettings, setSystemTarget, setSystemTestAll, setSystemTesting } from '../store/slices/system';
 import Switch from '@mui/joy/Switch';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 
 /** ------------------------------------------------------------------------- */
 
