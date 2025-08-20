@@ -12,7 +12,7 @@ import { getVisible, toggleSettings, toggleTabs } from '../store/slices/ui';
 /** ------------------------------------------------------------------------- */
 
 interface TabMenuProps {
-  children?: React.ReactElement;
+  children?: React.ReactNode[] | React.ReactNode;
 }
 
 function TabMenu(props: TabMenuProps) {
@@ -32,7 +32,7 @@ function TabMenu(props: TabMenuProps) {
 
   return (
     <Stack padding={1}>
-        <Stack direction="row" justifyContent="center" alignItems="center" position="relative">
+        <Stack direction="row" justifyContent="center" alignItems="center" position="relative" spacing={1}>
           {children}
           <Dropdown>
             <MenuButton sx={{ position: "absolute", right: 0, top: 0 }} slots={{ root: IconButton }} slotProps={{ "root": { variant: 'plain', color: 'neutral' } }}>
