@@ -1,7 +1,6 @@
 import { z } from "zod/v4";
 import { ExcelSource, ExcelSourceData } from "./Excel";
 import { Runner } from "../runner/Runner";
-import { XMLElement } from "xmlbuilder";
 import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
@@ -20,11 +19,8 @@ export interface BaseSource {
   run(runner: Runner): Table[];
 
   /**
-   * Add this tag to an XML document.
-   * @param from The document to append to.
+   * Add this tag to an JSON document.
    */
-  buildXML(from: XMLElement): void;
-
   buildJSON(): SourceData;
 }
 
@@ -38,7 +34,3 @@ export const SOURCE_SCHEMA: z.ZodType<BaseSource, SourceData> = z.union([
   ExcelSource.SCHEMA
 ]);
 
-/** All possible XML sources. */
-export const SOURCE_XML_SCHEMA: z.ZodType<BaseSource> = z.union([
-  ExcelSource.XML_SCHEMA
-]);

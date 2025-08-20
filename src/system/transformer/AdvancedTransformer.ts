@@ -1,14 +1,12 @@
 import { glob, readFile } from "fs/promises";
 import { z } from "zod/v4";
-import { BaseDestination, DESTINATION_SCHEMA, DESTINATION_XML_SCHEMA, DestinationData } from "../destination";
-import { BaseSource, SOURCE_SCHEMA, SOURCE_XML_SCHEMA, SourceData } from "../source";
-import { BaseTable, TABLE_SCHEMA, TABLE_XML_SCHEMA, TableData } from "../table";
-import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, RowData } from "../row";
+import { BaseDestination, DESTINATION_SCHEMA, DestinationData } from "../destination";
+import { BaseSource, SOURCE_SCHEMA, SourceData } from "../source";
+import { BaseTable, TABLE_SCHEMA, TableData } from "../table";
+import { BaseRow, ROW_SCHEMA, RowData } from "../row";
 import { Settings } from "../../shared/settings";
 import { TransformerResult } from "../../shared/worker/response";
 import { Runner } from "../runner/Runner";
-import builder from "xmlbuilder";
-import { fromText, makeNodeElementSchema, makeTextElementSchema } from "../xml";
 import assert from "assert";
 import { Row, Table } from "../information/Table";
 
@@ -98,17 +96,12 @@ export class AdvancedTransformer {
    * @param type The format the transformer is in.
    * @returns A new transformer.
    */
-  public static async fromFile(filepath: string, type: "xml" | "json"): Promise<TransformerFileInfo> {
+  public static async fromFile(filepath: string): Promise<TransformerFileInfo> {
     const raw = await readFile(filepath, 'utf-8');
 
     try {
-      if (type === "json") {
-        const json = JSON.parse(raw);
-        return { type: "advanced", path: filepath, data: AdvancedTransformer.SCHEMA.parse(json).toJSON() };
-      } else {
-        const xml = fromText(raw);
-        return { type: "advanced", path: filepath, data: AdvancedTransformer.XML_SCHEMA.parse(xml).toJSON() };
-      }
+      const json = JSON.parse(raw);
+      return { type: "advanced", path: filepath, data: AdvancedTransformer.SCHEMA.parse(json).toJSON() };
     } catch (error) {
       let message;
 
@@ -126,17 +119,11 @@ export class AdvancedTransformer {
 
   public static async pullAllAvailable(settings: Settings): Promise<TransformerFileInfo[]> {
     const transformer_json_files = await Array.fromAsync(glob(settings.getTransformerPathGlob()));
-    const transformer_xml_files = await Array.fromAsync(glob(settings.getTransformerPathXMLGlob()));
 
     const transformers = new Array<TransformerFileInfo>();
     
     for (const transformer_file of transformer_json_files) {
-      const transformer_reply = await AdvancedTransformer.fromFile(transformer_file, "json");
-      transformers.push(transformer_reply);
-    }
-
-    for (const transformer_file of transformer_xml_files) {
-      const transformer_reply = await AdvancedTransformer.fromFile(transformer_file, "xml");
+      const transformer_reply = await AdvancedTransformer.fromFile(transformer_file);
       transformers.push(transformer_reply);
     }
 
@@ -152,22 +139,11 @@ export class AdvancedTransformer {
    */
   public static async pullAll(settings: Settings, filter = false): Promise<AdvancedTransformerData[]> {
     const transformer_json_files = await Array.fromAsync(glob(settings.getTransformerPathGlob()));
-    const transformer_xml_files = await Array.fromAsync(glob(settings.getTransformerPathXMLGlob()));
 
     const transformers = new Array<AdvancedTransformerData>();
     
     for (const transformer_file of transformer_json_files) {
-      const transformer_reply = await AdvancedTransformer.fromFile(transformer_file, "json");
-      if (transformer_reply.type === "malformed") continue;
-
-      const { data: transformer } = transformer_reply;
-      if (filter && !settings.willRun(transformer)) continue;
-
-      transformers.push(transformer);
-    }
-
-    for (const transformer_file of transformer_xml_files) {
-      const transformer_reply = await AdvancedTransformer.fromFile(transformer_file, "xml");
+      const transformer_reply = await AdvancedTransformer.fromFile(transformer_file);
       if (transformer_reply.type === "malformed") continue;
 
       const { data: transformer } = transformer_reply;
@@ -297,70 +273,6 @@ export class AdvancedTransformer {
     }
   }
 
-  /**
-   * Serialize the transformer in XML.
-   */
-  toXML(): string {
-    const root = builder.create("transformer");
-
-    root.element("name", undefined, this.name);
-    
-    for (const tag of this.tags) {
-      root.element("tag", undefined, tag);
-    }
-
-    root.txt('');
-    root.comment("These source files are extracted.");
-
-    const sources = root.element("sources");
-    for (const source of this.sources) {
-      source.buildXML(sources);
-    }
-
-    if (this.preprocess.length > 0) {
-      root.txt('');
-      root.comment("Before extraction is done, these operations are done on each table.");
-
-      const preprocess = root.element("preprocess");
-      for (const pre of this.preprocess) {
-        pre.buildXML(preprocess);
-      }
-    }
-
-    root.txt('');
-    root.comment("Each property which is extracted from each row, of each table.");
-
-    for (const property of this.properties) {
-      const child = root.element("property", { name: property.name });
-      
-      for (const def of property.definition) {
-        def.buildXML(child);
-      }
-
-      root.txt('');
-    }
-
-    if (this.postprocess.length > 0) {
-      root.comment("After extraction, these operations are done to the tables.");
-
-      const postprocess = root.element("postprocess");
-      for (const post of this.postprocess) {
-        post.buildXML(postprocess);
-      }
-
-      root.txt('');
-    }
-
-    root.comment("The rebates are stored in these locations.");
-
-    const destinations = root.element("destinations");
-    for (const destination of this.destinations) {
-      destination.buildXML(destinations);
-    }
-    
-    return root.end({ pretty: true, spaceBeforeSlash: " " });
-  }
-
   public static fromJSON(data: AdvancedTransformerData): AdvancedTransformer {
     return AdvancedTransformer.SCHEMA.parse(data);
   }
@@ -381,88 +293,4 @@ export class AdvancedTransformer {
     postprocess: z.array(TABLE_SCHEMA),
     destination: z.array(DESTINATION_SCHEMA),
   }).transform(s => new AdvancedTransformer(s.name, s.tags, s.sources, s.preprocess, s.properties, s.postprocess, s.destination, s.requirements));
-
-  private static parseInitialXML(data: z.infer<typeof AdvancedTransformer.XML_SCHEMA_INITIAL>) {
-    const { children } = data;
-
-    let name = "";
-    const tags: string[] = [];
-    const sources: BaseSource[] = [];
-    const preprocess: BaseTable[] = [];
-    const properties: { name: string, definition: BaseRow[] }[] = [];
-    const postprocess: BaseTable[] = [];
-    const destinations: BaseDestination[] = [];
-    const requirements: string[] = [];
-    
-    for (const child of children) {
-      switch (child.name) {
-        case "name":
-          name = child.children[0].text;
-          break;
-        case "tag":
-          tags.push(child.children[0].text);
-          break;
-        case "sources":
-          if (child.children == null) continue;
-          sources.push(...child.children);
-          break;
-        case "preprocess":
-          if (child.children == null) continue;
-          preprocess.push(...child.children);
-          break;
-        case "property":
-          if (child.children == null) continue;
-          properties.push({ name: child.attributes.name, definition: child.children });
-          break;
-        case "postprocess":
-          if (child.children == null) continue;
-          postprocess.push(...child.children);
-          break;
-        case "destinations":
-          if (child.children == null) continue;
-          destinations.push(...child.children);
-          break;
-        case "requires":
-          requirements.push(child.children[0].text);
-      }
-    }
-
-    return new AdvancedTransformer(name, tags, sources, preprocess, properties, postprocess, destinations, requirements);
-  }
-
-  private static readonly XML_SCHEMA_INITIAL = makeNodeElementSchema("transformer", z.undefined(),
-    z.array(z.union([
-      makeNodeElementSchema("name", z.undefined(), z.tuple([
-        makeTextElementSchema(z.string())
-      ])),
-      makeNodeElementSchema("tag", z.undefined(), z.tuple([
-        makeTextElementSchema(z.string())
-      ])),
-      makeNodeElementSchema("requires", z.undefined(), z.tuple([
-        makeTextElementSchema(z.string())
-      ])),
-      makeNodeElementSchema("sources", z.undefined(), z.array(
-        SOURCE_XML_SCHEMA
-      ).optional()),
-      makeNodeElementSchema("preprocess", z.undefined(), z.array(
-        TABLE_XML_SCHEMA
-      ).optional()),
-      makeNodeElementSchema("property", z.strictObject({ name: z.string() }), z.array(
-        ROW_XML_SCHEMA
-      ).optional()),
-      makeNodeElementSchema("postprocess", z.undefined(), z.array(
-        TABLE_XML_SCHEMA
-      ).optional()),
-      makeNodeElementSchema("destinations", z.undefined(), z.array(
-        DESTINATION_XML_SCHEMA
-      ).optional()),
-    ]))
-  );
-
-  /**
-   * The XML schema of a Transformer.
-   */
-  public static readonly XML_SCHEMA: z.ZodType<AdvancedTransformer> = z.strictObject({
-    children: z.tuple([AdvancedTransformer.XML_SCHEMA_INITIAL])
-  }).transform(x => AdvancedTransformer.parseInitialXML(x.children[0]));
 }

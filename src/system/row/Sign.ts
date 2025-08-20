@@ -1,7 +1,5 @@
 import { z } from "zod/v4";
 import { BaseRow } from ".";
-import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -26,13 +24,4 @@ export class SignumRow implements BaseRow {
   public static readonly SCHEMA: z.ZodType<BaseRow, SignumRowData> = z.strictObject({
     type: z.literal("sign"),
   }).transform(() => new SignumRow());
-
-  buildXML(from: XMLElement): void {
-    from.element("sign");
-  }
-
-  public static readonly XML_SCHEMA = makeNodeElementSchema("sign", 
-    z.undefined(),
-    z.undefined())
-    .transform(() => new SignumRow())
 }

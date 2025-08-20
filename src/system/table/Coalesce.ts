@@ -1,9 +1,7 @@
 import { z } from "zod/v4";
-import { ExcelIndexSchema, getExcelFromIndex, getTrueIndex } from "../util";
+import { ExcelIndexSchema, getExcelFromIndex } from "../util";
 import { BaseTable } from ".";
 import assert from "assert";
-import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema } from "../xml";
 import { Row, Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
@@ -111,19 +109,4 @@ export class CoalesceTable implements BaseTable {
     match: z.array(ExcelIndexSchema),
     combine: z.array(ExcelIndexSchema).default([])
   }).transform(s => new CoalesceTable(s.match, s.combine));
-
-  buildXML(from: XMLElement): void {
-    from.element("coalesce", {
-      match: this.match.map(getExcelFromIndex).join(","),
-      combine: this.combine.map(getExcelFromIndex).join(",")
-    });
-  }
-
-  public static readonly XML_SCHEMA = makeNodeElementSchema("coalesce",
-    z.strictObject({
-      match: z.string().default("").transform(s => s.split(",").filter(Boolean).map(getTrueIndex)),
-      combine: z.string().default("").transform(s => s.split(",").filter(Boolean).map(getTrueIndex)),
-    }),
-    z.undefined())
-    .transform(({ attributes: a }) => new CoalesceTable(a.match, a.combine))
 }

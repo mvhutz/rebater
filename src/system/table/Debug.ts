@@ -1,8 +1,6 @@
 import { z } from "zod/v4";
 import { BaseTable } from ".";
 import { Runner } from "../runner/Runner";
-import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
 import { UtilityDestination } from "../destination/Utility";
 import { Table } from "../information/Table";
 
@@ -46,15 +44,4 @@ export class DebugTable implements BaseTable {
     type: z.literal("debug"),
     name: z.string().default("default"),
   }).transform(s => new DebugTable(s.name));
-
-  buildXML(from: XMLElement): void {
-    from.element("debug", undefined, this.name);
-  }
-
-  public static readonly XML_SCHEMA = makeNodeElementSchema("debug",
-    z.undefined(),
-    z.tuple([
-      makeTextElementSchema(z.string())
-    ]))
-    .transform(({ children: c }) => new DebugTable(c[0].text));
 }

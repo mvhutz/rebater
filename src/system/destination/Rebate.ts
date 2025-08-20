@@ -3,8 +3,6 @@ import { z, ZodType } from "zod/v4";
 import { BaseDestination } from ".";
 import { RebateSchema } from "../../shared/worker/response";
 import { Runner } from "../runner/Runner";
-import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
 import { CSVRebateFile } from "../information/items/CSVRebateFile";
 import { Table } from "../information/Table";
 
@@ -52,15 +50,4 @@ export class RebateDestination implements BaseDestination {
     type: z.literal("rebate"),
     name: z.string(),
   }).transform(s => new RebateDestination(s.name));
-
-  buildXML(from: XMLElement): void {
-    from.element("rebate", undefined, this.name);
-  }
-
-  public static readonly XML_SCHEMA = makeNodeElementSchema("rebate",
-    z.undefined(),
-    z.tuple([
-      makeTextElementSchema(z.string())
-    ]))
-    .transform(({ children: c }) => new RebateDestination(c[0].text))
 }

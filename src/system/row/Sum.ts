@@ -1,8 +1,6 @@
 import { z } from "zod/v4";
 import { ExcelIndexSchema, getExcelFromIndex } from "../util";
 import { BaseRow } from ".";
-import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
 import { Row, Table } from "../information/Table";
 import { Runner } from "../runner/Runner";
 import assert from "assert";
@@ -67,15 +65,4 @@ export class SumRow implements BaseRow {
     type: z.literal("sum"),
     column: ExcelIndexSchema,
   }).transform(s => new SumRow(s.column));
-
-  buildXML(from: XMLElement): void {
-    from.element("sum", undefined, getExcelFromIndex(this.column));
-  }
-
-  public static readonly XML_SCHEMA = makeNodeElementSchema("sum",
-    z.undefined(),
-    z.tuple([
-      makeTextElementSchema(ExcelIndexSchema)
-    ]))
-    .transform(x => new SumRow(x.children[0].text))
 }

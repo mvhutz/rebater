@@ -1,7 +1,5 @@
 import { z } from "zod/v4";
 import { BaseRow } from ".";
-import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema } from "../xml";
 
 /** ------------------------------------------------------------------------- */
 
@@ -53,19 +51,4 @@ export class CoerceUSDRow implements BaseRow {
     as: z.literal("usd"),
     round: z.union([z.literal("up"), z.literal("down"), z.literal("default")]).default("default"),
   }).transform(s => new CoerceUSDRow(s.round));
-
-  buildXML(from: XMLElement): void {
-    from.element("coerce", {
-      as: "usd",
-      round: this.round,
-    })
-  }
-
-  public static readonly XML_SCHEMA = makeNodeElementSchema("coerce",
-    z.strictObject({
-      as: z.literal("usd"),
-      round: z.union([z.literal("up"), z.literal("down"), z.literal("default")]).default("default"),
-    }),
-    z.undefined())
-    .transform(({ attributes: a }) => new CoerceUSDRow(a.round))
 }

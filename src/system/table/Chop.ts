@@ -1,8 +1,6 @@
 import { z } from "zod/v4";
-import { ExcelIndexSchema, getExcelFromIndex } from "../util";
+import { ExcelIndexSchema } from "../util";
 import { BaseTable } from ".";
-import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema } from "../xml";
 import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
@@ -84,23 +82,4 @@ export class ChopTable implements BaseTable {
     keep: z.union([z.literal("top"), z.literal("bottom")]).default("bottom"),
     otherwise: z.union([z.literal("drop"), z.literal("take")]).default("drop")
   }).transform(s => new ChopTable(s.column, s.is, s.keep, s.otherwise));
-
-  buildXML(from: XMLElement): void {
-    from.element("chop", {
-      column: getExcelFromIndex(this.column),
-      is: this.is.join(","),
-      keep: this.keep,
-      otherwise: this.otherwise,
-    })
-  }
-
-  public static readonly XML_SCHEMA = makeNodeElementSchema("chop",
-    z.strictObject({
-      column: ExcelIndexSchema,
-      is: z.string().default("").transform(s => s.split(",").filter(Boolean)),
-      keep: z.union([z.literal("top"), z.literal("bottom")]).default("bottom"),
-      otherwise: z.union([z.literal("drop"), z.literal("take")]).default("drop")
-    }),
-    z.undefined())
-    .transform(({ attributes: a }) => new ChopTable(a.column, a.is, a.keep, a.otherwise))
 }

@@ -3,8 +3,6 @@ import moment, { Moment } from "moment";
 import assert from "assert";
 import { BaseRow } from ".";
 import { Runner } from "../runner/Runner";
-import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema } from "../xml";
 import { Row } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
@@ -95,23 +93,4 @@ export class CoerceDateRow implements BaseRow {
     parse: z.array(z.string()).optional(),
     format: z.string().optional()
   }).transform(s => new CoerceDateRow(s));
-
-  buildXML(from: XMLElement): void {
-    from.element("coerce", {
-      as: "date",
-      year: this.year,
-      parse: Array.isArray(this.parse) ? this.parse.join(",") : this.parse,
-      format: this.format,
-    })
-  }
-
-  public static readonly XML_SCHEMA = makeNodeElementSchema("coerce",
-    z.strictObject({
-      as: z.literal("date"),
-      year: z.union([z.literal("assume"), z.literal("keep")]).default("keep"),
-      parse: z.string().default("").transform(s => s.split(",").filter(Boolean)),
-      format: z.string().default("M/D/YYYY")
-    }),
-    z.undefined())
-    .transform(({ attributes: a }) => new CoerceDateRow({ ...a, type: "coerce" }))
 }

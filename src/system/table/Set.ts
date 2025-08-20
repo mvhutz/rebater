@@ -1,10 +1,8 @@
 import { z } from "zod/v4";
 import { ExcelIndexSchema, getExcelFromIndex } from "../util";
-import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, RowData } from "../row";
+import { BaseRow, ROW_SCHEMA, RowData } from "../row";
 import { BaseTable } from ".";
 import { Runner } from "../runner/Runner";
-import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema } from "../xml";
 import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
@@ -57,22 +55,4 @@ export class SetTable implements BaseTable {
     column: ExcelIndexSchema,
     to: z.lazy(() => z.array(ROW_SCHEMA)),
   }).transform(s => new SetTable(s.column, s.to));
-
-
-  buildXML(from: XMLElement): void {
-    const parent = from.element("set", {
-      column: getExcelFromIndex(this.column),
-    });
-
-    for (const t of this.to) {
-      t.buildXML(parent);
-    }
-  }
-
-  public static readonly XML_SCHEMA = makeNodeElementSchema("set",
-    z.strictObject({
-      column: ExcelIndexSchema,
-    }),
-    z.array(z.lazy(() => ROW_XML_SCHEMA)))
-    .transform(({ children: c, attributes: a }) => new SetTable(a.column, c))
 }
