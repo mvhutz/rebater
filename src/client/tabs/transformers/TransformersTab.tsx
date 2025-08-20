@@ -8,6 +8,7 @@ import Select from '@mui/joy/Select';
 import Option from '@mui/joy/Option';
 import { getTransformers } from '../../store/slices/system';
 import { TransformerFileInfo } from '../../../system/transformer/AdvancedTransformer';
+import path from 'path-browserify';
 
 /** ------------------------------------------------------------------------- */
 
@@ -64,7 +65,7 @@ function TransformersTab() {
         </Typography>
         <Select size="sm" placeholder="Transformer..." variant="soft" value={currentTransformer} onChange={handleCurrentTransformer}>
           {currentGroupItems?.map((g, i) => (
-            <Option value={i} key={i}>{g.type !== "malformed" ? g.data.name : g.path}</Option>
+            <Option value={i} key={i}>{g.type !== "malformed" ? g.data.name : path.basename(g.path)}</Option>
           ))}
         </Select>
       </TabMenu>
