@@ -35,7 +35,7 @@ export const pushSystemSettings = createAsyncThunk(
 export const pullSystemSettings = createAsyncThunk(
   'system/pullSettings',
   async (): Promise<Reply<Maybe<SettingsData>>> => {
-    return await invoke.getSettings();
+    return await invoke.getSettings({});
   },
   {
     condition(_, { getState }) {
@@ -48,15 +48,8 @@ export const pullSystemSettings = createAsyncThunk(
 
 export const startSystem = createAsyncThunk(
   'system/start',
-  async (_, { getState }) => {
-    const { system } = getState() as RootState;
-    return await invoke.runProgram(system.settings.data);
-  },
-  {
-    condition(_, { getState }) {
-      const { system } = getState() as RootState;
-      if (system.settings.status !== ResourceStatus.PRESENT) return false;
-    },
+  async () => {
+    return await invoke.runProgram({});
   }
 );
 

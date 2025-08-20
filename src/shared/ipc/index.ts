@@ -1,6 +1,5 @@
 import { createInterprocess } from "interprocess";
 import { getTransformers } from "./system/getTransformers";
-import { getSettings } from "./system/getSettings";
 import { openOutputFile } from "./system/openOutputFile";
 import { getAllQuarters } from "./system/getAllQuarters";
 import { createQuarter } from "./system/createQuarter";
@@ -10,7 +9,6 @@ import { Answer } from "../worker/request";
 import { getPing } from "./system/getPing";
 import { chooseDir } from "./system/chooseDir";
 import { openDir } from "./system/openDir";
-import { setSettings } from "./system/setSettings";
 import { ignore } from "./system/ignore";
 
 /** ------------------------------------------------------------------------- */
@@ -23,14 +21,14 @@ const IPC = createInterprocess({
     chooseDir,
     openDir,
     getTransformers,
-    getSettings,
+    getSettings: ignore<unknown, Maybe<SettingsData>>,
     openOutputFile,
     getAllQuarters,
     createQuarter,
-    setSettings,
+    setSettings: ignore<SettingsData, string>,
 
     // Those that do.
-    runProgram: ignore<Maybe<SettingsData>>,
+    runProgram: ignore,
     cancelProgram: ignore,
     answerQuestion: ignore<Answer>,
     ignoreAll: ignore,

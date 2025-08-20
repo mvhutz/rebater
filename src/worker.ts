@@ -5,6 +5,7 @@ import { WorkerResponse } from "./shared/worker/response";
 import { expose } from "threads/worker";
 import { Observable } from "observable-fns";
 import { Answer } from "./shared/worker/request";
+import { bad, Reply } from "./shared/reply";
 // import { workerData } from "node:worker_threads";
 // import { bad, good, Reply } from "./shared/reply";
 // import { State } from "./system/State";
@@ -57,6 +58,7 @@ function sendError(message?: string): WorkerResponse {
 /** ------------------------------------------------------------------------- */
 
 let runner: Maybe<Runner>;
+let settings_data: Reply<SettingsData> = bad("Not loaded!");
 
 const SYSTEM = {
   async saveAnswer(answer: Answer) {
@@ -69,21 +71,34 @@ const SYSTEM = {
     await table.save();
   },
 
+  setSettings(data: Reply<SettingsData>) {
+    settings_data = data;
+
+    if (settings_data.ok) {
+      const settings = Settings.from(settings_data.data);
+      if (settings.ok) {
+        runner = new Runner(settings.data);
+      } else {
+        runner = null;
+      }
+    } else {
+      runner = null;
+    }
+  },
+
   /**
    * Run the program.
    */
-  run(data: SettingsData): Observable<WorkerResponse> {
+  run(): Observable<WorkerResponse> {
     return new Observable(observer => {
       // Get settings.
-      const settings_reply = Settings.from(data);
-      if (!settings_reply.ok) {
-        observer.next(sendError(settings_reply.reason));
+      if (runner == null) {
+        observer.next(sendError("Runner not loaded!"));
         observer.complete();
         return;
       }
       
       // Create runner.
-      runner = new Runner(settings_reply.data);
       runner.on("status", status => observer.next({ type: "status", status }));
       runner.on("ask", question => observer.next({ type: "question", ...question }));
 
