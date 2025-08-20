@@ -114,9 +114,6 @@ export const SystemSlice = createSlice({
       .addCase(killSystem.rejected, (state, { error }) => {
         state.status = { type: "error", message: error.message ?? "Unknown error!" };
       })
-      .addCase(pullTransformers.pending, state => {
-        state.transformers = [];
-      })
       .addCase(pullTransformers.fulfilled, (state, { payload }) => {
         if (payload.ok) {
           state.transformers = payload.data;
