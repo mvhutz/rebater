@@ -66,6 +66,9 @@ const SYSTEM = {
       console.log("Runner does not exist!");
       return;
     }
+
+    await runner.references.gather();
+    await runner.references.load();
     const table = runner.references.get(answer.reference);
     table.insert([answer.answer]);
     await table.save();
