@@ -7,7 +7,6 @@ import { getDisplayTab, toggleNewTransformerModal } from '../../store/slices/ui'
 import Select from '@mui/joy/Select';
 import Option from '@mui/joy/Option';
 import { getTransformers } from '../../store/slices/system';
-import { TransformerFileInfo } from '../../../system/transformer/AdvancedTransformer';
 import path from 'path-browserify';
 import FlashOffIcon from '@mui/icons-material/FlashOffRounded';
 import { Alert, Button, Card } from '@mui/joy';
@@ -15,6 +14,7 @@ import MalformedTransformerEdit from './MalformedTransformerEdit';
 import AdvancedTransformerEdit from './AdvancedTransformerEdit';
 import AddRounded from '@mui/icons-material/AddRounded';
 import NewTransformerModal from './NewTransformerModal';
+import { TransformerFileInfo } from '../../../system/transformer/BaseTransformers';
 
 /** ------------------------------------------------------------------------- */
 

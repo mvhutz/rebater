@@ -18,6 +18,7 @@ import { pullTransformers } from '../../store/slices/thunk';
 
 function generateAdvancedConfiguration(name: string): AdvancedTransformerData {
   return {
+    type: "advanced",
     name: name,
     tags: [],
     sources: [],

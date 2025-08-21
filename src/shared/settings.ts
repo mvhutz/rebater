@@ -2,7 +2,6 @@ import path from "path";
 import { bad, good, Reply } from "./reply";
 import z from "zod/v4";
 import { Time } from "./time";
-import { AdvancedTransformerData } from "../system/transformer/AdvancedTransformer";
 
 /** ------------------------------------------------------------------------- */
 
@@ -72,7 +71,7 @@ export class Settings {
    * @param transformer The transformer to check.
    * @returns If it will run, return true.
    */
-  willRun(transformer: AdvancedTransformerData): boolean {
+  willRun(transformer: { name: string, tags: string[] }): boolean {
     const {
       names: { include: names = [] },
       tags: { include: tags = [] }

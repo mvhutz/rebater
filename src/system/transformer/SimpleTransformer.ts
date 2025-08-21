@@ -19,6 +19,7 @@ import { SetTable } from "../table/Set";
 import { MetaRow } from "../row/Meta";
 import { SumRow } from "../row/Sum";
 import { DivideRow } from "../row/Divide";
+import { BaseTransformer } from "./BaseTransformers";
 
 /** ------------------------------------------------------------------------- */
 
@@ -53,13 +54,17 @@ export interface SimpleTransformerData {
 
 /** ------------------------------------------------------------------------- */
 
-export class SimpleTransformer {
+export class SimpleTransformer implements BaseTransformer {
   private readonly data: SimpleTransformerData;
   public constructor(data: SimpleTransformerData) {
     this.data = data;
   }
 
-  // Wil throw.
+  getDetails(): { name: string, tags: string[] } {
+    return { name: this.data.name, tags: [this.data.group] };
+  }
+
+  // Will throw.
   public buildTransformer(): AdvancedTransformer {
     const {
       transactionDate,
@@ -223,7 +228,33 @@ export class SimpleTransformer {
     return new SimpleTransformer(data);
   }
 
-  public static readonly SCHEMA = z.strictObject({
-
-  })
+  public static readonly SCHEMA: z.ZodType<SimpleTransformer, SimpleTransformerData> = z.strictObject({
+    type: z.literal("simple"),
+    name: z.string(),
+    group: z.string(),
+    source: z.strictObject({
+      sheets: z.array(z.string()),
+      file: z.string().optional(),
+    }),
+    properties: z.strictObject({
+      purchaseId: z.literal("counter"),
+      transactionDate: z.strictObject({ column: z.number(), parse: z.string().optional() }),
+      supplierId: z.strictObject({ value: z.string() }),
+      memberId: z.strictObject({ column: z.number() }),
+      distributorName: z.discriminatedUnion("type", [
+        z.strictObject({ type: z.literal("value"), value: z.string() }),
+        z.strictObject({ type: z.literal("column"), column: z.number() }),
+      ]),
+      purchaseAmount: z.strictObject({ column: z.number() }),
+      rebateAmount: z.strictObject({ column: z.number(), multiplier: z.number().optional() }),
+      invoiceId: z.strictObject({ column: z.number() }),
+      invoiceDate: z.strictObject({ column: z.number(), parse: z.string().optional() }),
+    }),
+    options: z.strictObject({
+      canadian_rebate: z.boolean(),
+      remove_null_rebates: z.boolean(),
+      additional_preprocessing: z.string().optional(),
+      additional_postprocessing: z.string().optional(),
+    }),
+  }).transform(d => new SimpleTransformer(d))
 }
