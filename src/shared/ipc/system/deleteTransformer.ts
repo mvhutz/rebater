@@ -1,5 +1,5 @@
-import { rm } from "fs/promises";
 import { good } from "../../reply";
+import { shell } from "electron";
 
 /** ------------------------------------------------------------------------- */
 
@@ -8,7 +8,7 @@ interface DeleteTransformerOptions {
 }
 
 export async function deleteTransformer(_: unknown, options: DeleteTransformerOptions) {
-  await rm(options.filepath);
+  await shell.trashItem(options.filepath);
 
   return good(undefined);
 }

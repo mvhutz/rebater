@@ -32,7 +32,6 @@ handle.runnerUpdate(async (_, { data }) => {
   return good(undefined);
 });
 
-console.log(1);
 handle.runnerQuestion(async (_, { data }) => {
   Store.dispatch(addQuestion(data));
   return good(undefined);

@@ -12,14 +12,15 @@ import path from 'path-browserify';
 import FlashOffIcon from '@mui/icons-material/FlashOffRounded';
 import { Alert } from '@mui/joy';
 import MalformedTransformerEdit from './MalformedTransformerEdit';
+import AdvancedTransformerEdit from './AdvancedTransformerEdit';
 
 /** ------------------------------------------------------------------------- */
 
 function TransformersTab() {
   const display = useAppSelector(getDisplayTab("transformers"));
   const transformers = useAppSelector(getTransformers);
-  const [currentGroup, setCurrentGroup] = React.useState<Maybe<string>>();
-  const [currentTransformer, setCurrentTransformer] = React.useState<Maybe<string>>();
+  const [currentGroup, setCurrentGroup] = React.useState<Maybe<string>>(null);
+  const [currentTransformer, setCurrentTransformer] = React.useState<Maybe<string>>(null);
 
   const { groups } = React.useMemo(() => {
     const result = {
@@ -41,12 +42,22 @@ function TransformersTab() {
     return result;
   }, [transformers]);
 
+  React.useLayoutEffect(() => {
+    for (const [groupName, items] of Object.entries(groups)) {
+      if (items.find(t => t.path === currentTransformer) != null) {
+        setCurrentGroup(groupName);
+        return;
+      }
+    }
+  }, [currentTransformer, groups]);
+
   const handleCurrentGroup = React.useCallback((_: unknown, value: Maybe<string>) => {
     setCurrentGroup(value);
     setCurrentTransformer(null);
   }, []);
 
   const handleCurrentTransformer = React.useCallback((_: unknown, value: Maybe<string>) => {
+    if (value == null) return;
     setCurrentTransformer(value);
   }, []);
 
@@ -70,6 +81,8 @@ function TransformersTab() {
     );
   } else if (currentTransformerItem.type === "malformed") {
     editor = <MalformedTransformerEdit info={currentTransformerItem}/>;
+  } else if (currentTransformerItem.type === "advanced") {
+    editor = <AdvancedTransformerEdit info={currentTransformerItem}/>;
   } else {
     editor = "WIP...";
   }

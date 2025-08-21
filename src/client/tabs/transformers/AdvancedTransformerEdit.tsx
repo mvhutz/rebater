@@ -2,52 +2,28 @@ import React from 'react';
 import Stack from '@mui/joy/Stack';
 import Typography from '@mui/joy/Typography';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
-import { MalformedTransformerFileInfo } from '../../../system/transformer/AdvancedTransformer';
+import { AdvancedTransformerFileInfo } from '../../../system/transformer/AdvancedTransformer';
 import RestoreRoundedIcon from '@mui/icons-material/RestoreRounded';
-import { Alert, Textarea, Button, IconButton } from '@mui/joy';
+import { Textarea, Button, IconButton } from '@mui/joy';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
-import ErrorIcon from '@mui/icons-material/Error';
 import { useAppDispatch } from '../../store/hooks';
 import { pullTransformers } from '../../store/slices/thunk';
 
 /** ------------------------------------------------------------------------- */
 
-interface MalformedErrorProps {
-  error: string
-}
-
-function MalformedError(props: MalformedErrorProps) {
-  const { error } = props;
-
-  return (
-    <Stack sx={{ position: "sticky", bottom: 10 }} width={1} px={1} boxSizing="border-box">
-      <Alert startDecorator={<ErrorIcon sx={{ fontSize: 25 }} />} sx={{ alignItems: 'flex-start', overflow: "scroll" }} color='danger' invertedColors variant="solid">
-        <div>
-          <div>Error</div>
-          <Typography color="primary" level="body-sm" fontWeight="400" component="code" sx={{ fontFamily: 'monospace', overflowWrap: "break-word" }}>
-            {error}
-          </Typography>
-        </div>
-      </Alert>
-    </Stack>
-  );
-}
-
-/** ------------------------------------------------------------------------- */
-
 const { invoke } = window.api;
 
-interface MalformedTransformerEditProps {
-  info: MalformedTransformerFileInfo;
+interface AdvancedTransformerEditProps {
+  info: AdvancedTransformerFileInfo;
 }
 
-function MalformedTransformerEdit(props: MalformedTransformerEditProps) {
+function AdvancedTransformerEdit(props: AdvancedTransformerEditProps) {
   const { info } = props;
-  const [text, setText] = React.useState(info.text);
+  const [text, setText] = React.useState(JSON.stringify(info.data, null, 2));
   const dispatch = useAppDispatch();
 
   React.useEffect(() => {
-    setText(info.text);
+    setText(JSON.stringify(info.data, null, 2));
   }, [info]);
 
   const handleText = React.useCallback<React.ChangeEventHandler<HTMLTextAreaElement>>((e) => {
@@ -55,8 +31,8 @@ function MalformedTransformerEdit(props: MalformedTransformerEditProps) {
   }, []);
 
   const handleRevert = React.useCallback(() => {
-    setText(info.text);
-  }, [info.text]);
+    setText(JSON.stringify(info.data, null, 2));
+  }, [info.data]);
 
   const handleSave = React.useCallback(async () => {
     await invoke.updateTransformer({ filepath: info.path, configuration: text });
@@ -81,11 +57,10 @@ function MalformedTransformerEdit(props: MalformedTransformerEditProps) {
         </Stack>
       </Stack>
       <Textarea variant='soft' minRows={2} value={text} onChange={handleText} sx={{ fontFamily: "monospace" }} size='sm' />
-      <MalformedError error={info.error}/>
     </Stack>
   );
 }
 
 /** ------------------------------------------------------------------------- */
 
-export default React.memo(MalformedTransformerEdit);
+export default React.memo(AdvancedTransformerEdit);

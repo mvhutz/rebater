@@ -87,7 +87,7 @@ function TransformerSettings() {
         <Stack spacing={2} pt={1}>
         {inner}
         {transformers.filter(t => t.type === "malformed").map(({ error }) => (
-          <Alert color="danger">
+          <Alert color="danger" key={error}>
             <Typography level="body-sm" color="danger" component="pre" fontFamily="monospace" sx={{ border: 0 }}>
               {error}
             </Typography>

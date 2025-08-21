@@ -5,12 +5,12 @@ import { good } from "../../reply";
 
 interface CreateTransformerOptions {
   /** The configuration itself, in JSON. */
-  configuration: unknown;
+  configuration: string;
 
   filepath: string;
 }
 
 export async function createTransformer(_: unknown, options: CreateTransformerOptions) {
-  await writeFile(options.filepath, JSON.stringify(options.configuration));
+  await writeFile(options.filepath, options.configuration);
   return good(undefined);
 }
