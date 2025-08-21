@@ -15,7 +15,6 @@ export async function getTransformers(): Promise<Reply<TransformerFileInfo[]>> {
 
   try {
     const available_transformers = await BaseTransformer.pullAllAvailable(isettings);
-    console.log(available_transformers);
     return good(available_transformers);
   } catch (err) {
     return bad(`Error parsing transformers: ${err}`);
