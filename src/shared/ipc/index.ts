@@ -10,6 +10,9 @@ import { getPing } from "./system/getPing";
 import { chooseDir } from "./system/chooseDir";
 import { openDir } from "./system/openDir";
 import { ignore } from "./system/ignore";
+import { deleteTransformer } from "./system/deleteTransformer";
+import { updateTransformer } from "./system/updateTransformer";
+import { createTransformer } from "./system/createTransformer";
 
 /** ------------------------------------------------------------------------- */
 
@@ -25,6 +28,9 @@ const IPC = createInterprocess({
     openOutputFile,
     getAllQuarters,
     createQuarter,
+    createTransformer,
+    deleteTransformer,
+    updateTransformer,
     setSettings: ignore<SettingsData, string>,
 
     // Those that do.

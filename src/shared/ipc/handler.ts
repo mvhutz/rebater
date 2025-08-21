@@ -156,6 +156,9 @@ export class IPCHandler {
     ipcMain.handle.openOutputFile();
     ipcMain.handle.getAllQuarters();
     ipcMain.handle.createQuarter();
+    ipcMain.handle.createTransformer();
+    ipcMain.handle.deleteTransformer();
+    ipcMain.handle.updateTransformer();
 
     ipcMain.handle.getSettings(async () => await this.getSettingsData());
     ipcMain.handle.setSettings(async (_, { data }) => await this.setSettingsData(data));
@@ -178,6 +181,9 @@ export class IPCHandler {
       ipcMain.remove.openOutputFile();
       ipcMain.remove.getAllQuarters();
       ipcMain.remove.createQuarter();
+      ipcMain.remove.createTransformer();
+      ipcMain.remove.deleteTransformer();
+      ipcMain.remove.updateTransformer();
     });
   }
 }
