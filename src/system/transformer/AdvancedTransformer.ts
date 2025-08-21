@@ -13,6 +13,7 @@ import { Row, Table } from "../information/Table";
 /** ------------------------------------------------------------------------- */
 
 export interface AdvancedTransformerData {
+  type: "advanced";
   name: string;
   tags: string[];
   sources: SourceData[];
@@ -259,6 +260,7 @@ export class AdvancedTransformer {
 
   toJSON(): AdvancedTransformerData {
     return {
+      type: "advanced",
       name: this.name,
       tags: this.tags,
       sources: this.sources.map(o => o.buildJSON()),
@@ -281,6 +283,7 @@ export class AdvancedTransformer {
    * The JSON schema of a Transformer.
    */
   public static readonly SCHEMA: z.ZodType<AdvancedTransformer, AdvancedTransformerData> = z.strictObject({
+    type: z.literal("advanced"),
     name: z.string(),
     tags: z.array(z.string()),
     sources: z.array(SOURCE_SCHEMA),
