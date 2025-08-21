@@ -14,7 +14,6 @@ import { ConcatRow, ConcatRowData } from "./Concat";
 import { DivideRow, DivideRowData } from "./Divide";
 import { SumRow, SumRowData } from "./Sum";
 import { Runner } from "../runner/Runner";
-import { XMLElement } from "xmlbuilder";
 import { UtilityRow, UtilityRowData } from "./Utility";
 import { SubtractRow, SubtractRowData } from "./Subtract";
 import { SearchRow, SearchRowData } from "./Search";
@@ -42,11 +41,8 @@ export abstract class BaseRow {
   abstract run(value: string, row: Row, runner: Runner, table: Table): Maybe<string>;
 
   /**
-   * Add this tag to an XML document.
-   * @param from The document to append to.
+   * Add this tag to an JSON document.
    */
-  abstract buildXML(from: XMLElement): void;
-
   abstract buildJSON(): RowData;
 
   static runMany(rows: BaseRow[], row: Row, runner: Runner, table: Table): Maybe<string> {
@@ -112,30 +108,4 @@ export const ROW_SCHEMA: z.ZodType<BaseRow, RowData> = z.union([
   SearchRow.SCHEMA,
   SignumRow.SCHEMA,
   AbsoluteRow.SCHEMA,
-]);
-
-/** All valid XML row operations. */
-export const ROW_XML_SCHEMA: z.ZodType<BaseRow> = z.union([
-  CoerceDateRow.XML_SCHEMA,
-  CoerceNumberRow.XML_SCHEMA,
-  CoerceUSDRow.XML_SCHEMA,
-  ColumnRow.XML_SCHEMA,
-  CounterRow.XML_SCHEMA,
-  LiteralRow.XML_SCHEMA,
-  ReplaceRow.XML_SCHEMA,
-  TrimRow.XML_SCHEMA,
-  ReferenceRow.XML_SCHEMA,
-  CharacterRow.XML_SCHEMA,
-  MultiplyRow.XML_SCHEMA,
-  MetaRow.XML_SCHEMA,
-  AddRow.XML_SCHEMA,
-  EqualsRow.XML_SCHEMA,
-  ConcatRow.XML_SCHEMA,
-  DivideRow.XML_SCHEMA,
-  SumRow.XML_SCHEMA,
-  UtilityRow.XML_SCHEMA,
-  SubtractRow.XML_SCHEMA,
-  SearchRow.XML_SCHEMA,
-  SignumRow.XML_SCHEMA,
-  AbsoluteRow.XML_SCHEMA,
 ]);

@@ -1,7 +1,5 @@
 import { z } from "zod/v4";
 import { BaseTable } from ".";
-import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
 import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
@@ -74,25 +72,4 @@ export class HeaderTable implements BaseTable {
     names: z.array(z.string()),
     action: z.union([z.literal("drop"), z.literal("keep")]),
   }).transform(s => new HeaderTable(s.names, s.action));
-
-  buildXML(from: XMLElement): void {
-    const parent = from.element("header", {
-      action: this.action,
-    });
-
-    for (const name of this.names) {
-      parent.element("name", undefined, name);
-    }
-  }
-
-  public static readonly XML_SCHEMA = makeNodeElementSchema("header",
-    z.strictObject({
-      action: z.union([z.literal("drop"), z.literal("keep")]),
-    }),
-    z.array(
-      makeNodeElementSchema("name", z.undefined(), z.tuple([
-        makeTextElementSchema(z.string())
-      ]))
-    ))
-    .transform(({ attributes: a, children: c }) => new HeaderTable(c.map(({ children: cx}) => cx[0].text), a.action));
 }

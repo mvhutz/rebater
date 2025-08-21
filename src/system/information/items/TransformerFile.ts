@@ -1,7 +1,6 @@
 import path from "path";
 import { bad, good, Reply } from "../../../shared/reply";
-import { Transformer } from "../../Transformer";
-import { fromText } from "../../xml";
+import { AdvancedTransformer } from "../../transformer/AdvancedTransformer";
 import { AbstractFile } from "./AbstractFile";
 import z from "zod/v4";
 
@@ -12,7 +11,7 @@ interface Meta { type: "json" | "xml" };
 /**
  * An AbstractFile which holds source data.
  */
-export class TransformerFile extends AbstractFile<Reply<Transformer>, Meta> {
+export class TransformerFile extends AbstractFile<Reply<AdvancedTransformer>, Meta> {
   constructor(path: string, meta: Meta) {
     super(path, bad("Not loaded!"), meta);
   }
@@ -21,19 +20,14 @@ export class TransformerFile extends AbstractFile<Reply<Transformer>, Meta> {
     if (!this.data.ok) {
       throw new Error("Not loaded!");
     } else {
-      return Buffer.from(this.data.data.toXML());
+      return Buffer.from(JSON.stringify(this.data.data.toJSON(), null, 2));
     }
   }
 
-  deserialize(data: Buffer): Reply<Transformer> {    
+  deserialize(data: Buffer): Reply<AdvancedTransformer> {    
     try {
-      if (this.meta.type === "json") {
-        const json = JSON.parse(data.toString());
-        return good(Transformer.SCHEMA.parse(json));
-      } else {
-        const xml = fromText(data.toString());
-        return good(Transformer.XML_SCHEMA.parse(xml));
-      }
+      const json = JSON.parse(data.toString());
+      return good(AdvancedTransformer.SCHEMA.parse(json));
     } catch (error) {
       const name = path.basename(this.path);
 

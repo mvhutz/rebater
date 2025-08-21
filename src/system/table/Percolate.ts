@@ -1,8 +1,6 @@
 import { z } from "zod/v4";
-import { ExcelIndexSchema, getExcelFromIndex, getTrueIndex } from "../util";
+import { ExcelIndexSchema, getExcelFromIndex } from "../util";
 import { BaseTable } from ".";
-import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema } from "../xml";
 import { Row, Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
@@ -68,20 +66,4 @@ export class PercolateTable implements BaseTable {
     columns: z.array(ExcelIndexSchema),
     matches: z.array(z.string()).default([""])
   }).transform(s => new PercolateTable(s.columns, s.matches));
-
-  buildXML(from: XMLElement): void {
-    from.element("percolate", {
-      columns: this.columns.map(getExcelFromIndex).join(","),
-      matches: this.matches.join(",")
-    });
-  }
-
-  public static readonly XML_SCHEMA = makeNodeElementSchema("percolate",
-    z.strictObject({
-      columns: z.string().default("").transform(s => s.split(",").filter(Boolean).map(getTrueIndex)),
-      matches: z.string().default("").transform(s => s.split(",")),
-      action: z.union([z.literal("drop"), z.literal("keep")]).default("keep"),
-    }),
-    z.undefined())
-    .transform(({ attributes: a }) => new PercolateTable(a.columns, a.matches))
 }

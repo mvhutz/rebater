@@ -2,10 +2,10 @@ import React from 'react';
 import Stack from '@mui/joy/Stack';
 import Typography from '@mui/joy/Typography';
 // import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
-import { useAppSelector } from '../../../../store/hooks';
-import TabMenu from '../../TabMenu';
-import { getDisplayTab } from '../../../../../client/store/slices/ui';
-import { getSystemQuestions } from '../../../../store/slices/system';
+import { useAppSelector } from '../../store/hooks';
+import TabMenu from '../../view/TabMenu';
+import { getDisplayTab } from '../../store/slices/ui';
+import { getSystemQuestions } from '../../store/slices/system';
 import InputModal from './InputModal';
 
 /** ------------------------------------------------------------------------- */

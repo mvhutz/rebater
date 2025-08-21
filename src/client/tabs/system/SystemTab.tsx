@@ -7,22 +7,22 @@ import Typography from '@mui/joy/Typography';
 import NightsStayRoundedIcon from '@mui/icons-material/NightsStayRounded';
 import DoneRoundedIcon from '@mui/icons-material/DoneRounded';
 import PriorityHighRoundedIcon from '@mui/icons-material/PriorityHighRounded';
-import { getSystemProgress, getSystemStatus, getSystemStatusName, isSystemActive, isSystemLoading } from '../../../../store/slices/system';
-import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
+import { getSystemProgress, getSystemStatus, getSystemStatusName, isSystemActive, isSystemLoading } from '../../store/slices/system';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { type SvgIconOwnProps } from '@mui/material';
 import AccordionGroup from '@mui/joy/AccordionGroup';
 import UpdateRoundedIcon from '@mui/icons-material/UpdateRounded';
 import ErrorCard from './ErrorCard';
 import DiscrepancyTable from './DiscrepancyTable';
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded';
-import TabMenu from '../../TabMenu';
-import { getDisplayTab } from '../../../../../client/store/slices/ui';
+import TabMenu from '../../view/TabMenu';
+import { getDisplayTab } from '../../store/slices/ui';
 import { Button, IconButton } from '@mui/joy';
 import FileOpenRoundedIcon from '@mui/icons-material/FileOpenRounded';
-import { killSystem, pushSystemSettings, startSystem } from '../../../../../client/store/slices/thunk';
+import { killSystem, pushSystemSettings, startSystem } from '../../store/slices/thunk';
 import BlockRounded from '@mui/icons-material/BlockRounded';
 import { ClearRounded, PlayArrowRounded } from '@mui/icons-material';
-import { SystemStatus } from '../../../../../shared/worker/response';
+import { SystemStatus } from '../../../shared/worker/response';
 
 /** ------------------------------------------------------------------------- */
 

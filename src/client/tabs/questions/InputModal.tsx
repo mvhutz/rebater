@@ -3,11 +3,11 @@ import Button from '@mui/joy/Button';
 import FormControl from '@mui/joy/FormControl';
 import FormLabel from '@mui/joy/FormLabel';
 import Input from '@mui/joy/Input';
-import { deleteQuestion } from '../../../../store/slices/system';
-import { useAppDispatch } from '../../../../store/hooks';
+import { deleteQuestion } from '../../store/slices/system';
+import { useAppDispatch } from '../../store/hooks';
 import { CardContent, Typography, Card, CardActions, Checkbox, Stack, Table } from '@mui/joy';
 import Markdown from 'react-markdown';
-import { Question } from '../../../../../shared/worker/response';
+import { Question } from '../../../shared/worker/response';
 
 /** ------------------------------------------------------------------------- */
 

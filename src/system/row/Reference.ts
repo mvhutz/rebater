@@ -1,8 +1,6 @@
 import { z } from "zod/v4";
 import { BaseRow } from ".";
 import { Runner } from "../runner/Runner";
-import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema } from "../xml";
 import { Row } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
@@ -118,23 +116,4 @@ export class ReferenceRow implements BaseRow {
     take: z.string(),
     group: z.string(),
   }).transform(s => new ReferenceRow(s.table, s.match, s.take, s.group));
-
-  buildXML(from: XMLElement): void {
-    from.element("reference", {
-      table: this.table,
-      match: this.match,
-      take: this.take,
-      group: this.group,
-    })
-  }
-
-  public static readonly XML_SCHEMA = makeNodeElementSchema("reference",
-    z.strictObject({
-      table: z.string(),
-      match: z.string(),
-      take: z.string(),
-      group: z.string(),
-    }),
-    z.undefined())
-    .transform(({ attributes: a }) => new ReferenceRow(a.table, a.match, a.take, a.group))
 }

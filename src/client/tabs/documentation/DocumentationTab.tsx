@@ -3,9 +3,9 @@ import Stack from '@mui/joy/Stack';
 import Markdown, { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Sheet, Typography } from '@mui/joy';
-import TabMenu from '../../TabMenu';
-import { useAppSelector } from '../../../../../client/store/hooks';
-import { getDisplayTab } from '../../../../../client/store/slices/ui';
+import TabMenu from '../../view/TabMenu';
+import { useAppSelector } from '../../store/hooks';
+import { getDisplayTab } from '../../store/slices/ui';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeSlug from 'rehype-slug';
 

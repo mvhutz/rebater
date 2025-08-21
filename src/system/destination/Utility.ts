@@ -2,8 +2,6 @@ import Papa from "papaparse";
 import { z } from "zod/v4";
 import { BaseDestination } from ".";
 import { Runner } from "../runner/Runner";
-import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
 import { ReferenceFile, ReferenceSchema } from "../information/items/ReferenceFile";
 import { Table } from "../information/Table";
 
@@ -52,15 +50,4 @@ export class UtilityDestination implements BaseDestination {
     type: z.literal("utility"),
     name: z.string(),
   }).transform(s => new UtilityDestination(s.name));
-
-  buildXML(from: XMLElement): void {
-    from.element("utility", undefined, this.name);
-  }
-
-  public static readonly XML_SCHEMA = makeNodeElementSchema("utility",
-    z.undefined(),
-    z.tuple([
-      makeTextElementSchema(z.string())
-    ]))
-    .transform(({ children: c }) => new UtilityDestination(c[0].text))
 }

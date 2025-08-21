@@ -1,8 +1,6 @@
 import { z } from "zod/v4";
 import { BaseRow } from ".";
 import { Runner } from "../runner/Runner";
-import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema } from "../xml";
 import { Row } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
@@ -28,13 +26,4 @@ export class CounterRow implements BaseRow {
   public static readonly SCHEMA: z.ZodType<BaseRow, CounterRowData> = z.strictObject({
     type: z.literal("counter"),
   }).transform(() => new CounterRow());
-
-  buildXML(from: XMLElement): void {
-    from.element("counter");
-  }
-
-  public static readonly XML_SCHEMA = makeNodeElementSchema("counter",
-    z.undefined(),
-    z.undefined())
-    .transform(() => new CounterRow())
 }

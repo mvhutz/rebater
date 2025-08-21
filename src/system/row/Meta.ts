@@ -3,8 +3,6 @@ import moment from "moment";
 import path from "path";
 import { BaseRow } from ".";
 import { Runner } from "../runner/Runner";
-import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
 import { Row } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
@@ -69,13 +67,4 @@ export class MetaRow implements BaseRow {
     type: z.literal("meta"),
     value: META_TYPE
   }).transform(s => new MetaRow(s.value));
-
-  buildXML(from: XMLElement): void {
-    from.element("meta", undefined, this.value);
-  }
-
-  public static readonly XML_SCHEMA = makeNodeElementSchema("meta",
-    z.undefined(),
-    z.tuple([makeTextElementSchema(META_TYPE)]))
-    .transform(({ children: c }) => new MetaRow(c[0].text))
 }

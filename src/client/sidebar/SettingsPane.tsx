@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import AccordionGroup from '@mui/joy/AccordionGroup';
 import Button from '@mui/joy/Button';
 import Stack from '@mui/joy/Stack';
@@ -9,8 +9,8 @@ import ContextSettings from './ContextSettings';
 import TransformerSettings from './TransformerSettings';
 import AdvancedSettings from './AdvancedSettings';
 import { SaveRounded } from '@mui/icons-material';
-import { pullAllQuarters, pullSystemSettings, pullTransformers, pushSystemSettings } from '../../../client/store/slices/thunk';
-import { getVisible } from '../../../client/store/slices/ui';
+import { pullAllQuarters, pullSystemSettings, pullTransformers, pushSystemSettings } from '../../client/store/slices/thunk';
+import { getVisible } from '../../client/store/slices/ui';
 import { Divider, IconButton } from '@mui/joy';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import NewQuarterModal from './NewQuarterModal';

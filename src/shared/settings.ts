@@ -1,8 +1,8 @@
 import path from "path";
 import { bad, good, Reply } from "./reply";
-import { type TransformerInfo } from "../system/Transformer";
 import z from "zod/v4";
 import { Time } from "./time";
+import { AdvancedTransformerData } from "../system/transformer/AdvancedTransformer";
 
 /** ------------------------------------------------------------------------- */
 
@@ -72,7 +72,7 @@ export class Settings {
    * @param transformer The transformer to check.
    * @returns If it will run, return true.
    */
-  willRun(transformer: TransformerInfo): boolean {
+  willRun(transformer: AdvancedTransformerData): boolean {
     const {
       names: { include: names = [] },
       tags: { include: tags = [] }
@@ -208,17 +208,9 @@ export class Settings {
 
   /**
    * Get a glob of all JSON transformers.
-   * @deprecated
    */
   getTransformerPathGlob() {
     return path.join(this.directory, 'transformers', '**/*.json');
-  }
-
-  /**
-   * Get a glob of all XML transformers.
-   */
-  getTransformerPathXMLGlob() {
-    return path.join(this.directory, 'transformers', '**/*.xml');
   }
 
   /**

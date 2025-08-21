@@ -1,4 +1,4 @@
-import { good, Reply } from "../../reply";
+import { bad, Reply } from "../../reply";
 
 /** ------------------------------------------------------------------------- */
 
@@ -8,8 +8,8 @@ import { good, Reply } from "../../reply";
  * @returns A simple reply.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function ignore<T>(_: unknown, args: T): Promise<Reply> {
+export async function ignore<I, O = undefined>(_: unknown, args: I): Promise<Reply<O>> {
   void [args];
 
-  return good(undefined);
+  return bad("Not defined!");
 }

@@ -1,8 +1,6 @@
 import { z } from "zod/v4";
-import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, RowData } from ".";
+import { BaseRow, ROW_SCHEMA, RowData } from ".";
 import { Runner } from "../runner/Runner";
-import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema } from "../xml";
 import { Row, Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
@@ -138,61 +136,4 @@ export class SearchRow implements BaseRow {
     const optional = matches_entries.filter(o => o[1].optional).map(o => o[0]);
     return new SearchRow(s.table, s.take, definitions, optional, primary[0]);
   });
-
-  buildXML(from: XMLElement): void {
-    const parent = from.element("search", {
-      table: this.table,
-      take: this.take,
-    });
-
-    for (const [id, rows] of Object.entries(this.matches)) {
-      const child = parent.element("match", { id, default: this.optional.includes(id) });
-
-      for (const row of rows) {
-        row.buildXML(child);
-      }
-    }
-  }
-
-  private static readonly PRE_XML_SCHEMA = makeNodeElementSchema("search",
-    z.strictObject({
-      table: z.string(),
-      take: z.string(),
-    }),
-    z.array(
-      makeNodeElementSchema("match",
-        z.strictObject({
-          id: z.string(),
-          primary: z.stringbool().default(false),
-          optional: z.stringbool().default(false)
-        }),
-        z.array(
-          z.lazy(() => ROW_XML_SCHEMA)
-        )
-      )
-    )
-  );
-
-  private static parseXML(data: z.infer<typeof SearchRow.PRE_XML_SCHEMA>): SearchRow {
-    const { table, take } = data.attributes;
-    const matches: Record<string, BaseRow[]> = {};
-    const optional = [];
-    let primary: Maybe<string> = undefined;
-
-    for (const match of data.children) {
-      matches[match.attributes.id] = match.children;
-
-      if (match.attributes.optional) {
-        optional.push(match.attributes.id);
-      }
-
-      if (match.attributes.primary) {
-        primary = match.attributes.id;
-      }
-    }
-
-    return new SearchRow(table, take, matches, optional, primary);
-  }
-
-  public static readonly XML_SCHEMA = this.PRE_XML_SCHEMA.transform(this.parseXML);
 }

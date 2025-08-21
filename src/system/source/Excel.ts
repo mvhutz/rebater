@@ -4,8 +4,6 @@ import assert from "assert";
 import { BaseSource } from ".";
 import { Runner } from "../runner/Runner";
 import path from "path";
-import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema } from "../xml";
 import { Row, Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
@@ -119,21 +117,4 @@ export class ExcelSource implements BaseSource {
     file: z.string().default("*"),
     sheets: z.array(z.string()).default([]),
   }).transform(s => new ExcelSource(s.group, s.file, s.sheets));
-
-  buildXML(from: XMLElement): void {
-    from.element("excel", {
-      group: this.group,
-      file: this.file,
-      sheets: this.sheets?.join(",")
-    });
-  }
-
-  public static readonly XML_SCHEMA = makeNodeElementSchema("excel",
-    z.strictObject({
-      group: z.string(),
-      file: z.string().default("*"),
-      sheets: z.string().default("").transform(s => s.split(",").filter(Boolean))
-    }),
-    z.undefined())
-    .transform(({ attributes: a }) => new ExcelSource(a.group, a.file, a.sheets))
 }

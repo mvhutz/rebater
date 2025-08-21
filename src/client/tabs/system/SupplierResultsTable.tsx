@@ -7,7 +7,7 @@ import Table from '@mui/joy/Table';
 import Typography from '@mui/joy/Typography';
 import SpeedIcon from '@mui/icons-material/Speed';
 import React from 'react';
-import { RunResults } from '../../../../../shared/worker/response';
+import { RunResults } from '../../../shared/worker/response';
 
 /** ------------------------------------------------------------------------- */
 

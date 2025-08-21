@@ -9,7 +9,6 @@ import { SelectTable, SelectTableData } from "./Select";
 import { SetTable, SetTableData } from "./Set";
 import { TrimTable, TrimTableData } from "./Trim";
 import { Runner } from "../runner/Runner";
-import { XMLElement } from "xmlbuilder";
 import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
@@ -26,12 +25,6 @@ export abstract class BaseTable {
    * @param runner The running context.
    */
   abstract run(table: Table, runner: Runner): Table;
-
-  /**
-   * Add this tag to an XML document.
-   * @param from The document to append to.
-   */
-  abstract buildXML(from: XMLElement): void;
 
   abstract buildJSON(): TableData;
 
@@ -74,17 +67,3 @@ export const TABLE_SCHEMA: z.ZodType<BaseTable, TableData> = z.union([
   SetTable.SCHEMA,
   TrimTable.SCHEMA
 ]);
-
-/** All possible XML operations. */
-export const TABLE_XML_SCHEMA: z.ZodType<BaseTable> = z.union([
-  ChopTable.XML_SCHEMA,
-  CoalesceTable.XML_SCHEMA,
-  DebugTable.XML_SCHEMA,
-  FilterTable.XML_SCHEMA,
-  HeaderTable.XML_SCHEMA,
-  PercolateTable.XML_SCHEMA,
-  SelectTable.XML_SCHEMA,
-  SetTable.XML_SCHEMA,
-  TrimTable.XML_SCHEMA
-]);
-

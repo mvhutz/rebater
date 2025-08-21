@@ -3,7 +3,7 @@ import { AbstractStore } from "./AbstractStore";
 import { getSubFiles } from "../../util";
 import { TransformerFile } from "../items/TransformerFile";
 import assert from "assert";
-import { Transformer } from "../../Transformer";
+import { AdvancedTransformer } from "../../transformer/AdvancedTransformer";
 
 /** ------------------------------------------------------------------------- */
 
@@ -35,7 +35,7 @@ export class TransformerStore extends AbstractStore<TransformerFile, Meta> {
    * Get all valid transformers.
    * @returns All transformers from files in the store, which are valid.
    */
-  public getValid(): Transformer[] {
+  public getValid(): AdvancedTransformer[] {
     const transformer_replies = this.items.values().map(f => f.getData());
     const good = transformer_replies.filter(r => r.ok);
     return good.map(g => g.data).toArray();
@@ -48,8 +48,8 @@ export class TransformerStore extends AbstractStore<TransformerFile, Meta> {
    * another `<utility>` transformer to run beforehand.
    * @returns The same transformers, ordered in a way that causes no conflicts.
    */
-  public static getOrdered(transformers: Transformer[]): Transformer[] {
-    const by_name = new Map<string, Transformer>();
+  public static getOrdered(transformers: AdvancedTransformer[]): AdvancedTransformer[] {
+    const by_name = new Map<string, AdvancedTransformer>();
     
     // No duplicates.
     for (const transformer of transformers) {
@@ -65,10 +65,10 @@ export class TransformerStore extends AbstractStore<TransformerFile, Meta> {
     }
 
     // Find topological ordering.
-    const stack: Transformer[] = [];
-    const visited = new WeakSet<Transformer>();
+    const stack: AdvancedTransformer[] = [];
+    const visited = new WeakSet<AdvancedTransformer>();
 
-    function DFS(node: Transformer) {
+    function DFS(node: AdvancedTransformer) {
       visited.add(node);
 
       for (const neighbor_hash of node.requirements) {

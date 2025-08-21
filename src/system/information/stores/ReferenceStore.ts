@@ -14,6 +14,8 @@ export class ReferenceStore extends AbstractStore<ReferenceFile, Meta> {
   public readonly name = "references";
 
   public async gather(): Promise<void> {
+    this.wipe();
+    
     for (const [filepath, name] of await getSubFiles(this.meta.directory)) {
       const reference = new ReferenceFile(filepath, path.parse(name).name, {});
       this.add(reference);

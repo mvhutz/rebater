@@ -3,7 +3,7 @@ import { Reply } from "../../../shared/reply";
 import { RootState } from "..";
 import { ResourceStatus } from "../../../shared/resource";
 import { SettingsData } from "../../../shared/settings";
-import { TransformerInfo } from "../../../system/Transformer";
+import { TransformerFileInfo } from "../../../system/transformer/AdvancedTransformer";
 import { TimeData } from "../../../shared/time";
 
 /** ------------------------------------------------------------------------- */
@@ -35,7 +35,7 @@ export const pushSystemSettings = createAsyncThunk(
 export const pullSystemSettings = createAsyncThunk(
   'system/pullSettings',
   async (): Promise<Reply<Maybe<SettingsData>>> => {
-    return await invoke.getSettings();
+    return await invoke.getSettings({});
   },
   {
     condition(_, { getState }) {
@@ -48,15 +48,8 @@ export const pullSystemSettings = createAsyncThunk(
 
 export const startSystem = createAsyncThunk(
   'system/start',
-  async (_, { getState }) => {
-    const { system } = getState() as RootState;
-    return await invoke.runProgram(system.settings.data);
-  },
-  {
-    condition(_, { getState }) {
-      const { system } = getState() as RootState;
-      if (system.settings.status !== ResourceStatus.PRESENT) return false;
-    },
+  async () => {
+    return await invoke.runProgram({});
   }
 );
 
@@ -69,7 +62,7 @@ export const killSystem = createAsyncThunk(
 
 export const pullTransformers = createAsyncThunk(
   'system/pullTransformers',
-  async (): Promise<Reply<Reply<TransformerInfo>[]>> => {
+  async (): Promise<Reply<TransformerFileInfo[]>> => {
     return await invoke.getTransformers();
   }
 );

@@ -1,8 +1,6 @@
 import { z } from "zod/v4";
-import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, RowData } from ".";
+import { BaseRow, ROW_SCHEMA, RowData } from ".";
 import { Runner } from "../runner/Runner";
-import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema } from "../xml";
 import { Row, Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
@@ -46,16 +44,4 @@ export class AddRow implements BaseRow {
     type: z.literal("add"),
     with: z.lazy(() => z.array(ROW_SCHEMA))
   }).transform(s => new AddRow(s.with));
-
-  buildXML(from: XMLElement): void {
-    const element = from.element("add");
-    for (const child of this.other) {
-      child.buildXML(element);
-    }
-  }
-
-  public static readonly XML_SCHEMA = makeNodeElementSchema("add",
-    z.undefined(),
-    z.array(z.lazy(() => ROW_XML_SCHEMA)))
-    .transform(x => new AddRow(x.children))
 }

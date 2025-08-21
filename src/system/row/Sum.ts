@@ -1,8 +1,6 @@
 import { z } from "zod/v4";
 import { ExcelIndexSchema, getExcelFromIndex } from "../util";
 import { BaseRow } from ".";
-import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema, makeTextElementSchema } from "../xml";
 import { Row, Table } from "../information/Table";
 import { Runner } from "../runner/Runner";
 import assert from "assert";
@@ -19,7 +17,7 @@ export interface SumRowData {
 /**
  * Find the combined sum of a specific column of the table that the row is from.
  */
-export class SumRow extends BaseRow {
+export class SumRow implements BaseRow {
   /** The column to sum. */
   private readonly column: number;
 
@@ -31,8 +29,6 @@ export class SumRow extends BaseRow {
    * @param column The column to be summed.
    */
   public constructor(column: number) {
-    super();
-
     this.column = column;
   }
 
@@ -69,15 +65,4 @@ export class SumRow extends BaseRow {
     type: z.literal("sum"),
     column: ExcelIndexSchema,
   }).transform(s => new SumRow(s.column));
-
-  buildXML(from: XMLElement): void {
-    from.element("sum", undefined, getExcelFromIndex(this.column));
-  }
-
-  public static readonly XML_SCHEMA = makeNodeElementSchema("sum",
-    z.undefined(),
-    z.tuple([
-      makeTextElementSchema(ExcelIndexSchema)
-    ]))
-    .transform(x => new SumRow(x.children[0].text))
 }

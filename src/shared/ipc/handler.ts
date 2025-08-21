@@ -1,11 +1,15 @@
-import { bad, good } from "../reply";
-import { SettingsData } from "../settings";
+import { bad, good, Reply } from "../reply";
+import { Settings, SettingsData } from "../settings";
 import { Answer, WorkerRequest } from "../worker/request";
 import { SystemStatus, WorkerResponse } from "../worker/response";
-import { BrowserWindow } from "electron";
+import { app, BrowserWindow } from "electron";
 import IPC from ".";
 import { ModuleThread, spawn, Worker } from "threads";
 import { System } from "../../worker";
+import path from "path";
+import { existsSync } from "fs";
+import { lstat, readFile, writeFile } from "fs/promises";
+import z from "zod/v4";
 
 /** ------------------------------------------------------------------------- */
 
@@ -15,18 +19,66 @@ export class IPCHandler {
   private window: BrowserWindow;
   private worker: Worker;
   private thread: ModuleThread<System>;
+  private settings_data: Reply<SettingsData>;
 
   constructor(window: BrowserWindow, worker: Worker, thread: ModuleThread<System>) {
     this.worker = worker;
     this.thread = thread;
     this.window = window;
+    this.settings_data = bad("Not loaded!");
+  }
+
+  static async fetchSettingsData(): Promise<Reply<SettingsData>> {
+    const file = path.join(app.getPath("userData"), "settings.json");
+    
+    // Return the default settings, if the file does not exist.
+    if (!existsSync(file)) {
+      return good(Settings.DEFAULT_SETTINGS);
+    }
+  
+    // Should only be a file.
+    const stat = await lstat(file);
+    if (!stat.isFile()) {
+      return bad("File not found in settings location.");
+    }
+  
+    // Parse data.
+    const raw = await readFile(file, 'utf-8');
+    const json = JSON.parse(raw);
+    const parsed = Settings.SCHEMA.safeParse(json);
+  
+    if (!parsed.success) {
+      return bad(z.prettifyError(parsed.error));
+    } else {
+      return good(parsed.data);
+    }
+  }
+
+  async refreshSettingsData() {
+    this.settings_data = await IPCHandler.fetchSettingsData();
+    this.thread.setSettings(this.settings_data);
+  }
+
+  async getSettingsData() {
+    await this.refreshSettingsData();
+    return this.settings_data;
+  }
+
+  async setSettingsData(data: SettingsData) {
+    const file = path.join(app.getPath("userData"), "settings.json");
+    await writeFile(file, JSON.stringify(data));
+    await this.refreshSettingsData();
+
+    return good("Settings saved!");
   }
 
   static async create(window: BrowserWindow): Promise<IPCHandler> {
     const worker = new Worker('worker.js');
     const thread = await spawn<System>(worker);
 
-    return new IPCHandler(window, worker, thread);
+    const handler = new IPCHandler(window, worker, thread);
+    await handler.refreshSettingsData();
+    return handler;
   }
 
   /**
@@ -45,6 +97,7 @@ export class IPCHandler {
     this.worker.terminate();
     this.worker = new Worker('worker.js');
     this.thread = await spawn<System>(this.worker);
+    await this.refreshSettingsData();
 
     return good(undefined);
   }
@@ -84,16 +137,11 @@ export class IPCHandler {
    * Handle all interaction between the main thread and the renderer.
    * @param mainWindow The renderer.
    */
-  async handleRunProgram(settings: Maybe<SettingsData>) {
-    // There must be data.
-    if (settings == null) {
-      return bad("Cannot give empty settings.");
-    }
-    
+  async handleRunProgram() {    
     // Create new worker.
     await this.handleCancelProgram();
 
-    const observable = this.thread.run(settings);
+    const observable = this.thread.run();
     observable.subscribe(m => this.handleWorkerMessage(m));
 
     return good(undefined);
@@ -103,18 +151,22 @@ export class IPCHandler {
     // Create on window open.
     ipcMain.handle.chooseDir();
     ipcMain.handle.getPing();
-    ipcMain.handle.getSettings();
-    ipcMain.handle.setSettings();
     ipcMain.handle.openDir();
     ipcMain.handle.getTransformers();
     ipcMain.handle.openOutputFile();
     ipcMain.handle.getAllQuarters();
     ipcMain.handle.createQuarter();
+    ipcMain.handle.createTransformer();
+    ipcMain.handle.deleteTransformer();
+    ipcMain.handle.updateTransformer();
+
+    ipcMain.handle.getSettings(async () => await this.getSettingsData());
+    ipcMain.handle.setSettings(async (_, { data }) => await this.setSettingsData(data));
 
     ipcMain.handle.answerQuestion(async (_, { data }) => await this.handleAnswerQuestion(data));
     ipcMain.handle.cancelProgram(async () => await this.handleCancelProgram());
     ipcMain.handle.exitProgram(async () => this.handleExitProgram());
-    ipcMain.handle.runProgram(async (_, { data }) => await this.handleRunProgram(data));
+    ipcMain.handle.runProgram(async () => await this.handleRunProgram());
 
     // Remove on window close.
     this.window.on("close", () => {
@@ -129,6 +181,9 @@ export class IPCHandler {
       ipcMain.remove.openOutputFile();
       ipcMain.remove.getAllQuarters();
       ipcMain.remove.createQuarter();
+      ipcMain.remove.createTransformer();
+      ipcMain.remove.deleteTransformer();
+      ipcMain.remove.updateTransformer();
     });
   }
 }

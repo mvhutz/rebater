@@ -1,7 +1,5 @@
 import { z } from "zod/v4";
 import { BaseTable } from ".";
-import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema } from "../xml";
 import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
@@ -46,20 +44,5 @@ export class TrimTable implements BaseTable {
     top: z.number().optional(),
     bottom: z.number().optional(),
   }).transform(s => new TrimTable(s.top, s.bottom));
-
-  buildXML(from: XMLElement): void {
-    from.element("trim", {
-      top: this.top,
-      bottom: this.bottom == null ? undefined : -this.bottom
-    })
-  }
-
-  public static readonly XML_SCHEMA = makeNodeElementSchema("trim",
-    z.strictObject({
-      top: z.coerce.number().optional(),
-      bottom: z.coerce.number().optional(),
-    }),
-    z.undefined())
-    .transform(({ attributes: a }) => new TrimTable(a.top, a.bottom));
 }
 

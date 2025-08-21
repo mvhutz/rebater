@@ -1,9 +1,7 @@
 import { z } from "zod/v4";
-import { BaseRow, ROW_SCHEMA, ROW_XML_SCHEMA, RowData } from "../row";
+import { BaseRow, ROW_SCHEMA, RowData } from "../row";
 import { BaseTable } from ".";
 import { Runner } from "../runner/Runner";
-import { XMLElement } from "xmlbuilder";
-import { makeNodeElementSchema } from "../xml";
 import { Table } from "../information/Table";
 
 /** ------------------------------------------------------------------------- */
@@ -48,17 +46,4 @@ export class FilterTable implements BaseTable {
     type: z.literal("filter"),
     criteria: z.lazy(() => z.array(ROW_SCHEMA)),
   }).transform(s => new FilterTable(s.criteria));
-
-  buildXML(from: XMLElement): void {
-    const parent = from.element("filter");
-
-    for (const criterion of this.criteria) {
-      criterion.buildXML(parent);
-    }
-  }
-
-  public static readonly XML_SCHEMA = makeNodeElementSchema("filter",
-    z.undefined(),
-    z.array(z.lazy(() => ROW_XML_SCHEMA)))
-    .transform(({ children: c }) => new FilterTable(c))
 }
