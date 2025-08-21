@@ -10,9 +10,10 @@ import { getTransformers } from '../../store/slices/system';
 import { TransformerFileInfo } from '../../../system/transformer/AdvancedTransformer';
 import path from 'path-browserify';
 import FlashOffIcon from '@mui/icons-material/FlashOffRounded';
-import { Alert } from '@mui/joy';
+import { Alert, Button, Card } from '@mui/joy';
 import MalformedTransformerEdit from './MalformedTransformerEdit';
 import AdvancedTransformerEdit from './AdvancedTransformerEdit';
+import AddRounded from '@mui/icons-material/AddRounded';
 
 /** ------------------------------------------------------------------------- */
 
@@ -90,22 +91,27 @@ function TransformersTab() {
   return (
     <Stack padding={0} display={display} height={1} boxSizing="border-box" position="relative">
       <TabMenu>
-        <Typography level="body-lg" pt={0.5} color="neutral">
-          <i>From</i>
+        <Card variant="outlined" orientation="horizontal"  sx={{ p: 0, gap: 1, alignItems: "center" }}>
+        <Typography level="body-sm" color="neutral" pl={1}>
+          From
         </Typography>
-        <Select size="sm" placeholder="Group..." variant="soft" value={currentGroup} onChange={handleCurrentGroup}>
+        <Select size="sm" placeholder="Group?" variant="soft" value={currentGroup} onChange={handleCurrentGroup}>
           {Object.keys(groups).map(g => (
             <Option value={g} key={g}>{g}</Option>
           ))}
         </Select>
-        <Typography level="body-lg" pt={0.5} color="neutral">
-          <i>editing</i>
+        <Typography level="body-sm" color="neutral">
+          edit
         </Typography>
-        <Select size="sm" placeholder="Transformer..." variant="soft" value={currentTransformer} onChange={handleCurrentTransformer}>
+        <Select size="sm" placeholder="Transformer?" variant="soft" value={currentTransformer} onChange={handleCurrentTransformer} disabled={currentGroupItems == null}>
           {currentGroupItems?.map((g) => (
             <Option value={g.path} key={g.path}>{g.type !== "malformed" ? g.data.name : path.basename(g.path)}</Option>
           ))}
         </Select>
+        </Card>
+        <Button size='sm' variant="outlined" color="primary" startDecorator={<AddRounded/>}>
+          New
+        </Button>
       </TabMenu>
       {editor}
     </Stack>

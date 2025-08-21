@@ -70,7 +70,7 @@ function MalformedTransformerEdit(props: MalformedTransformerEditProps) {
 
   return (
     <Stack padding={2} width={1} boxSizing="border-box" spacing={2} position="relative">
-      <Stack direction="row" justifyContent="space-between">
+      <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography level="h3">Configuration</Typography>
         <Stack direction="row" spacing={1}>
           <Button variant="outlined" color="neutral" startDecorator={<SaveRoundedIcon/>} onClick={handleSave}>Save</Button>
