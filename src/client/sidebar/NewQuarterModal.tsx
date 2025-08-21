@@ -61,53 +61,53 @@ function NewQuarterModal() {
     if (!reply.ok) {
       dispatch(pushMessage({ type: "error", text: reply.reason }));
     }
-    
+
     dispatch(toggleNewQuarterModal());
     handleReset();
   }, [currentStructure, dispatch, new_ready, new_time, old_ready, old_time, handleReset]);
-  
+
   const handleClose = React.useCallback(() => {
     dispatch(toggleNewQuarterModal());
   }, [dispatch]);
-  
+
   return (
     <Modal open={open} onClose={handleClose}>
-        <ModalDialog>
-          <DialogTitle>Generate New Quarter</DialogTitle>
-          <DialogContent>
-            Fill in the form below to pre-fill a file structure for a new quarter.
-            </DialogContent>
-            <Stack spacing={4}>
-              <Stack direction="row" spacing={2} pt={1}>
-              <FormControl sx={{ flex: 1 }}>
-                <FormLabel>Year</FormLabel>
-                <Input value={year} placeholder='----' slotProps={{ input: { size: 1 } }} onChange={e => setYear(e.target.value)}/>
-                <FormHelperText>The quarter to process.</FormHelperText>
-              </FormControl>
-              <FormControl>
-                <FormLabel>Quarter</FormLabel>
-                <Select value={quarter} placeholder="--" onChange={(_, v) => setQuarter(v ?? NaN)}>
-                  <Option value={1}>Q1</Option>
-                  <Option value={2}>Q2</Option>
-                  <Option value={3}>Q3</Option>
-                  <Option value={4}>Q4</Option>
-                </Select>
-              </FormControl>
-            </Stack>
-              <FormControl>
-              <Stack direction="row" alignItems="center" justifyContent="space-between">
-                <FormLabel>Copy Structure</FormLabel>
-                <Switch checked={currentStructure} onChange={e => setCurrentStructure(e.target.checked)}/>
-              </Stack>
-              <FormHelperText>Copy the directory structure (excluding files) of the current quarter's sources.</FormHelperText>
+      <ModalDialog>
+        <DialogTitle>Generate New Quarter</DialogTitle>
+        <DialogContent>
+          Fill in the form below to pre-fill a file structure for a new quarter.
+        </DialogContent>
+        <Stack spacing={4}>
+          <Stack direction="row" spacing={2} pt={1}>
+            <FormControl sx={{ flex: 1 }}>
+              <FormLabel>Year</FormLabel>
+              <Input value={year} placeholder='----' slotProps={{ input: { size: 1 } }} onChange={e => setYear(e.target.value)} />
+              <FormHelperText>The quarter to process.</FormHelperText>
+            </FormControl>
+            <FormControl>
+              <FormLabel>Quarter</FormLabel>
+              <Select value={quarter} placeholder="--" onChange={(_, v) => setQuarter(v ?? NaN)}>
+                <Option value={1}>Q1</Option>
+                <Option value={2}>Q2</Option>
+                <Option value={3}>Q3</Option>
+                <Option value={4}>Q4</Option>
+              </Select>
             </FormControl>
           </Stack>
-          <DialogActions>
-            <Button type="submit" onClick={handleCreate} disabled={!old_ready || !new_ready}>Create</Button>
-            <Button type="submit" color="neutral" variant="outlined" onClick={handleClose}>Ignore</Button>
-          </DialogActions>
-        </ModalDialog>
-      </Modal>
+          <FormControl>
+            <Stack direction="row" alignItems="center" justifyContent="space-between">
+              <FormLabel>Copy Structure</FormLabel>
+              <Switch checked={currentStructure} onChange={e => setCurrentStructure(e.target.checked)} />
+            </Stack>
+            <FormHelperText>Copy the directory structure (excluding files) of the current quarter's sources.</FormHelperText>
+          </FormControl>
+        </Stack>
+        <DialogActions>
+          <Button type="submit" onClick={handleCreate} disabled={!old_ready || !new_ready}>Create</Button>
+          <Button type="submit" color="neutral" variant="outlined" onClick={handleClose}>Ignore</Button>
+        </DialogActions>
+      </ModalDialog>
+    </Modal>
   );
 }
 
