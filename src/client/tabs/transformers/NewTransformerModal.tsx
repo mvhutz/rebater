@@ -13,6 +13,7 @@ import Stack from '@mui/joy/Stack';
 import { DialogActions, FormHelperText, Radio, RadioGroup } from '@mui/joy';
 import { AdvancedTransformerData } from '../../../system/transformer/AdvancedTransformer';
 import { pullTransformers } from '../../store/slices/thunk';
+import { SimpleTransformerData } from '../../../system/transformer/SimpleTransformer';
 
 /** ------------------------------------------------------------------------- */
 
@@ -30,6 +31,35 @@ function generateAdvancedConfiguration(name: string): AdvancedTransformerData {
   }
 }
 
+function generateBasicConfiguration(name: string, group: string): SimpleTransformerData {
+  return {
+    type: 'simple',
+    name: name,
+    group: group,
+    source: {
+      sheets: [],
+      file: undefined
+    },
+    properties: {
+    purchaseId: 'counter',
+    transactionDate: undefined,
+    supplierId: undefined,
+    memberId: undefined,
+    distributorName: undefined,
+    purchaseAmount: undefined,
+    rebateAmount: undefined,
+    invoiceId: undefined,
+    invoiceDate: undefined
+  },
+  options: {
+    canadian_rebate: false,
+    remove_null_rebates: false,
+    additional_preprocessing: undefined,
+    additional_postprocessing: undefined
+  }
+}
+}
+
 /** ------------------------------------------------------------------------- */
 
 interface NewTransformerModalProps {
@@ -43,7 +73,8 @@ function NewTransformerModal(props: NewTransformerModalProps) {
   const open = useAppSelector(getNewTransformerModal);
   const dispatch = useAppDispatch();
   const [name, setName] = React.useState("");
-  const [type, setType] = React.useState<"advanced">("advanced");
+  const [group, setGroup] = React.useState("");
+  const [type, setType] = React.useState<"advanced" | "basic">("basic");
 
   const handleClose = React.useCallback(() => {
     dispatch(toggleNewTransformerModal());
@@ -53,6 +84,7 @@ function NewTransformerModal(props: NewTransformerModalProps) {
     const { value } = e.target;
     switch (value) {
       case "advanced":
+      case "basic":
         setType(value);
         break;
       default:
@@ -62,6 +94,11 @@ function NewTransformerModal(props: NewTransformerModalProps) {
   }, [dispatch])
 
   const handleCreate = React.useCallback(async () => {
+    if (name === "") {
+      dispatch(pushMessage({ type: "error", text: "Name not specified!" }));
+      return;
+    }
+    
     switch (type) {
       case "advanced": {
         const config = generateAdvancedConfiguration(name);
@@ -78,10 +115,30 @@ function NewTransformerModal(props: NewTransformerModalProps) {
         }
         break;
       }
+      case "basic": {
+        if (group === "") {
+          dispatch(pushMessage({ type: "error", text: "Group not specified!" }));
+          return;
+        }
+
+        const config = generateBasicConfiguration(name, group);
+        const reply = await invoke.createTransformer({
+          name: name,
+          configuration: JSON.stringify(config, null, 2),
+        });
+
+        if (!reply.ok) {
+          dispatch(pushMessage({ type: "error", text: reply.reason }));
+        } else {
+          await dispatch(pullTransformers());
+          onTransformer?.(reply.data);
+        }
+        break;
+      }
     }
 
     dispatch(toggleNewTransformerModal());
-  }, [dispatch, name, onTransformer, type]);
+  }, [dispatch, group, name, onTransformer, type]);
 
   return (
     <Modal open={open} onClose={handleClose}>
@@ -90,7 +147,7 @@ function NewTransformerModal(props: NewTransformerModalProps) {
         <DialogContent>
           Fill in the form below to pre-fill a transformer configuration.
         </DialogContent>
-        <Stack spacing={4}>
+        <Stack spacing={2}>
           <FormControl sx={{ flex: 1 }}>
             <FormLabel>Title</FormLabel>
             <Input value={name} placeholder='Give the transformer a name...' slotProps={{ input: { size: 1 } }} onChange={e => setName(e.target.value)} />
@@ -99,7 +156,7 @@ function NewTransformerModal(props: NewTransformerModalProps) {
             <FormLabel>Transformer Format</FormLabel>
             <RadioGroup value={type} name="radio-buttons-group" sx={{ gap: 3 }} onChange={handleChangeType}>
               <FormControl sx={{ flexDirection: 'row', gap: 2, pl: 2 }}>
-                <Radio value="basic" variant="outlined" overlay disabled />
+                <Radio value="basic" variant="outlined" overlay />
                 <div>
                   <FormLabel>Basic</FormLabel>
                   <FormHelperText>Best for simple rebate extractions.</FormHelperText>
@@ -113,6 +170,10 @@ function NewTransformerModal(props: NewTransformerModalProps) {
                 </div>
               </FormControl>
             </RadioGroup>
+          </FormControl>
+          <FormControl sx={{ flex: 1 }}>
+            <FormLabel>Group</FormLabel>
+            <Input disabled={type !== "basic"} value={group} placeholder='What group will this configuration be for?' slotProps={{ input: { size: 1 } }} onChange={e => setGroup(e.target.value)} />
           </FormControl>
         </Stack>
         <DialogActions>

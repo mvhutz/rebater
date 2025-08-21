@@ -55,7 +55,13 @@ export abstract class BaseTransformer {
 
     try {
       const json = JSON.parse(raw);
-      return { type: "advanced", path: filepath, data: AdvancedTransformer.SCHEMA.parse(json).toJSON() };
+      const data = TRANSFORMER_SCHEMA.parse(json).toJSON();
+
+      if (data.type === "advanced") {
+        return { type: data.type, path: filepath, data: data };
+      } else {
+        return { type: data.type, path: filepath, data: data };
+      }
     } catch (error) {
       let message;
 

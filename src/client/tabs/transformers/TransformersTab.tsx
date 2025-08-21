@@ -15,6 +15,7 @@ import AdvancedTransformerEdit from './AdvancedTransformerEdit';
 import AddRounded from '@mui/icons-material/AddRounded';
 import NewTransformerModal from './NewTransformerModal';
 import { TransformerFileInfo } from '../../../system/transformer/BaseTransformers';
+import SimpleTransformerEdit from './SimpleTransformerEdit';
 
 /** ------------------------------------------------------------------------- */
 
@@ -40,6 +41,9 @@ function TransformersTab() {
           result.groups["Malformed"] ??= [];
           result.groups["Malformed"].push(transformer);
           break;
+        case "simple":
+          result.groups[transformer.data.group] ??= [];
+          result.groups[transformer.data.group].push(transformer);
       }
     }
     return result;
@@ -100,6 +104,8 @@ function TransformersTab() {
     editor = <MalformedTransformerEdit info={currentTransformerItem}/>;
   } else if (currentTransformerItem.type === "advanced") {
     editor = <AdvancedTransformerEdit info={currentTransformerItem}/>;
+  } else if (currentTransformerItem.type === "simple") {
+    editor = <SimpleTransformerEdit info={currentTransformerItem}/>;
   } else {
     editor = "WIP...";
   }
