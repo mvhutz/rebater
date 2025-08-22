@@ -33,16 +33,16 @@ export interface SimpleTransformerData {
   }
   properties: {
     purchaseId: "counter";
-    transactionDate?: { column: number; parse?: string; };
-    supplierId?: { value: string; }
-    memberId?: { column: number; }
-    distributorName?:
-      | { type: "value", value: string; }
-      | { type: "column", column: number; }
-    purchaseAmount?: { column: number; };
-    rebateAmount?: { column: number; multiplier?: number; };
-    invoiceId?: { column: number; };
-    invoiceDate?: { column: number; parse?: string; };
+    transactionDate: { column?: number; parse?: string; };
+    supplierId: { value?: string; }
+    memberId: { column?: number; }
+    distributorName:
+      | { type: "value", value?: string; }
+      | { type: "column", column?: number; }
+    purchaseAmount: { column?: number; };
+    rebateAmount: { column?: number; multiplier?: number; };
+    invoiceId: { column?: number; };
+    invoiceDate: { column?: number; parse?: string; };
   }
   options: {
     canadian_rebate: boolean,
@@ -91,7 +91,7 @@ export class SimpleTransformer implements BaseTransformer {
     const FILE_TOTAL_COLUMN = 50;
     const REBATE_TOTAL_COLUMN = 51;
 
-    if (this.data.options.canadian_rebate != null && rebateAmount) {
+    if (this.data.options.canadian_rebate != null && rebateAmount.column) {
       preprocessing.push(...[
         new SetTable(FILE_TOTAL_COLUMN, [
           new MetaRow("row.source"),
@@ -112,7 +112,7 @@ export class SimpleTransformer implements BaseTransformer {
       new CounterRow()
     ] });
 
-    if (transactionDate) {
+    if (transactionDate.column) {
       properties.push({ name: "transactionDate", definition: [
         new ColumnRow(transactionDate.column),
         new CoerceDateRow({
@@ -123,36 +123,43 @@ export class SimpleTransformer implements BaseTransformer {
       ] });
     }
 
-    if (supplierId) {
+    if (supplierId.value) {
       properties.push({ name: "supplierId", definition: [
         new LiteralRow(supplierId.value)
       ] });
     }
 
-    if (memberId) {
+    if (memberId.column) {
       properties.push({ name: "memberId", definition: [
         new ColumnRow(memberId.column),
         new ReferenceRow("customers", "customerName", "fuseId", this.data.group),
       ] });
     }
 
-    if (distributorName) {
-      properties.push({ name: "distributorName", definition: [
-        distributorName.type === "column"
-          ? new ColumnRow(distributorName.column)
-          : new LiteralRow(distributorName.value),
-        new ReferenceRow("customers", "customerName", "fuseId", this.data.group),
-      ] });
+    if (distributorName.type === "column") {
+      if (distributorName.column) {
+        properties.push({ name: "distributorName", definition: [
+          new ColumnRow(distributorName.column),
+          new ReferenceRow("customers", "customerName", "fuseId", this.data.group),
+        ] });
+      }
+    } else {
+      if (distributorName.value) {
+        properties.push({ name: "distributorName", definition: [
+          new LiteralRow(distributorName.value),
+          new ReferenceRow("customers", "customerName", "fuseId", this.data.group),
+        ] });
+      }
     }
 
-    if (purchaseAmount) {
+    if (purchaseAmount.column) {
       properties.push({ name: "purchaseAmount", definition: [
         new ColumnRow(purchaseAmount.column),
         new CoerceUSDRow("default"),
       ] });
     }
 
-    if (rebateAmount) {
+    if (rebateAmount.column) {
       if (this.data.options.canadian_rebate != null) {
         properties.push({ name: "rebateAmount", definition: [
           new ColumnRow(rebateAmount.column),
@@ -178,7 +185,7 @@ export class SimpleTransformer implements BaseTransformer {
       }
     }
 
-    if (invoiceId) {
+    if (invoiceId.column) {
       properties.push({ name: "invoiceId", definition: [
         new ColumnRow(invoiceId.column),
         new CharacterRow(".1234567890", "keep"),
@@ -186,7 +193,7 @@ export class SimpleTransformer implements BaseTransformer {
       ] });
     }
 
-    if (invoiceDate) {
+    if (invoiceDate.column) {
       properties.push({ name: "invoiceDate", definition: [
         new ColumnRow(invoiceDate.column),
         new CoerceDateRow({
@@ -254,17 +261,17 @@ export class SimpleTransformer implements BaseTransformer {
     }),
     properties: z.strictObject({
       purchaseId: z.literal("counter"),
-      transactionDate: z.strictObject({ column: z.number(), parse: z.string().optional() }).optional(),
-      supplierId: z.strictObject({ value: z.string() }).optional(),
-      memberId: z.strictObject({ column: z.number() }).optional(),
+      transactionDate: z.strictObject({ column: z.number().optional(), parse: z.string().optional() }),
+      supplierId: z.strictObject({ value: z.string().optional() }),
+      memberId: z.strictObject({ column: z.number().optional() }),
       distributorName: z.discriminatedUnion("type", [
-        z.strictObject({ type: z.literal("value"), value: z.string() }),
-        z.strictObject({ type: z.literal("column"), column: z.number() }),
-      ]).optional(),
-      purchaseAmount: z.strictObject({ column: z.number() }).optional(),
-      rebateAmount: z.strictObject({ column: z.number(), multiplier: z.number().optional() }).optional(),
-      invoiceId: z.strictObject({ column: z.number() }).optional(),
-      invoiceDate: z.strictObject({ column: z.number(), parse: z.string().optional() }).optional(),
+        z.strictObject({ type: z.literal("value"), value: z.string().optional() }),
+        z.strictObject({ type: z.literal("column"), column: z.number().optional() }),
+      ]),
+      purchaseAmount: z.strictObject({ column: z.number().optional() }),
+      rebateAmount: z.strictObject({ column: z.number().optional(), multiplier: z.number().optional() }),
+      invoiceId: z.strictObject({ column: z.number().optional() }),
+      invoiceDate: z.strictObject({ column: z.number().optional(), parse: z.string().optional() }),
     }),
     options: z.strictObject({
       canadian_rebate: z.boolean(),

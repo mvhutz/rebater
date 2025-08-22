@@ -41,23 +41,43 @@ function generateBasicConfiguration(name: string, group: string): SimpleTransfor
       file: undefined
     },
     properties: {
-    purchaseId: 'counter',
-    transactionDate: undefined,
-    supplierId: undefined,
-    memberId: undefined,
-    distributorName: undefined,
-    purchaseAmount: undefined,
-    rebateAmount: undefined,
-    invoiceId: undefined,
-    invoiceDate: undefined
-  },
-  options: {
-    canadian_rebate: false,
-    remove_null_rebates: false,
-    additional_preprocessing: undefined,
-    additional_postprocessing: undefined
+      purchaseId: 'counter',
+      transactionDate: {
+        column: undefined,
+        parse: undefined
+      },
+      supplierId: {
+        value: undefined
+      },
+      memberId: {
+        column: undefined
+      },
+      distributorName: {
+        type: 'value',
+        value: undefined
+      },
+      purchaseAmount: {
+        column: undefined
+      },
+      rebateAmount: {
+        column: undefined,
+        multiplier: undefined
+      },
+      invoiceId: {
+        column: undefined
+      },
+      invoiceDate: {
+        column: undefined,
+        parse: undefined
+      }
+    },
+    options: {
+      canadian_rebate: false,
+      remove_null_rebates: false,
+      additional_preprocessing: undefined,
+      additional_postprocessing: undefined
+    }
   }
-}
 }
 
 /** ------------------------------------------------------------------------- */
@@ -98,7 +118,7 @@ function NewTransformerModal(props: NewTransformerModalProps) {
       dispatch(pushMessage({ type: "error", text: "Name not specified!" }));
       return;
     }
-    
+
     switch (type) {
       case "advanced": {
         const config = generateAdvancedConfiguration(name);
