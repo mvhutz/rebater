@@ -91,7 +91,7 @@ export class SimpleTransformer implements BaseTransformer {
     const FILE_TOTAL_COLUMN = 50;
     const REBATE_TOTAL_COLUMN = 51;
 
-    if (this.data.options.canadian_rebate != null && rebateAmount.column) {
+    if (this.data.options.canadian_rebate && rebateAmount.column) {
       preprocessing.push(...[
         new SetTable(FILE_TOTAL_COLUMN, [
           new MetaRow("row.source"),
@@ -160,7 +160,7 @@ export class SimpleTransformer implements BaseTransformer {
     }
 
     if (rebateAmount.column) {
-      if (this.data.options.canadian_rebate != null) {
+      if (this.data.options.canadian_rebate) {
         properties.push({ name: "rebateAmount", definition: [
           new ColumnRow(rebateAmount.column),
           new MultiplyRow([

@@ -160,15 +160,16 @@ export class Runner extends EventEmitter<RunnerEvents> {
       return;
     }
 
-    const transformers = TransformerStore.getOrdered(this.transformers.getValid().filter(t => this.settings.willRun(t)));
+    const transformers = TransformerStore.getOrdered(this.transformers.getValid().filter(t => this.settings.willRun(t.getDetails())));
 
     // Run the transformers.
     for (const [i, transformer] of transformers.entries()) {
+      const details = transformer.getDetails();
       yield { type: "running", progress: i / transformers.length };
       try {
         results.config.push(transformer.run(this));
       } catch (error) {
-        const start = `While running ${transformer.name}:\n\n`;
+        const start = `While running ${details.name}:\n\n`;
         if (error instanceof z.ZodError) {
           throw Error(`${start}${z.prettifyError(error)}`);
         } else if (error instanceof Error) {

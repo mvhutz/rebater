@@ -269,7 +269,7 @@ function RebateAmountOptions(props: OptionsProps) {
   const { column, multiplier } = data.properties.rebateAmount;
 
   const handleColumn = React.useCallback((c?: number) => {
-    setData(produce(d => { d.properties.invoiceDate.column = c; }));
+    setData(produce(d => { d.properties.rebateAmount.column = c; }));
   }, [setData]);
 
   const handleMultipler = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
@@ -280,7 +280,7 @@ function RebateAmountOptions(props: OptionsProps) {
 
   return (
     <Card orientation="horizontal" size='sm'>
-      <Typography level="title-lg" flex={1}>Invoice Date</Typography>
+      <Typography level="title-lg" flex={1}>Rebate Amount</Typography>
       <Stack spacing={2} flex={1}>
         <FormControl>
           <FormLabel>Column</FormLabel>
@@ -301,21 +301,21 @@ function DistributorIdOptions(props: OptionsProps) {
 
   const handleType = React.useCallback((_: unknown, c: "value" | "column" | null) => {
     if (c == null) return;
-    setData(produce(d => { d.properties.distributorName.type = c; }));
+    setData(produce(d => { d.properties.distributorName = { type: c }; }));
   }, [setData]);
 
   const handleValue = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
     const value = e.target.value === "" ? undefined : e.target.value;
     setData(produce(d => {
       if (d.properties.distributorName.type !== "value") return;
-      d.properties.distributorName.value = value;
+      d.properties.distributorName = { type: "value", value };
     }));
   }, [setData]);
 
-  const handleColumn = React.useCallback((c?: number) => {
+  const handleColumn = React.useCallback((column?: number) => {
     setData(produce(d => {
       if (d.properties.distributorName.type !== "column") return;
-      d.properties.distributorName.column = c;
+      d.properties.distributorName = { type: "column", column };
     }));
   }, [setData]);
 
