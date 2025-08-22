@@ -4,6 +4,7 @@ import { getSubFiles } from "../../util";
 import { TransformerFile } from "../items/TransformerFile";
 import assert from "assert";
 import { AdvancedTransformer } from "../../transformer/AdvancedTransformer";
+import { BaseTransformer } from "../../transformer/BaseTransformers";
 
 /** ------------------------------------------------------------------------- */
 
@@ -35,7 +36,7 @@ export class TransformerStore extends AbstractStore<TransformerFile, Meta> {
    * Get all valid transformers.
    * @returns All transformers from files in the store, which are valid.
    */
-  public getValid(): AdvancedTransformer[] {
+  public getValid(): BaseTransformer[] {
     const transformer_replies = this.items.values().map(f => f.getData());
     const good = transformer_replies.filter(r => r.ok);
     return good.map(g => g.data).toArray();
@@ -48,33 +49,38 @@ export class TransformerStore extends AbstractStore<TransformerFile, Meta> {
    * another `<utility>` transformer to run beforehand.
    * @returns The same transformers, ordered in a way that causes no conflicts.
    */
-  public static getOrdered(transformers: AdvancedTransformer[]): AdvancedTransformer[] {
-    const by_name = new Map<string, AdvancedTransformer>();
+  public static getOrdered(transformers: BaseTransformer[]): BaseTransformer[] {
+    const by_name = new Map<string, BaseTransformer>();
     
     // No duplicates.
     for (const transformer of transformers) {
-      assert.ok(!by_name.has(transformer.name), `Duplicate transformers named '${transformer.name}'!`);
-      by_name.set(transformer.name, transformer);
+      const detail = transformer.getDetails();
+      assert.ok(!by_name.has(detail.name), `Duplicate transformers named '${detail.name}'!`);
+      by_name.set(detail.name, transformer);
     }
 
     // Is closed.
     for (const [, transformer] of by_name) {
-      for (const requirement of transformer.requirements) {
-        assert.ok(by_name.has(requirement), `Transformer '${transformer.name}' requires '${requirement}', which it cannot find!`);
+      if (transformer instanceof AdvancedTransformer) {
+        for (const requirement of transformer.requirements) {
+          assert.ok(by_name.has(requirement), `Transformer '${transformer.name}' requires '${requirement}', which it cannot find!`);
+        }
       }
     }
 
     // Find topological ordering.
-    const stack: AdvancedTransformer[] = [];
-    const visited = new WeakSet<AdvancedTransformer>();
+    const stack: BaseTransformer[] = [];
+    const visited = new WeakSet<BaseTransformer>();
 
-    function DFS(node: AdvancedTransformer) {
+    function DFS(node: BaseTransformer) {
       visited.add(node);
 
-      for (const neighbor_hash of node.requirements) {
-        const neighbor = by_name.get(neighbor_hash);
-        if (neighbor == null || visited.has(neighbor)) continue;
-        DFS(neighbor);
+      if (node instanceof AdvancedTransformer) {
+        for (const neighbor_hash of node.requirements) {
+          const neighbor = by_name.get(neighbor_hash);
+          if (neighbor == null || visited.has(neighbor)) continue;
+          DFS(neighbor);
+        }
       }
 
       stack.push(node);

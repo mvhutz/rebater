@@ -2,13 +2,13 @@ import React from 'react';
 import Stack from '@mui/joy/Stack';
 import Typography from '@mui/joy/Typography';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
-import { MalformedTransformerFileInfo } from '../../../system/transformer/AdvancedTransformer';
 import RestoreRoundedIcon from '@mui/icons-material/RestoreRounded';
 import { Alert, Textarea, Button, IconButton } from '@mui/joy';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import ErrorIcon from '@mui/icons-material/Error';
 import { useAppDispatch } from '../../store/hooks';
 import { pullTransformers } from '../../store/slices/thunk';
+import { MalformedTransformerFileInfo } from '../../../system/transformer/BaseTransformers';
 
 /** ------------------------------------------------------------------------- */
 
