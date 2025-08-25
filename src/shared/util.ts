@@ -14,7 +14,7 @@ export const ExcelIndexSchema: z.ZodType<number> = z.union([
  * @param letters The index to parse. Must be valid.
  * @returns The 0-based index.
  */
-function getIndexFromExcel(letters: string): number {
+export function getIndexFromExcel(letters: string): number {
   return letters.split("").reduce((s, c) => c.charCodeAt(0) - 64 + s * 26, 0) - 1;
 }
 

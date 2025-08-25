@@ -10,8 +10,11 @@ import path from "path";
 import { existsSync } from "fs";
 import { lstat, readFile, writeFile } from "fs/promises";
 import z from "zod/v4";
+import { TransformerData } from "../transformer";
 
 /** ------------------------------------------------------------------------- */
+
+
 
 const { ipcMain } = IPC;
 
@@ -54,9 +57,42 @@ export class IPCHandler {
     }
   }
 
+  /** ----------------------------------------------------------------------- */
+
+  async getTransformers() {
+    const repo = this.connection.getRepository(TransformerEntity);
+    const transformers = await repo.find();
+
+    return good(transformers);
+  }
+
+  async createTransformer(data: TransformerData): Promise<Reply<number>> {
+    const repo = this.connection.getRepository(TransformerEntity);
+    const built = new TransformerEntity();
+    built.data = data;
+    const saved = await repo.save(built);
+    return good(saved.id);
+  }
+
+  async deleteTransformer(id: number): Promise<Reply<number>> {
+    const repo = this.connection.getRepository(TransformerEntity);
+    const result = await repo.delete({ id });
+
+    return good(result.affected ?? 0);
+  }
+
+  async updateTransformer(options: { id: number, data: TransformerData}): Promise<Reply<number>> {
+    const repo = this.connection.getRepository(TransformerEntity);
+    const result = await repo.update({ id: options.id }, { data: options.data });
+  
+    return good(result.affected ?? 0);
+  }
+
+  /** ----------------------------------------------------------------------- */
+
   async refreshSettingsData() {
     this.settings_data = await IPCHandler.fetchSettingsData();
-    this.thread.setSettings(this.settings_data);
+    this.thread.setSettings(this.settings_data, path.join(app.getPath("userData"), "application.db"));
   }
 
   async getSettingsData() {
@@ -76,7 +112,19 @@ export class IPCHandler {
     const worker = new Worker('worker.js');
     const thread = await spawn<System>(worker);
 
-    const handler = new IPCHandler(window, worker, thread);
+    const connection = new DataSource({
+      type: "sqlite",
+      database: path.join(app.getPath("userData"), "application.db"),
+      synchronize: true,
+      logging: false,
+      driver: sqlite_driver,
+      entities: [TransformerEntity],
+      migrations: [],
+      subscribers: [],
+    });
+    await connection.initialize();
+
+    const handler = new IPCHandler(window, worker, thread, connection);
     await handler.refreshSettingsData();
     return handler;
   }
@@ -152,14 +200,14 @@ export class IPCHandler {
     ipcMain.handle.chooseDir();
     ipcMain.handle.getPing();
     ipcMain.handle.openDir();
-    ipcMain.handle.getTransformers();
     ipcMain.handle.openOutputFile();
     ipcMain.handle.getAllQuarters();
     ipcMain.handle.createQuarter();
-    ipcMain.handle.createTransformer();
-    ipcMain.handle.deleteTransformer();
-    ipcMain.handle.updateTransformer();
 
+    ipcMain.handle.getTransformers(async () => await this.getTransformers());
+    ipcMain.handle.createTransformer(async (_, { data }) => await this.createTransformer(data));
+    ipcMain.handle.deleteTransformer(async (_, { data }) => await this.deleteTransformer(data));
+    ipcMain.handle.updateTransformer(async (_, { data }) => await this.updateTransformer(data));
     ipcMain.handle.getSettings(async () => await this.getSettingsData());
     ipcMain.handle.setSettings(async (_, { data }) => await this.setSettingsData(data));
 

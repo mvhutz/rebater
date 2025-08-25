@@ -1,5 +1,4 @@
 import { createInterprocess } from "interprocess";
-import { getTransformers } from "./system/getTransformers";
 import { openOutputFile } from "./system/openOutputFile";
 import { getAllQuarters } from "./system/getAllQuarters";
 import { createQuarter } from "./system/createQuarter";
@@ -10,9 +9,8 @@ import { getPing } from "./system/getPing";
 import { chooseDir } from "./system/chooseDir";
 import { openDir } from "./system/openDir";
 import { ignore } from "./system/ignore";
-import { deleteTransformer } from "./system/deleteTransformer";
-import { updateTransformer } from "./system/updateTransformer";
-import { createTransformer } from "./system/createTransformer";
+import { TransformerData } from "../transformer";
+import { TransformerFile } from "../../system/information/items/TransformerFile";
 
 /** ------------------------------------------------------------------------- */
 
@@ -23,14 +21,14 @@ const IPC = createInterprocess({
     getPing,
     chooseDir,
     openDir,
-    getTransformers,
     getSettings: ignore<unknown, Maybe<SettingsData>>,
     openOutputFile,
     getAllQuarters,
     createQuarter,
-    createTransformer,
-    deleteTransformer,
-    updateTransformer,
+    getTransformers: ignore<undefined, TransformerData[]>,
+    createTransformer: ignore<TransformerData, number>,
+    deleteTransformer: ignore<number, number>,
+    updateTransformer: ignore<{ id: number, data: TransformerData}, number>,
     setSettings: ignore<SettingsData, string>,
 
     // Those that do.

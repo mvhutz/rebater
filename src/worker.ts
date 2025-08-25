@@ -74,7 +74,7 @@ const SYSTEM = {
     await table.save();
   },
 
-  setSettings(data: Reply<SettingsData>) {
+  async setSettings(data: Reply<SettingsData>) {
     settings_data = data;
 
     if (settings_data.ok) {

@@ -22,6 +22,6 @@ export default defineConfig({
           return `export default ${JSON.stringify(code)};`;
         }
       }
-    }
-  ]
+    },
+  ],
 });

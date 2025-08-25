@@ -14,6 +14,7 @@ import z from "zod/v4";
 import { RebateSet } from "./RebateSet";
 import { bad, good, Reply } from "../../shared/reply";
 import { TransformerStore } from "../information/stores/TransformerStore";
+import { Transformer } from "../transformer/Transformer";
 
 /** ------------------------------------------------------------------------- */
 
@@ -50,7 +51,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     this.outputs = new OutputStore({ directory: settings.getAllOutputPath() });
     this.truths = new TruthStore({ directory: settings.getAllTruthPath() });
     this.utilities = new UtilityStore({ directory: settings.getAllUtilityPath() });
-    this.transformers = new TransformerStore({ directory: settings.getAllTransformerPath() })
+    this.transformers = new TransformerStore({ directory: settings.getAllTransformerPath() });
     this.running = false;
 
     this.emit("status", { type: "idle" });
@@ -113,7 +114,6 @@ export class Runner extends EventEmitter<RunnerEvents> {
       this.sources.wipe();
       this.references.wipe();
       this.truths.wipe();
-      this.transformers.wipe();
       this.destinations.wipe();
       this.outputs.wipe();
       this.utilities.wipe();
@@ -160,7 +160,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
       return;
     }
 
-    const transformers = TransformerStore.getOrdered(this.transformers.getValid().filter(t => this.settings.willRun(t.getDetails())));
+    const transformers = Transformer.findValidOrder(this.transformers.getValid().map(Transformer.parseTransformer).filter(t => this.settings.willRun(t.getDetails())));
 
     // Run the transformers.
     for (const [i, transformer] of transformers.entries()) {

@@ -3,6 +3,9 @@ import { TransformerResult } from "../../shared/worker/response";
 import { AdvancedTransformerData } from "../../shared/transformer/advanced";
 import { SimpleTransformerData } from "../../shared/transformer/simple";
 import assert from "node:assert";
+import { TransformerData } from "../../shared/transformer";
+import { AdvancedTransformer } from "./AdvancedTransformer";
+import { SimpleTransformer } from "./SimpleTransformer";
 
 /** ------------------------------------------------------------------------- */
 
@@ -42,6 +45,13 @@ export abstract class Transformer {
   public abstract getDetails(): { name: string, tags: string[] };
 
   public abstract getDeps(): string[];
+
+  public static parseTransformer(data: TransformerData): Transformer {
+    switch (data.type) {
+      case "advanced": return new AdvancedTransformer(data);
+      case "simple": return new SimpleTransformer(data);
+    }
+  }
 
   /**
    * Find a valid order for a set of transformers to run in.
