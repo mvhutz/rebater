@@ -1,6 +1,6 @@
 import { bad, good, Reply } from "../../reply";
 import { getSettingsInterface } from "./getSettings";
-import { BaseTransformer, TransformerFileInfo } from "../../../system/transformer/BaseTransformers";
+import { BaseTransformer, TransformerFileInfo } from "../../../system/transformer/Transformer";
 
 /** ------------------------------------------------------------------------- */
 

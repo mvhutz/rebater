@@ -8,7 +8,7 @@ import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import ErrorIcon from '@mui/icons-material/Error';
 import { useAppDispatch } from '../../store/hooks';
 import { pullTransformers } from '../../store/slices/thunk';
-import { MalformedTransformerFileInfo } from '../../../system/transformer/BaseTransformers';
+import { MalformedTransformerFileInfo } from '../../../system/transformer/Transformer';
 
 /** ------------------------------------------------------------------------- */
 

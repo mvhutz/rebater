@@ -1,26 +1,17 @@
 import { z } from "zod/v4";
 import * as XLSX from "xlsx";
 import assert from "assert";
-import { BaseSource } from ".";
-import { Runner } from "../runner/Runner";
+import { SourceInput, SourceOperator } from ".";
 import path from "path";
 import { Row, Table } from "../information/Table";
-
-/** ------------------------------------------------------------------------- */
-
-export interface ExcelSourceData {
-  type: "excel";
-  group: string;
-  file?: string;
-  sheets?: string[];
-}
+import { ExcelSourceData } from "../../shared/transformer/advanced";
 
 /** ------------------------------------------------------------------------- */
 
 /**
  * Extracts tables as sheets from an Excel file.
  */
-export class ExcelSource implements BaseSource {
+export class ExcelSourceOperator implements SourceOperator {
   /** The group of sources the extract from. */
   private group: string;
   /** The name of the files to extract. Supports glob. */
@@ -34,10 +25,10 @@ export class ExcelSource implements BaseSource {
    * @param file The name of the files to extract. Supports glob.
    * @param sheets The names of the sheets to extract. Supports regex.
    */
-  public constructor(group: string, file: string, sheets: string[]) {
-    this.group = group;
-    this.file = file;
-    this.sheets = sheets;
+  public constructor(input: ExcelSourceData) {
+    this.group = input.group;
+    this.file = input.file;
+    this.sheets = input.sheets;
   }
 
   /**
@@ -89,10 +80,10 @@ export class ExcelSource implements BaseSource {
     }
   }
 
-  run(runner: Runner): Table[] {
+  run(input: SourceInput): Table[] {
     // Get the needed files.
-    const glob = runner.settings.getSourcePathGlob(this.group, this.file, ".xls*");
-    const files = runner.sources.filter(s => path.matchesGlob(s.path, glob));
+    const glob = input.runner.settings.getSourcePathGlob(this.group, this.file, ".xls*");
+    const files = input.runner.sources.filter(s => path.matchesGlob(s.path, glob));
     
     // Extract tables.
     const results = new Array<Table>();
@@ -106,15 +97,4 @@ export class ExcelSource implements BaseSource {
 
     return results;
   }
-
-  buildJSON(): ExcelSourceData {
-    return { type: "excel", file: this.file, group: this.group, sheets: this.sheets };
-  }
-
-  public static readonly SCHEMA: z.ZodType<BaseSource, ExcelSourceData> = z.strictObject({
-    type: z.literal("excel"),
-    group: z.string(),
-    file: z.string().default("*"),
-    sheets: z.array(z.string()).default([]),
-  }).transform(s => new ExcelSource(s.group, s.file, s.sheets));
 }

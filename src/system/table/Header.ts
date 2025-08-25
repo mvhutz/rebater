@@ -1,14 +1,6 @@
-import { z } from "zod/v4";
-import { BaseTable } from ".";
+import { TableInput, TableOperator } from ".";
 import { Table } from "../information/Table";
-
-/** ------------------------------------------------------------------------- */
-
-export interface HeaderTableData {
-  type:"header";
-  names: string[];
-  action: "drop" | "keep";
-}
+import { HeaderTableData } from "../../shared/transformer/advanced";
 
 /** ------------------------------------------------------------------------- */
 
@@ -30,7 +22,7 @@ export interface HeaderTableData {
  * - Delete those columns.
  * - Return the resulting table.
  */
-export class HeaderTable implements BaseTable {
+export class HeaderTable implements TableOperator {
   /** The names of the headers to search for. */
   private readonly names: string[];
   /** Whether to keep the found columns, or drop them. */
@@ -41,13 +33,13 @@ export class HeaderTable implements BaseTable {
    * @param names The names of the headers to search for.
    * @param action Whether to keep the found columns, or drop them.
    */
-  public constructor(names: string[], action: "drop" | "keep") {
-    this.names = names;
-    this.action = action;
+  public constructor(input: HeaderTableData) {
+    this.names = input.names;
+    this.action = input.action;
   }
 
-  run(table: Table): Table {
-    const rotated = table.transpose();
+  run(input: TableInput): Table {
+    const rotated = input.table.transpose();
 
     if (this.action === "drop") {
       const columns = rotated.filter(c => !this.names.includes(c.get(0) ?? ""));
@@ -62,14 +54,4 @@ export class HeaderTable implements BaseTable {
       return Table.join(...columns).transpose();
     }
   }
-
-  buildJSON(): HeaderTableData {
-    return { type: "header", names: this.names, action: this.action };
-  }
-
-  public static readonly SCHEMA: z.ZodType<BaseTable, HeaderTableData> = z.strictObject({
-    type: z.literal("header"),
-    names: z.array(z.string()),
-    action: z.union([z.literal("drop"), z.literal("keep")]),
-  }).transform(s => new HeaderTable(s.names, s.action));
 }

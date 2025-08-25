@@ -2,7 +2,7 @@ import path from "path";
 import { bad, good, Reply } from "../../../shared/reply";
 import { AbstractFile } from "./AbstractFile";
 import z from "zod/v4";
-import { BaseTransformer, TRANSFORMER_SCHEMA } from "../../transformer/BaseTransformers";
+import { BaseTransformer, TRANSFORMER_SCHEMA } from "../../transformer/Transformer";
 
 /** ------------------------------------------------------------------------- */
 

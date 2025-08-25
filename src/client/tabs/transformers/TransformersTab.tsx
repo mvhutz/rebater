@@ -14,7 +14,7 @@ import MalformedTransformerEdit from './MalformedTransformerEdit';
 import AdvancedTransformerEdit from './AdvancedTransformerEdit';
 import AddRounded from '@mui/icons-material/AddRounded';
 import NewTransformerModal from './NewTransformerModal';
-import { TransformerFileInfo } from '../../../system/transformer/BaseTransformers';
+import { TransformerFileInfo } from '../../../system/transformer/Transformer';
 import SimpleTransformerEdit from './SimpleTransformerEdit';
 
 /** ------------------------------------------------------------------------- */

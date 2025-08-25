@@ -1,22 +1,14 @@
-import { z } from "zod/v4";
-import { BaseTable } from ".";
-import { Runner } from "../runner/Runner";
-import { UtilityDestination } from "../destination/Utility";
+import { TableInput, TableOperator } from ".";
 import { Table } from "../information/Table";
-
-/** ------------------------------------------------------------------------- */
-
-export interface DebugTableData {
-  type: "debug";
-  name?: string;
-}
+import { DebugTableData } from "../../shared/transformer/advanced";
+import { UtilityDestinationOperator } from "../destination/Utility";
 
 /** ------------------------------------------------------------------------- */
 
 /**
  * A utility operation, that prints any table that goes through it.
  */
-export class DebugTable implements BaseTable {
+export class DebugTable implements TableOperator {
   /** The name of the file that table sohuld be printed to. */
   private readonly name: string;
 
@@ -24,24 +16,19 @@ export class DebugTable implements BaseTable {
    * Create a debug operation.
    * @param name The name of the file that table sohuld be printed to.
    */
-  public constructor(name: string) {
-    this.name = name;
+  public constructor(input: DebugTableData) {
+    this.name = input.name;
   }
 
-  run(table: Table, runner: Runner): Table {
+  run(input: TableInput): Table {
     // The debug table is stored as a utility, under the `debug` folder.
     const true_name = `debug/${this.name}/${crypto.randomUUID()}`;
-    const utility = new UtilityDestination(true_name);
-    utility.run(table, runner);
-    return table;
-  }
+    const utility = new UtilityDestinationOperator({
+      type: "utility",
+      name: true_name,
+    });
 
-  buildJSON(): DebugTableData {
-    return { type: "debug", name: this.name };
+    utility.run(input);
+    return input.table;
   }
-
-  public static readonly SCHEMA: z.ZodType<BaseTable, DebugTableData> = z.strictObject({
-    type: z.literal("debug"),
-    name: z.string().default("default"),
-  }).transform(s => new DebugTable(s.name));
 }

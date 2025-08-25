@@ -1,19 +1,12 @@
-import { z } from "zod/v4";
-import { BaseRow } from ".";
-
-/** ------------------------------------------------------------------------- */
-
-export interface LiteralRowData {
-  type: "literal";
-  value: unknown;
-}
+import { RowOperator } from ".";
+import { LiteralRowData } from "../../shared/transformer/advanced";
 
 /** ------------------------------------------------------------------------- */
 
 /**
  * Replace the current value with another.
  */
-export class LiteralRow implements BaseRow {
+export class LiteralRow implements RowOperator {
   /** The replacement value. */
   private readonly value: string;
 
@@ -21,20 +14,11 @@ export class LiteralRow implements BaseRow {
    * Create a literal operation.
    * @param value The replacement value.
    */
-  public constructor(value: string) {
-    this.value = value;
+  public constructor(input: LiteralRowData) {
+    this.value = input.value;
   }
 
   run(): string {
     return this.value;
   }
-
-  buildJSON(): LiteralRowData {
-    return { type: "literal", value: this.value };
-  }
-
-  public static readonly SCHEMA: z.ZodType<BaseRow, LiteralRowData> = z.strictObject({
-    type: z.literal("literal"),
-    value: z.coerce.string()
-  }).transform(s => new LiteralRow(s.value));
 }

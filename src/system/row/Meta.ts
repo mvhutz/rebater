@@ -1,21 +1,9 @@
-import { z } from "zod/v4";
 import moment from "moment";
 import path from "path";
-import { BaseRow } from ".";
-import { Runner } from "../runner/Runner";
-import { Row } from "../information/Table";
+import { RowInput, RowOperator } from ".";
+import { MetaRowData, MetaType } from "../../shared/transformer/advanced";
 
 /** ------------------------------------------------------------------------- */
-
-export interface MetaRowData {
-  type: "meta",
-  value: "quarter.lastday" | "quarter.number" | "row.source";
-}
-
-/** ------------------------------------------------------------------------- */
-
-export const META_TYPE = z.enum(["quarter.lastday", "quarter.number", "row.source"]);
-export type MetaType = z.infer<typeof META_TYPE>;
 
 /**
  * Replace the current value with another value, pulled from the context of the
@@ -26,7 +14,7 @@ export type MetaType = z.infer<typeof META_TYPE>;
  * - "quarter.number" returns the number (1, 2, 3, 4) of the current quarter.
  * - "row.source" returns the name of the file that the current row is from.
  */
-export class MetaRow implements BaseRow {
+export class MetaRow implements RowOperator {
   /** The type of value to select. */
   public readonly value: MetaType;
 
@@ -34,37 +22,28 @@ export class MetaRow implements BaseRow {
    * Create a meta operation.
    * @param value The type of value to select.
    */
-  public constructor(value: MetaType) {
-    this.value = value;
+  public constructor(input: MetaRowData) {
+    this.value = input.value;
   }
 
-  run(value: string, row: Row, runner: Runner): Maybe<string> {
+  run(input: RowInput): Maybe<string> {
     switch (this.value) {
-      case "quarter.lastday": return MetaRow.getQuarterLastDay(runner);
-      case "quarter.number": return MetaRow.getQuarterNumber(runner);
-      case "row.source": return MetaRow.getRowSource(row);
+      case "quarter.lastday": return MetaRow.getQuarterLastDay(input);
+      case "quarter.number": return MetaRow.getQuarterNumber(input);
+      case "row.source": return MetaRow.getRowSource(input);
     }
   }
 
-  static getQuarterLastDay(runner: Runner): string {
-    const { year, quarter } = runner.settings.time;
+  static getQuarterLastDay(input: RowInput): string {
+    const { year, quarter } = input.runner.settings.time;
     return moment().year(year).quarter(quarter).endOf("quarter").format("MM/DD/YYYY");
   }
 
-  static getQuarterNumber(runner: Runner): string {
-    return runner.settings.time.quarter.toString();
+  static getQuarterNumber(input: RowInput): string {
+    return input.runner.settings.time.quarter.toString();
   }
 
-  static getRowSource(row: Row) {
-    return path.basename(row.source);
+  static getRowSource(input: RowInput) {
+    return path.basename(input.row.source);
   }
-
-  buildJSON(): MetaRowData {
-    return { type: "meta", value: this.value };
-  }
-
-  public static readonly SCHEMA: z.ZodType<BaseRow, MetaRowData> = z.strictObject({
-    type: z.literal("meta"),
-    value: META_TYPE
-  }).transform(s => new MetaRow(s.value));
 }

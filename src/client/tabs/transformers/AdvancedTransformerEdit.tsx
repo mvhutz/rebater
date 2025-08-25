@@ -7,7 +7,7 @@ import { Textarea, Button, IconButton } from '@mui/joy';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import { useAppDispatch } from '../../store/hooks';
 import { pullTransformers } from '../../store/slices/thunk';
-import { AdvancedTransformerFileInfo } from '../../../system/transformer/BaseTransformers';
+import { AdvancedTransformerFileInfo } from '../../../system/transformer/Transformer';
 
 /** ------------------------------------------------------------------------- */
 

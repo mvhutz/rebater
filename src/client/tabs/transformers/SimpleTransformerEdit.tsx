@@ -7,7 +7,7 @@ import { Button, IconButton, FormControl, FormLabel, AccordionSummary, Accordion
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import { useAppDispatch } from '../../store/hooks';
 import { pullTransformers } from '../../store/slices/thunk';
-import { SimpleTransformerFileInfo } from '../../../system/transformer/BaseTransformers';
+import { SimpleTransformerFileInfo } from '../../../system/transformer/Transformer';
 import { SimpleTransformerData } from '../../../system/transformer/SimpleTransformer';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
 import SummarizeRoundedIcon from '@mui/icons-material/SummarizeRounded';

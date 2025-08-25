@@ -1,27 +1,12 @@
-import { z } from "zod/v4";
-import { BaseRow } from ".";
-
-/** ------------------------------------------------------------------------- */
-
-export interface TrimRowData {
-  type: "trim";
-}
+import { RowInput, RowOperator } from ".";
 
 /** ------------------------------------------------------------------------- */
 
 /**
  * Trim the whitespace off of the current value.
  */
-export class TrimRow implements BaseRow {
-  run(value: string): Maybe<string> {
-    return value.trim();
+export class TrimRow implements RowOperator {
+  run(input: RowInput): Maybe<string> {
+    return input.value.trim();
   }
-
-  buildJSON(): TrimRowData {
-    return { type: "trim" };
-  }
-
-  public static readonly SCHEMA: z.ZodType<BaseRow, TrimRowData> = z.strictObject({
-    type: z.literal("trim"),
-  }).transform(() => new TrimRow());
 }

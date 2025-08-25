@@ -1,15 +1,6 @@
-import { z } from "zod/v4";
-import { ExcelIndexSchema, getExcelFromIndex } from "../util";
-import { BaseTable } from ".";
+import { TableInput, TableOperator } from ".";
 import { Row, Table } from "../information/Table";
-
-/** ------------------------------------------------------------------------- */
-
-export interface PercolateTableData {
-  type: "percolate";
-  columns: (string | number)[];
-  matches?: string[];
-}
+import { PercolateTableData } from "../../shared/transformer/advanced";
 
 /** ------------------------------------------------------------------------- */
 
@@ -21,7 +12,7 @@ export interface PercolateTableData {
  * within the same column that is not a "matching" value. It replaces the cells
  * value with that value.
  */
-export class PercolateTable implements BaseTable {
+export class PercolateTable implements TableOperator {
   /** The columns to percolate in. */
   private readonly columns: number[];
   /** The values that are replaced by percolation. */
@@ -32,18 +23,18 @@ export class PercolateTable implements BaseTable {
    * @param columns The columns to percolate in.
    * @param matches The values that are replaced by percolation.
    */
-  public constructor(columns: number[], matches: string[]) {
-    this.columns = columns;
-    this.matches = matches;
+  public constructor(input: PercolateTableData) {
+    this.columns = input.columns;
+    this.matches = input.matches;
   }
 
-  run(table: Table): Table {
-    const previous_maybe = table.get(0);
-    if (previous_maybe == null) return table;
+  run(input: TableInput): Table {
+    const previous_maybe = input.table.get(0);
+    if (previous_maybe == null) return input.table;
 
     let previous: Row = previous_maybe;
     
-    const result = table.update(r => {
+    const result = input.table.update(r => {
       const updated = r.update((v, i) => {
         if (!this.columns.includes(i)) return v;
         if (!this.matches.includes(v)) return v;
@@ -56,14 +47,4 @@ export class PercolateTable implements BaseTable {
 
     return result;
   }
-
-  buildJSON(): PercolateTableData {
-    return { type: "percolate", columns: this.columns.map(getExcelFromIndex), matches: this.matches };
-  }
-
-  public static readonly SCHEMA: z.ZodType<BaseTable, PercolateTableData> = z.strictObject({
-    type: z.literal("percolate"),
-    columns: z.array(ExcelIndexSchema),
-    matches: z.array(z.string()).default([""])
-  }).transform(s => new PercolateTable(s.columns, s.matches));
 }

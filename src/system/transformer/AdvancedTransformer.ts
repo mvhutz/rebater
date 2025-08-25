@@ -1,29 +1,46 @@
-import { z } from "zod/v4";
-import { BaseDestination, DESTINATION_SCHEMA, DestinationData } from "../destination";
-import { BaseSource, SOURCE_SCHEMA, SourceData } from "../source";
-import { BaseTable, TABLE_SCHEMA, TableData } from "../table";
-import { BaseRow, ROW_SCHEMA, RowData } from "../row";
+import { DestinationOperator } from "../destination";
 import { TransformerResult } from "../../shared/worker/response";
 import { Runner } from "../runner/Runner";
 import { Row, Table } from "../information/Table";
-import { BaseTransformer } from "./BaseTransformers";
-
-/** ------------------------------------------------------------------------- */
-
-export interface AdvancedTransformerData {
-  type: "advanced";
-  name: string;
-  tags: string[];
-  sources: SourceData[];
-  requirements: string[];
-  preprocess: TableData[];
-  properties: {
-    name: string,
-    definition: RowData[];
-  }[],
-  postprocess: TableData[];
-  destination: DestinationData[];
-}
+import { Transformer } from "./Transformer";
+import { AdvancedTransformerData, DestinationData, RowData, SourceData, TableData } from "../../shared/transformer/advanced";
+import { RebateDestinationOperator } from "../destination/Rebate";
+import { UtilityDestinationOperator } from "../destination/Utility";
+import { SourceOperator } from "../source";
+import { ExcelSourceOperator } from "../source/Excel";
+import { TableOperator } from "../table";
+import { RowOperator } from "../row";
+import { AbsoluteRowOperator } from "../row/Absolute";
+import { AddRowOperator } from "../row/Add";
+import { CharacterRow } from "../row/Character";
+import { CoerceNumberRow } from "../row/CoerceNumber";
+import { CoerceDateRow } from "../row/CoerceDate";
+import { ColumnRow } from "../row/Column";
+import { CoerceUSDRow } from "../row/CoerceUSD";
+import { ConcatRow } from "../row/Concat";
+import { CounterRow } from "../row/Counter";
+import { DivideRow } from "../row/Divide";
+import { EqualsRow } from "../row/Equals";
+import { LiteralRow } from "../row/Literal";
+import { MetaRow } from "../row/Meta";
+import { MultiplyRow } from "../row/Multiply";
+import { ReferenceRow } from "../row/Reference";
+import { ReplaceRow } from "../row/Replace";
+import { SearchRow } from "../row/Search";
+import { SignumRow } from "../row/Sign";
+import { SubtractRow } from "../row/Subtract";
+import { SumRow } from "../row/Sum";
+import { TrimRow } from "../row/Trim";
+import { UtilityRow } from "../row/Utility";
+import { ChopTable } from "../table/Chop";
+import { CoalesceTable } from "../table/Coalesce";
+import { DebugTable } from "../table/Debug";
+import { FilterTable } from "../table/Filter";
+import { HeaderTable } from "../table/Header";
+import { PercolateTable } from "../table/Percolate";
+import { SelectTable } from "../table/Select";
+import { SetTable } from "../table/Set";
+import { TrimTable } from "../table/Trim";
 
 /** ------------------------------------------------------------------------- */
 
@@ -53,25 +70,90 @@ export interface AdvancedTransformerData {
  * 5. Finally, the process rebates are written to a set of `<destinations>`.
  *    Examples are in the `destination` folder.
  */
-export class AdvancedTransformer implements BaseTransformer {
+export class AdvancedTransformer implements Transformer {
   public readonly name: string;
   public readonly tags: string[];
-  private readonly sources: BaseSource[];
-  private readonly preprocess: BaseTable[];
-  private readonly properties: { name: string, definition: BaseRow[] }[];
-  private readonly postprocess: BaseTable[];
-  private readonly destinations: BaseDestination[];
+  private readonly sources: SourceOperator[];
+  private readonly preprocess: TableOperator[];
+  private readonly properties: { name: string, definition: RowOperator[] }[];
+  private readonly postprocess: TableOperator[];
+  private readonly destinations: DestinationOperator[];
   public readonly requirements: string[];
 
-  public constructor(name: string, tags: string[], sources: BaseSource[], preprocess: BaseTable[], properties: { name: string, definition: BaseRow[] }[], postprocess: BaseTable[], destinations: BaseDestination[], requirements: string[]) {
-    this.name = name;
-    this.tags = tags;
-    this.sources = sources;
-    this.preprocess = preprocess;
-    this.properties = properties;
-    this.postprocess = postprocess;
-    this.destinations = destinations;
-    this.requirements = requirements;
+  public static parseDestination(data: DestinationData): DestinationOperator {
+    switch (data.type) {
+      case "rebate": return new RebateDestinationOperator(data);
+      case "utility": return new UtilityDestinationOperator(data);
+    }
+  }
+
+  public static parseRow(data: RowData): RowOperator {
+    switch (data.type) {
+      case "abs": return new AbsoluteRowOperator();
+      case "add": return new AddRowOperator(data);
+      case "character": return new CharacterRow(data);
+      case "coerce":
+        switch (data.as) {
+          case "number": return new CoerceNumberRow(data);
+          case "date": return new CoerceDateRow(data);
+          case "usd": return new CoerceUSDRow(data);
+          default: throw new Error();
+        }
+      case "column": return new ColumnRow(data);
+      case "concat": return new ConcatRow(data);
+      case "counter": return new CounterRow();
+      case "divide": return new DivideRow(data);
+      case "equals": return new EqualsRow(data);
+      case "literal": return new LiteralRow(data);
+      case "meta": return new MetaRow(data);
+      case "multiply": return new MultiplyRow(data);
+      case "reference": return new ReferenceRow(data);
+      case "replace": return new ReplaceRow(data);
+      case "search": return new SearchRow(data);
+      case "sign": return new SignumRow();
+      case "subtract": return new SubtractRow(data);
+      case "sum": return new SumRow(data);
+      case "trim": return new TrimRow();
+      case "utility": return new UtilityRow(data);
+    }
+  }
+
+  public static parseTable(data: TableData): TableOperator {
+    switch (data.type) {
+      case "chop": return new ChopTable(data);
+      case "coalesce": return new CoalesceTable(data);
+      case "debug": return new DebugTable(data);
+      case "filter": return new FilterTable(data);
+      case "header": return new HeaderTable(data);
+      case "percolate": return new PercolateTable(data);
+      case "select": return new SelectTable(data);
+      case "set": return new SetTable(data);
+      case "trim": return new TrimTable(data);
+    }
+  }
+
+  public static parseSource(data: SourceData): SourceOperator {
+    switch (data.type) {
+      case "excel": return new ExcelSourceOperator(data);
+    }
+  }
+
+  public constructor(data: AdvancedTransformerData) {
+    this.name = data.name;
+    this.tags = data.tags;
+    this.sources = data.sources.map(AdvancedTransformer.parseSource);
+    this.preprocess = data.preprocess.map(AdvancedTransformer.parseTable);
+    this.properties = data.properties.map(p => ({
+      name: p.name,
+      definition: p.definition.map(AdvancedTransformer.parseRow),
+    }));
+    this.postprocess = data.postprocess.map(AdvancedTransformer.parseTable);
+    this.destinations = data.destination.map(AdvancedTransformer.parseDestination);
+    this.requirements = data.requirements;
+  }
+  
+  public getDeps(): string[] {
+    return this.requirements;
   }
 
   getDetails(): { name: string, tags: string[] } {
@@ -88,7 +170,7 @@ export class AdvancedTransformer implements BaseTransformer {
     const result = new Array<string>();
 
     for (const { definition } of this.properties) {
-      const output = BaseRow.runMany(definition, row, runner, table);
+      const output = RowOperator.runMany(definition, { row, runner, table });
       if (output == null) {
         return null;
       }
@@ -103,12 +185,12 @@ export class AdvancedTransformer implements BaseTransformer {
     const start = performance.now();
 
     // 1. Pull sources.
-    const source_data = this.sources.map(s => s.run(runner)).flat(1);
+    const source_data = this.sources.map(s => s.run({ runner })).flat(1);
 
     // 2. Pre-process data.
-    const preprocessed_data = source_data.map(d => BaseTable.runMany(this.preprocess, d, runner));
+    const preprocessed_data = source_data.map(t => TableOperator.runMany(this.preprocess, { table: t, runner }));
     const total = Table.stack(...preprocessed_data);
-    
+
     // 3. Extract properties.
     const processed = total.update(r => this.runRow(runner, r, total));
 
@@ -116,53 +198,14 @@ export class AdvancedTransformer implements BaseTransformer {
     const final = processed.prepend(header);
 
     // 4. Post-process data.
-    const postprocessed_data = BaseTable.runMany(this.postprocess, final, runner);
+    const postprocessed_data = TableOperator.runMany(this.postprocess, { table: final, runner });
 
     // 5. Send to destinations.
     for (const destination of this.destinations) {
-      destination.run(postprocessed_data, runner);
+      destination.run({ table: postprocessed_data, runner });
     }
 
     const end = performance.now();
     return { start, end, name: this.name };
   }
-
-  toJSON(): AdvancedTransformerData {
-    return {
-      type: "advanced",
-      name: this.name,
-      tags: this.tags,
-      sources: this.sources.map(o => o.buildJSON()),
-      requirements: this.requirements,
-      preprocess: this.preprocess.map(o => o.buildJSON()),
-      properties: this.properties.map(p => ({
-        name: p.name,
-        definition: p.definition.map(o => o.buildJSON()),
-      })),
-      postprocess: this.postprocess.map(o => o.buildJSON()),
-      destination: this.destinations.map(o => o.buildJSON())
-    }
-  }
-
-  public static fromJSON(data: AdvancedTransformerData): AdvancedTransformer {
-    return AdvancedTransformer.SCHEMA.parse(data);
-  }
-
-  /**
-   * The JSON schema of a Transformer.
-   */
-  public static readonly SCHEMA: z.ZodType<AdvancedTransformer, AdvancedTransformerData> = z.strictObject({
-    type: z.literal("advanced"),
-    name: z.string(),
-    tags: z.array(z.string()),
-    sources: z.array(SOURCE_SCHEMA),
-    requirements: z.array(z.string()),
-    preprocess: z.array(TABLE_SCHEMA),
-    properties: z.array(z.strictObject({
-      name: z.string(),
-      definition: z.array(ROW_SCHEMA)
-    })),
-    postprocess: z.array(TABLE_SCHEMA),
-    destination: z.array(DESTINATION_SCHEMA),
-  }).transform(s => new AdvancedTransformer(s.name, s.tags, s.sources, s.preprocess, s.properties, s.postprocess, s.destination, s.requirements));
 }

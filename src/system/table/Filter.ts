@@ -1,15 +1,8 @@
-import { z } from "zod/v4";
-import { BaseRow, ROW_SCHEMA, RowData } from "../row";
-import { BaseTable } from ".";
-import { Runner } from "../runner/Runner";
+import { RowOperator } from "../row";
+import { TableInput, TableOperator } from ".";
 import { Table } from "../information/Table";
-
-/** ------------------------------------------------------------------------- */
-
-export interface FilterTableData {
-  type: "filter";
-  criteria: RowData[];
-}
+import { FilterTableData } from "../../shared/transformer/advanced";
+import { AdvancedTransformer } from "../transformer/AdvancedTransformer";
 
 /** ------------------------------------------------------------------------- */
 
@@ -19,31 +12,22 @@ export interface FilterTableData {
  * For each row in the table, a set of row transformations are run. If the
  * resulting value is truthy, the row is kept.
  */
-export class FilterTable implements BaseTable {
+export class FilterTable implements TableOperator {
   /** The criteria to check. */
-  private readonly criteria: BaseRow[];
+  private readonly criteria: RowOperator[];
 
   /**
    * Create a filter operation.
    * @param criteria The criteria to check.
    */
-  public constructor(criteria: BaseRow[]) {
-    this.criteria = criteria;
+  public constructor(input: FilterTableData) {
+    this.criteria = input.criteria.map(AdvancedTransformer.parseRow);
   }
 
-  run(table: Table, runner: Runner): Table {
-    return table.filter(row => {
-      const value = BaseRow.runMany(this.criteria, row, runner, table);
+  run(input: TableInput): Table {
+    return input.table.filter(row => {
+      const value = RowOperator.runMany(this.criteria, { row, ...input });
       return value === "true";
     });
   }
-
-  buildJSON(): FilterTableData {
-    return { type: "filter", criteria: this.criteria.map(o => o.buildJSON()) };
-  }
-
-  public static readonly SCHEMA: z.ZodType<BaseTable, FilterTableData> = z.strictObject({
-    type: z.literal("filter"),
-    criteria: z.lazy(() => z.array(ROW_SCHEMA)),
-  }).transform(s => new FilterTable(s.criteria));
 }

@@ -1,15 +1,6 @@
-import { z } from "zod/v4";
-import { BaseRow, ROW_SCHEMA, RowData } from ".";
-import { Runner } from "../runner/Runner";
-import { Row, Table } from "../information/Table";
-
-/** ------------------------------------------------------------------------- */
-
-export interface ConcatRowData {
-  type: "concat";
-  with: RowData[];
-  separator?: string;
-}
+import { RowInput, RowOperator } from ".";
+import { ConcatRowData } from "../../shared/transformer/advanced";
+import { AdvancedTransformer } from "../transformer/AdvancedTransformer";
 
 /** ------------------------------------------------------------------------- */
 
@@ -19,9 +10,9 @@ export interface ConcatRowData {
  * 
  * Optionally, you can set a separator value to go in-between the two values.
  */
-export class ConcatRow implements BaseRow {
+export class ConcatRow implements RowOperator {
   /** The set of row transformations to extract the second value. */
-  private readonly other: BaseRow[];
+  private readonly other: RowOperator[];
   /** The separator between the two values. */
   private readonly separator: string;
 
@@ -30,23 +21,13 @@ export class ConcatRow implements BaseRow {
    * @param other The set of row transformations to extract the second value.
    * @param separator The separator between the two values.
    */
-  public constructor(other: BaseRow[], separator: string) {
-    this.other = other;
-    this.separator = separator;
+  public constructor(input: ConcatRowData) {
+    this.other = input.with.map(AdvancedTransformer.parseRow);
+    this.separator = input.separator;
   }
 
-  run(value: string, row: Row, runner: Runner, table: Table): Maybe<string> {
-    const other_value = BaseRow.runMany(this.other, row, runner, table);
-    return value + this.separator + other_value;
+  run(input: RowInput): Maybe<string> {
+    const other_value = RowOperator.runMany(this.other, input);
+    return input.value + this.separator + other_value;
   }
-
-  buildJSON(): ConcatRowData {
-    return { type: "concat", with: this.other.map(o => o.buildJSON()), separator: this.separator };
-  }
-
-  public static readonly SCHEMA: z.ZodType<BaseRow, ConcatRowData> = z.strictObject({
-    type: z.literal("concat"),
-    with: z.lazy(() => z.array(ROW_SCHEMA)),
-    separator: z.string().default("")
-  }).transform(s => new ConcatRow(s.with, s.separator));
 }

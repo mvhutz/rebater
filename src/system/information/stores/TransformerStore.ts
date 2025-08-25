@@ -4,7 +4,7 @@ import { getSubFiles } from "../../util";
 import { TransformerFile } from "../items/TransformerFile";
 import assert from "assert";
 import { AdvancedTransformer } from "../../transformer/AdvancedTransformer";
-import { BaseTransformer } from "../../transformer/BaseTransformers";
+import { BaseTransformer } from "../../transformer/Transformer";
 
 /** ------------------------------------------------------------------------- */
 

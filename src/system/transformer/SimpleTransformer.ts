@@ -1,63 +1,23 @@
 import z from "zod/v4";
 import { Runner } from "../runner/Runner";
-import { TABLE_SCHEMA } from "../table";
 import { AdvancedTransformer } from "./AdvancedTransformer";
-import { ExcelSource } from "../source/Excel";
-import { CounterRow } from "../row/Counter";
-import { ColumnRow } from "../row/Column";
-import { CoerceNumberRow } from "../row/CoerceNumber";
-import { CoerceDateRow } from "../row/CoerceDate";
-import { LiteralRow } from "../row/Literal";
-import { ReferenceRow } from "../row/Reference";
-import { CoerceUSDRow } from "../row/CoerceUSD";
-import { MultiplyRow } from "../row/Multiply";
-import { CharacterRow } from "../row/Character";
-import { RebateDestination } from "../destination/Rebate";
 import { TransformerResult } from "../../shared/worker/response";
-import { SelectTable } from "../table/Select";
-import { SetTable } from "../table/Set";
-import { MetaRow } from "../row/Meta";
-import { SumRow } from "../row/Sum";
-import { DivideRow } from "../row/Divide";
-import { BaseTransformer } from "./BaseTransformers";
+import { Transformer } from "./Transformer";
+import { AdvancedTransformerData, DestinationData, SourceData, TableData, TableSchema } from "../../shared/transformer/advanced";
+import { SimpleTransformerData } from "../../shared/transformer/simple";
 
 /** ------------------------------------------------------------------------- */
 
-export interface SimpleTransformerData {
-  type: "simple";
-  name: string;
-  group: string;
-  source: {
-    sheets: string[];
-    file?: string;
-  }
-  properties: {
-    purchaseId: "counter";
-    transactionDate: { column?: number; parse?: string; };
-    supplierId: { value?: string; }
-    memberId: { column?: number; }
-    distributorName:
-      | { type: "value", value?: string; }
-      | { type: "column", column?: number; }
-    purchaseAmount: { column?: number; };
-    rebateAmount: { column?: number; multiplier?: number; };
-    invoiceId: { column?: number; };
-    invoiceDate: { column?: number; parse?: string; };
-  }
-  options: {
-    canadian_rebate: boolean,
-    remove_null_rebates: boolean;
-    additional_preprocessing?: string;
-    additional_postprocessing?: string;
-  }
-}
-
-/** ------------------------------------------------------------------------- */
-
-export class SimpleTransformer implements BaseTransformer {
+export class SimpleTransformer implements Transformer {
   private readonly data: SimpleTransformerData;
   public constructor(data: SimpleTransformerData) {
     this.data = data;
+    this.name = this.data.name;
+  }
+  public name: string;
+
+  public getDeps(): string[] {
+    return [];
   }
 
   getDetails(): { name: string, tags: string[] } {
@@ -77,14 +37,19 @@ export class SimpleTransformer implements BaseTransformer {
       invoiceDate,
     } = this.data.properties;
 
-    const source = new ExcelSource(this.data.group, this.data.source.file ?? "*", this.data.source.sheets);
+    const source: SourceData = {
+      type: "excel",
+      group: this.data.group,
+      file: this.data.source.file ?? "*",
+      sheets: this.data.source.sheets
+    }
 
     /** --------------------------------------------------------------------- */
 
-    const preprocessing = [];
+    const preprocessing: TableData[] = [];
     if (this.data.options.additional_preprocessing != null) {
       const json = JSON.parse(this.data.options.additional_preprocessing);
-      const parsed = z.array(TABLE_SCHEMA).parse(json);
+      const parsed = z.array(TableSchema).parse(json);
       preprocessing.push(...parsed);
     }
 
@@ -92,145 +57,145 @@ export class SimpleTransformer implements BaseTransformer {
     const REBATE_TOTAL_COLUMN = 51;
 
     if (this.data.options.canadian_rebate && rebateAmount.column) {
-      preprocessing.push(...[
-        new SetTable(FILE_TOTAL_COLUMN, [
-          new MetaRow("row.source"),
-          new ReferenceRow("deposit", "file", "amount", this.data.group)
-        ]),
-        new SetTable(REBATE_TOTAL_COLUMN, [
-          new SumRow(rebateAmount.column),
-        ])
-      ]);
+      preprocessing.push(
+        { type: "set", column: FILE_TOTAL_COLUMN, to: [
+          { type: "meta", value: "row.source" },
+          { type: "reference", table: "deposit", match: "file", take: "amount", group: this.data.group }
+        ] },
+        { type: "set", column: REBATE_TOTAL_COLUMN, to: [
+          { type: "sum", column: rebateAmount.column }
+        ] }
+      );
     }
 
     /** --------------------------------------------------------------------- */
 
-    const properties: AdvancedTransformer["properties"] = [];
+    const properties: AdvancedTransformerData["properties"] = [];
 
 
     properties.push({ name: "purchaseId", definition: [
-      new CounterRow()
+      { type: "counter" }
     ] });
 
     if (transactionDate.column) {
       properties.push({ name: "transactionDate", definition: [
-        new ColumnRow(transactionDate.column),
-        new CoerceDateRow({
-          type: "coerce",
+        { type: "column", index: transactionDate.column },
+        { type: "coerce",
           as: "date",
-          parse: transactionDate.parse ? [transactionDate.parse] : undefined
-        })
+          parse: transactionDate.parse ? [transactionDate.parse] : [],
+          year: "keep",
+          format: "M/D/YYYY" }
       ] });
     }
 
     if (supplierId.value) {
       properties.push({ name: "supplierId", definition: [
-        new LiteralRow(supplierId.value)
+        { type: "literal", value: supplierId.value }
       ] });
     }
 
     if (memberId.column) {
       properties.push({ name: "memberId", definition: [
-        new ColumnRow(memberId.column),
-        new ReferenceRow("customers", "customerName", "fuseId", this.data.group),
+        { type: "column", index: memberId.column },
+        { type: "reference", table: "customers", match: "customerName", take: "fuseId", group: this.data.group },
       ] });
     }
 
     if (distributorName.type === "column") {
       if (distributorName.column) {
         properties.push({ name: "distributorName", definition: [
-          new ColumnRow(distributorName.column),
-          new ReferenceRow("customers", "customerName", "fuseId", this.data.group),
+          { type: "column", index: distributorName.column },
+          { type: "reference", table: "distributors", match: "fuzzyName", take: "trueName", group: this.data.group },
         ] });
       }
     } else {
       if (distributorName.value) {
         properties.push({ name: "distributorName", definition: [
-          new LiteralRow(distributorName.value),
-          new ReferenceRow("customers", "customerName", "fuseId", this.data.group),
+          { type: "literal", value: distributorName.value },
         ] });
       }
     }
 
     if (purchaseAmount.column) {
       properties.push({ name: "purchaseAmount", definition: [
-        new ColumnRow(purchaseAmount.column),
-        new CoerceUSDRow("default"),
+        { type: "column", index: purchaseAmount.column },
+        { type: "coerce", as: "usd", round: "default" }
       ] });
     }
 
     if (rebateAmount.column) {
       if (this.data.options.canadian_rebate) {
         properties.push({ name: "rebateAmount", definition: [
-          new ColumnRow(rebateAmount.column),
-          new MultiplyRow([
-            new ColumnRow(FILE_TOTAL_COLUMN)
-          ]),
-          new DivideRow([
-            new ColumnRow(REBATE_TOTAL_COLUMN)
-          ]),
-          new MultiplyRow([
-            new LiteralRow((rebateAmount.multiplier ?? 1).toString())
-          ]),
-          new CoerceUSDRow("default"),
+          { type: "column", index: rebateAmount.column },
+          { type: "multiply", with: [
+            { type: "column", index: FILE_TOTAL_COLUMN }
+          ] },
+          { type: "divide", with: [
+            { type: "column", index: REBATE_TOTAL_COLUMN }
+          ] },
+          { type: "multiply", with: [
+            { type: "literal", value: (rebateAmount.multiplier ?? 1).toString() }
+          ] },
+          { type: "coerce", as: "usd", round: "default" }
         ] });
       } else {
         properties.push({ name: "rebateAmount", definition: [
-          new ColumnRow(rebateAmount.column),
-          new MultiplyRow([
-            new LiteralRow((rebateAmount.multiplier ?? 1).toString())
-          ]),
-          new CoerceUSDRow("default"),
+          { type: "column", index: rebateAmount.column },
+          { type: "multiply", with: [
+            { type: "literal", value: (rebateAmount.multiplier ?? 1).toString() }
+          ] },
+          { type: "coerce", as: "usd", round: "default" }
         ] });
       }
     }
 
     if (invoiceId.column) {
       properties.push({ name: "invoiceId", definition: [
-        new ColumnRow(invoiceId.column),
-        new CharacterRow(".1234567890", "keep"),
-        new CoerceNumberRow("99999"),
+        { type: "column", index: invoiceId.column },
+        { type: "character", select: "1234567890", action: "keep" },
+        { type: "coerce", as: "number", otherwise: "99999" }
       ] });
     }
 
     if (invoiceDate.column) {
       properties.push({ name: "invoiceDate", definition: [
-        new ColumnRow(invoiceDate.column),
-        new CoerceDateRow({
-          type: "coerce",
+        { type: "column", index: invoiceDate.column },
+        { type: "coerce",
           as: "date",
-          parse: invoiceDate.parse ? [invoiceDate.parse] : undefined
-        })
+          parse: transactionDate.parse ? [transactionDate.parse] : [],
+          year: "keep",
+          format: "M/D/YYYY" }
       ] });
     }
 
     /** --------------------------------------------------------------------- */
 
-    const postprocessing = [];
+    const postprocessing: TableData[] = [];
     if (this.data.options.additional_postprocessing != null) {
       const json = JSON.parse(this.data.options.additional_postprocessing);
-      const parsed = z.array(TABLE_SCHEMA).parse(json);
+      const parsed = z.array(TableSchema).parse(json);
       postprocessing.push(...parsed);
     }
 
     if (this.data.options.remove_null_rebates) {
-      postprocessing.push(new SelectTable(6, "drop", "0.00"));
+      postprocessing.push({ type: "select", column: 6, is: "0.00", action: "drop" });
     }
 
     /** ------------------------------------------------------------------------- */
 
-    const destination = new RebateDestination(this.data.name);
+    const destination: DestinationData = { type: "rebate", name: this.data.name };
 
-    return new AdvancedTransformer(
-      this.data.name,
-      [this.data.group],
-      [source],
-      preprocessing,
+    return new AdvancedTransformer({
+      type: "advanced",
+      name: this.data.name,
+      tags: [this.data.group],
+      sources: [source],
+      preprocess: preprocessing,
       properties,
-      postprocessing,
-      [destination],
-      []
-    );
+      postprocess: postprocessing,
+      destination: [destination],
+      requirements: []
+    });
   }
 
   /**
@@ -242,42 +207,4 @@ export class SimpleTransformer implements BaseTransformer {
     const transformer = this.buildTransformer();
     return transformer.run(runner);
   };
-
-  toJSON(): SimpleTransformerData {
-    return this.data;
-  }
-
-  public static fromJSON(data: SimpleTransformerData): SimpleTransformer {
-    return new SimpleTransformer(data);
-  }
-
-  public static readonly SCHEMA: z.ZodType<SimpleTransformer, SimpleTransformerData> = z.strictObject({
-    type: z.literal("simple"),
-    name: z.string(),
-    group: z.string(),
-    source: z.strictObject({
-      sheets: z.array(z.string()),
-      file: z.string().optional(),
-    }),
-    properties: z.strictObject({
-      purchaseId: z.literal("counter"),
-      transactionDate: z.strictObject({ column: z.number().optional(), parse: z.string().optional() }),
-      supplierId: z.strictObject({ value: z.string().optional() }),
-      memberId: z.strictObject({ column: z.number().optional() }),
-      distributorName: z.discriminatedUnion("type", [
-        z.strictObject({ type: z.literal("value"), value: z.string().optional() }),
-        z.strictObject({ type: z.literal("column"), column: z.number().optional() }),
-      ]),
-      purchaseAmount: z.strictObject({ column: z.number().optional() }),
-      rebateAmount: z.strictObject({ column: z.number().optional(), multiplier: z.number().optional() }),
-      invoiceId: z.strictObject({ column: z.number().optional() }),
-      invoiceDate: z.strictObject({ column: z.number().optional(), parse: z.string().optional() }),
-    }),
-    options: z.strictObject({
-      canadian_rebate: z.boolean(),
-      remove_null_rebates: z.boolean(),
-      additional_preprocessing: z.string().optional(),
-      additional_postprocessing: z.string().optional(),
-    }),
-  }).transform(d => new SimpleTransformer(d))
 }

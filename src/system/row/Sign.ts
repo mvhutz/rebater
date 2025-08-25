@@ -1,27 +1,12 @@
-import { z } from "zod/v4";
-import { BaseRow } from ".";
-
-/** ------------------------------------------------------------------------- */
-
-export interface SignumRowData {
-  type: "sign";
-}
+import { RowInput, RowOperator } from ".";
 
 /** ------------------------------------------------------------------------- */
 
 /**
  * Get the sign of the current value.
  */
-export class SignumRow implements BaseRow {
-  run(value: string): Maybe<string> {
-    return Math.sign(parseFloat(value)).toString();
+export class SignumRow implements RowOperator {
+  run(input: RowInput): Maybe<string> {
+    return Math.sign(parseFloat(input.value)).toString();
   }
-
-  buildJSON(): SignumRowData {
-    return { type: "sign" };
-  }
-
-  public static readonly SCHEMA: z.ZodType<BaseRow, SignumRowData> = z.strictObject({
-    type: z.literal("sign"),
-  }).transform(() => new SignumRow());
 }

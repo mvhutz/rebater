@@ -1,13 +1,5 @@
-import { z } from "zod/v4";
-import { BaseRow } from ".";
-
-/** ------------------------------------------------------------------------- */
-
-export interface CharacterRowData {
-  type: "character";
-  select: string;
-  action?: "keep" | "drop";
-}
+import { RowInput, RowOperator } from ".";
+import { CharacterRowData } from "../../shared/transformer/advanced";
 
 /** ------------------------------------------------------------------------- */
 
@@ -18,7 +10,7 @@ export interface CharacterRowData {
  * string. Then it either chooses to discard those characters, or keep only
  * those, and discard the rest.
  */
-export class CharacterRow implements BaseRow {
+export class CharacterRow implements RowOperator {
   /** The set of characters to match for. */
   private readonly select: string;
   /** Whether the keep or drop the matching characters. */
@@ -29,29 +21,15 @@ export class CharacterRow implements BaseRow {
    * @param select The set of characters to match for.
    * @param action Whether the keep or drop the matching characters.
    */
-  public constructor(select: string, action: "keep" | "drop") {
-    this.select = select;
-    this.action = action;
+  public constructor(input: CharacterRowData) {
+    this.select = input.select;
+    this.action = input.action;
   }
 
-  run(value: string): Maybe<string> {
-    const characters = value.split("");
+  run(input: RowInput): Maybe<string> {
+    const characters = input.value.split("");
     return characters
       .filter(c => this.select.includes(c) === (this.action === "keep"))
       .join("");
   }
-
-  buildJSON(): CharacterRowData {
-    return {
-      type: "character",
-      select: this.select,
-      action: this.action
-    }
-  }
-
-  public static readonly SCHEMA: z.ZodType<BaseRow, CharacterRowData> = z.strictObject({
-    type: z.literal("character"),
-    select: z.string(),
-    action: z.union([z.literal("keep"), z.literal("drop")]).default("keep")
-  }).transform(s => new CharacterRow(s.select, s.action));
 }
