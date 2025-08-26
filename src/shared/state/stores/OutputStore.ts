@@ -1,5 +1,5 @@
 import { Time } from "../../../shared/time";
-import { getSubFiles, getSubFolders } from "../../util";
+import { getSubFiles, getSubFolders } from "./util";
 import { AbstractStore } from "./AbstractStore";
 import { ExcelRebateFile } from "../items/ExcelRebateFile";
 

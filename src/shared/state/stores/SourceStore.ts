@@ -1,6 +1,6 @@
 import { Time } from "../../../shared/time";
 import { AbstractStore } from "./AbstractStore";
-import { getSubFiles, getSubFolders } from "../../util";
+import { getSubFiles, getSubFolders } from "./util";
 import { SourceFile } from "../items/SourceFile";
 
 /** ------------------------------------------------------------------------- */

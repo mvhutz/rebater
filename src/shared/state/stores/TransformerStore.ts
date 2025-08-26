@@ -1,6 +1,6 @@
 import path from "path";
 import { AbstractStore } from "./AbstractStore";
-import { getSubFiles } from "../../util";
+import { getSubFiles } from "./util";
 import { TransformerFile } from "../items/TransformerFile";
 import { TransformerData } from "../../../shared/transformer";
 
