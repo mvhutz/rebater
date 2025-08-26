@@ -12,8 +12,6 @@ import { SettingsStore } from "../state/SettingsStore";
 
 /** ------------------------------------------------------------------------- */
 
-
-
 const { ipcMain } = IPC;
 
 export class IPCHandler {

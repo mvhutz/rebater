@@ -20,7 +20,6 @@ function sendError(message?: string): WorkerResponse {
 
 /** ------------------------------------------------------------------------- */
 
-let runner: Maybe<Runner>;
 let state: Maybe<State>;
 let settings_data: Reply<SettingsData> = bad("Not loaded!");
 
@@ -45,7 +44,7 @@ const SYSTEM = {
       const settings = new Settings(settings_data.data);
       state = new State(settings);
     } else {
-      runner = null;
+      state = null;
     }
   },
 
@@ -55,13 +54,14 @@ const SYSTEM = {
   run(): Observable<WorkerResponse> {
     return new Observable(observer => {
       // Get settings.
-      if (runner == null) {
-        observer.next(sendError("Runner not loaded!"));
+      if (state == null) {
+        observer.next(sendError("State not loaded!"));
         observer.complete();
         return;
       }
       
       // Create runner.
+      const runner = new Runner(state);
       runner.on("status", status => observer.next({ type: "status", status }));
 
       // Run it.
