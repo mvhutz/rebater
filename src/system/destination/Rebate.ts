@@ -3,7 +3,7 @@ import { z } from "zod/v4";
 import { DestinationInput, DestinationOperator } from ".";
 import { RebateSchema } from "../../shared/worker/response";
 import { RebateDestinationData } from "../../shared/transformer/advanced";
-import { CSVRebateFile } from "../../shared/state/items/CSVRebateFile";
+import { DestinationFile } from "../../shared/state/stores/DestinationStore";
 
 /** ------------------------------------------------------------------------- */
 
@@ -25,7 +25,7 @@ export class RebateDestinationOperator implements DestinationOperator {
 
     // Send to the destination store.
     const filepath = input.state.settings.getDestinationPath(this.name);
-    const destination = new CSVRebateFile(filepath, {
+    const destination = new DestinationFile(filepath, {
       group: this.name,
       quarter: input.state.settings.time
     });

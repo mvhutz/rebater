@@ -73,11 +73,11 @@ export class ReferenceView {
  * References are used by transformers to lookup tabular data, during
  * processing.
  */
-export class ReferenceFile<Meta = unknown> extends AbstractFile<Reference, Meta> {
+export class ReferenceFile extends AbstractFile<Reference> {
   public readonly name: string;
 
-  public constructor(path: string, name: string, meta: Meta) {
-    super(path, [], meta);
+  public constructor(path: string, name: string) {
+    super(path, []);
     this.name = name;
   }
 

@@ -6,7 +6,7 @@ import Typography from '@mui/joy/Typography';
 import AccordionDetails from '@mui/joy/AccordionDetails';
 import React from 'react';
 import { useAppDispatch, useAppSelector } from '../../client/store/hooks';
-import { getTransformers, getTransformersSettings, setTransformersNames, setTransformersTags } from '../../client/store/slices/system';
+import { getDraftTransformersSettings, getTransformers, setDraftTransformersNames, setDraftTransformersTags } from '../../client/store/slices/system';
 import Chip from '@mui/joy/Chip';
 import FormControl from '@mui/joy/FormControl';
 import Option from '@mui/joy/Option';
@@ -20,18 +20,18 @@ import { Alert } from '@mui/joy';
 
 function TransformerSettings() {
   const transformers = useAppSelector(getTransformers);
-  const { names, tags } = useAppSelector(getTransformersSettings);
+  const { names, tags } = useAppSelector(getDraftTransformersSettings);
   const dispatch = useAppDispatch();
 
   const handleIncludeNames = React.useCallback((_: unknown, selected: string[]) => {
-    dispatch(setTransformersNames(selected));
+    dispatch(setDraftTransformersNames(selected));
   }, [dispatch]);
 
   const handleIncludeTags = React.useCallback((_: unknown, selected: string[]) => {
-    dispatch(setTransformersTags(selected));
+    dispatch(setDraftTransformersTags(selected));
   }, [dispatch]);
 
-  const all_tags = new Set(transformers.filter(t => t.type !== "malformed").map(t => t.data.tags).flat());
+  const all_tags = new Set(transformers.filter(t => t.type !== "malformed").map(t => t.data.type === "advanced" ? t.data.tags : [t.data.group]).flat());
   const chip = <Chip variant="outlined" color="neutral">{transformers.length === 0 ? "..." : transformers.length}</Chip>
   const inner = (
     <>

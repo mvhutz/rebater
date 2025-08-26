@@ -7,7 +7,7 @@ import * as XLSX from 'xlsx';
 /**
  * An AbstractRebateFile, which stores in Excel format.
  */
-export class ExcelRebateFile<Meta> extends AbstractRebateFile<Meta> {
+export class ExcelRebateFile extends AbstractRebateFile {
   serialize(): Buffer {
     const sheet = XLSX.utils.json_to_sheet(this.data);
     const book = XLSX.utils.book_new();

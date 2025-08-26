@@ -4,7 +4,7 @@ import path from "path";
 import { existsSync } from "fs";
 import { lstat, readFile } from "fs/promises";
 import z from "zod/v4";
-import { Settings, SettingsData } from "../../settings";
+import { Settings, SettingsData, SettingsSchema } from "../../settings";
 
 /** ------------------------------------------------------------------------- */
 
@@ -17,7 +17,7 @@ export async function getSettings(): Promise<Reply<SettingsData>> {
 
   // Return the default settings, if the file does not exist.
   if (!existsSync(file)) {
-    return good(Settings.DEFAULT_SETTINGS);
+    return bad("No file!");
   }
 
   // Should only be a file.
@@ -29,7 +29,7 @@ export async function getSettings(): Promise<Reply<SettingsData>> {
   // Parse data.
   const raw = await readFile(file, 'utf-8');
   const json = JSON.parse(raw);
-  const parsed = Settings.SCHEMA.safeParse(json);
+  const parsed = SettingsSchema.safeParse(json);
 
   if (!parsed.success) {
     return bad(z.prettifyError(parsed.error));
@@ -47,7 +47,5 @@ export async function getSettingsInterface(): Promise<Reply<Settings>> {
   if (!settings_reply.ok) return settings_reply;
 
   const { data: settings } = settings_reply;
-
-  const isettings_reply = Settings.from(settings);
-  return isettings_reply;
+  return good(new Settings(settings));
 }

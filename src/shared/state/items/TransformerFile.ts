@@ -6,14 +6,12 @@ import { TransformerData, TransformerSchema } from "../../../shared/transformer"
 
 /** ------------------------------------------------------------------------- */
 
-interface Meta { type: "json" | "xml" };
-
 /**
  * An AbstractFile which holds source data.
  */
-export class TransformerFile extends AbstractFile<Reply<TransformerData>, Meta> {
-  constructor(path: string, meta: Meta) {
-    super(path, bad("Not loaded!"), meta);
+export class TransformerFile extends AbstractFile<Reply<TransformerData>> {
+  constructor(path: string) {
+    super(path, bad("Not loaded!"));
   }
 
   serialize(): Buffer {

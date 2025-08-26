@@ -5,7 +5,7 @@ import z from "zod/v4";
 import { RebateSet } from "./RebateSet";
 import { Transformer } from "../transformer/Transformer";
 import { State } from "../../shared/state";
-import { ExcelRebateFile } from "../../shared/state/items/ExcelRebateFile";
+import { OutputFile } from "../../shared/state/stores/OutputStore";
 
 /** ------------------------------------------------------------------------- */
 
@@ -67,7 +67,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     const member_ids = new Set([...expected_partitions.keys(), ...actual_partitions.keys()]);
 
     for (const member_id of member_ids) {
-      if (!this.state.settings.doCompareAll() && !actual_partitions.has(member_id)) {
+      if (!this.state.settings.data.testing.compare_all && !actual_partitions.has(member_id)) {
         continue;
       }
 
@@ -119,14 +119,14 @@ export class Runner extends EventEmitter<RunnerEvents> {
     }
 
     // Optionally, create a discrepancy report.
-    if (this.state.settings.testing) {
+    if (this.state.settings.data.testing.enabled) {
       yield { type: "loading", message: "Scoring accuracy..." };
       results.discrepency = await this.compareAllRebates();
     }
 
     // Create the output file.
     yield { type: "loading", message: "Compiling rebates..." };
-    const output = new ExcelRebateFile(this.state.settings.getOutputFile("xlsx"), {
+    const output = new OutputFile(this.state.settings.getOutputFile("xlsx"), {
       quarter: this.state.settings.time
     });
     output.add(...this.state.destinations.getItems());

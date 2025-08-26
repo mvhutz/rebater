@@ -28,13 +28,13 @@ export class State {
     this.settings = settings;
     this.counter = new Counter();
     this.tracker = new Tracker();
-    this.references = new ReferenceStore({ directory: settings.getReferencePath() });
-    this.sources = new SourceStore({ directory: settings.getAllSourcePath() });
-    this.destinations = new DestinationStore({ directory: settings.getAllDestinationPath() });
-    this.outputs = new OutputStore({ directory: settings.getAllOutputPath() });
-    this.truths = new TruthStore({ directory: settings.getAllTruthPath() });
-    this.utilities = new UtilityStore({ directory: settings.getAllUtilityPath() });
-    this.transformers = new TransformerStore({ directory: settings.getAllTransformerPath() });
+    this.references = new ReferenceStore(settings.getReferencePath());
+    this.sources = new SourceStore(settings.getAllSourcePath());
+    this.destinations = new DestinationStore(settings.getAllDestinationPath());
+    this.outputs = new OutputStore(settings.getAllOutputPath());
+    this.truths = new TruthStore(settings.getAllTruthPath());
+    this.utilities = new UtilityStore(settings.getAllUtilityPath());
+    this.transformers = new TransformerStore(settings.getAllTransformerPath());
   }
 
   /**

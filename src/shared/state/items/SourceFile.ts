@@ -1,12 +1,17 @@
 import { Time } from "../../../shared/time";
 import { AbstractFile } from "./AbstractFile";
 
+interface Meta { group: string, quarter: Time };
+
 /**
  * An AbstractFile which holds source data.
  */
-export class SourceFile extends AbstractFile<Buffer, { group: string, quarter: Time }> {
-  constructor(path: string, meta: { group: string, quarter: Time }) {
-    super(path, Buffer.from(""), meta);
+export class SourceFile extends AbstractFile<Buffer> {
+  public meta: Meta;
+
+  constructor(path: string, meta: Meta) {
+    super(path, Buffer.from(""));
+    this.meta = meta;
   }
 
   serialize(): Buffer {

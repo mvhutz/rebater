@@ -1,5 +1,5 @@
 import { bad, good, Reply } from "../reply";
-import { Settings, SettingsData } from "../settings";
+import { SettingsData } from "../settings";
 import { Answer, WorkerRequest } from "../worker/request";
 import { SystemStatus, WorkerResponse } from "../worker/response";
 import { app, BrowserWindow } from "electron";
@@ -7,10 +7,8 @@ import IPC from ".";
 import { ModuleThread, spawn, Worker } from "threads";
 import { System } from "../../worker";
 import path from "path";
-import { existsSync } from "fs";
-import { lstat, readFile, writeFile } from "fs/promises";
-import z from "zod/v4";
 import { TransformerData } from "../transformer";
+import { SettingsStore } from "../state/SettingsStore";
 
 /** ------------------------------------------------------------------------- */
 
@@ -22,89 +20,67 @@ export class IPCHandler {
   private window: BrowserWindow;
   private worker: Worker;
   private thread: ModuleThread<System>;
-  private settings_data: Reply<SettingsData>;
+  private store: SettingsStore;
 
   constructor(window: BrowserWindow, worker: Worker, thread: ModuleThread<System>) {
     this.worker = worker;
     this.thread = thread;
     this.window = window;
-    this.settings_data = bad("Not loaded!");
-  }
-
-  static async fetchSettingsData(): Promise<Reply<SettingsData>> {
-    const file = path.join(app.getPath("userData"), "settings.json");
-    
-    // Return the default settings, if the file does not exist.
-    if (!existsSync(file)) {
-      return good(Settings.DEFAULT_SETTINGS);
-    }
-  
-    // Should only be a file.
-    const stat = await lstat(file);
-    if (!stat.isFile()) {
-      return bad("File not found in settings location.");
-    }
-  
-    // Parse data.
-    const raw = await readFile(file, 'utf-8');
-    const json = JSON.parse(raw);
-    const parsed = Settings.SCHEMA.safeParse(json);
-  
-    if (!parsed.success) {
-      return bad(z.prettifyError(parsed.error));
-    } else {
-      return good(parsed.data);
-    }
+    this.store = new SettingsStore(path.join(app.getPath("userData"), "settings.json"));
   }
 
   /** ----------------------------------------------------------------------- */
 
   async getTransformers() {
-    const repo = this.connection.getRepository(TransformerEntity);
-    const transformers = await repo.find();
+    // const repo = this.connection.getRepository(TransformerEntity);
+    // const transformers = await repo.find();
 
-    return good(transformers);
+    // return good(transformers);
+    return bad("Not yet!");
   }
 
   async createTransformer(data: TransformerData): Promise<Reply<number>> {
-    const repo = this.connection.getRepository(TransformerEntity);
-    const built = new TransformerEntity();
-    built.data = data;
-    const saved = await repo.save(built);
-    return good(saved.id);
+    // const repo = this.connection.getRepository(TransformerEntity);
+    // const built = new TransformerEntity();
+    // built.data = data;
+    // const saved = await repo.save(built);
+    // return good(saved.id);
+    void [data];
+    return bad("Not yet!");
   }
 
   async deleteTransformer(id: number): Promise<Reply<number>> {
-    const repo = this.connection.getRepository(TransformerEntity);
-    const result = await repo.delete({ id });
+    // const repo = this.connection.getRepository(TransformerEntity);
+    // const result = await repo.delete({ id });
 
-    return good(result.affected ?? 0);
+    // return good(result.affected ?? 0);
+    void [id];
+    return bad("Not yet!");
   }
 
   async updateTransformer(options: { id: number, data: TransformerData}): Promise<Reply<number>> {
-    const repo = this.connection.getRepository(TransformerEntity);
-    const result = await repo.update({ id: options.id }, { data: options.data });
+    // const repo = this.connection.getRepository(TransformerEntity);
+    // const result = await repo.update({ id: options.id }, { data: options.data });
   
-    return good(result.affected ?? 0);
+    // return good(result.affected ?? 0);
+    void [options];
+    return bad("Not yet!");
   }
 
   /** ----------------------------------------------------------------------- */
 
   async refreshSettingsData() {
-    this.settings_data = await IPCHandler.fetchSettingsData();
-    this.thread.setSettings(this.settings_data, path.join(app.getPath("userData"), "application.db"));
+    this.thread.setSettings(this.store.getSettingsData());
   }
 
   async getSettingsData() {
     await this.refreshSettingsData();
-    return this.settings_data;
+    return this.store.getSettingsData();
   }
 
   async setSettingsData(data: SettingsData) {
-    const file = path.join(app.getPath("userData"), "settings.json");
-    await writeFile(file, JSON.stringify(data));
+    await this.store.setSettingsData(data);
     await this.refreshSettingsData();
-
     return good("Settings saved!");
   }
 
@@ -112,19 +88,8 @@ export class IPCHandler {
     const worker = new Worker('worker.js');
     const thread = await spawn<System>(worker);
 
-    const connection = new DataSource({
-      type: "sqlite",
-      database: path.join(app.getPath("userData"), "application.db"),
-      synchronize: true,
-      logging: false,
-      driver: sqlite_driver,
-      entities: [TransformerEntity],
-      migrations: [],
-      subscribers: [],
-    });
-    await connection.initialize();
 
-    const handler = new IPCHandler(window, worker, thread, connection);
+    const handler = new IPCHandler(window, worker, thread);
     await handler.refreshSettingsData();
     return handler;
   }

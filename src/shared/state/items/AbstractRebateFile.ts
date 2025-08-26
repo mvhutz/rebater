@@ -6,9 +6,9 @@ import { AbstractFile } from "./AbstractFile";
 /**
  * An Abstract file, which specifically contains Rebate data.
  */
-export abstract class AbstractRebateFile<Meta> extends AbstractFile<Rebate[], Meta> {
-  public constructor(path: string, meta: Meta) {
-    super(path, [], meta);
+export abstract class AbstractRebateFile extends AbstractFile<Rebate[]> {
+  public constructor(path: string) {
+    super(path, []);
   }
 
   insert(datum: Rebate[]): void {

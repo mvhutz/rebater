@@ -42,12 +42,8 @@ const SYSTEM = {
     settings_data = data;
 
     if (settings_data.ok) {
-      const settings = Settings.from(settings_data.data);
-      if (settings.ok) {
-        state = new State(settings.data);
-      } else {
-        runner = null;
-      }
+      const settings = new Settings(settings_data.data);
+      state = new State(settings);
     } else {
       runner = null;
     }

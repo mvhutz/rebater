@@ -1,10 +1,9 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { Reply } from "../../../shared/reply";
+import { bad, Reply } from "../../../shared/reply";
 import { RootState } from "..";
-import { ResourceStatus } from "../../../shared/resource";
 import { SettingsData } from "../../../shared/settings";
-import { TransformerFileInfo } from "../../../system/transformer/AdvancedTransformer";
 import { TimeData } from "../../../shared/time";
+import { TransformerFileInfo } from "../../../system/transformer/Transformer";
 
 /** ------------------------------------------------------------------------- */
 
@@ -21,28 +20,20 @@ export const pushSystemSettings = createAsyncThunk(
   'system/pushSettings',
   async (_, { getState }): Promise<Reply<string>> => {
     const { system } = getState() as RootState;
-
-    return await invoke.setSettings(system.settings.data);
-  },
-  {
-    condition(_, { getState }) {
-      const { system } = getState() as RootState;
-      if (system.settings.status !== ResourceStatus.PRESENT) return false;
+    const { directory } = system.draft.settings;
+    if (directory == null) {
+      return bad("No directory selected!");
     }
+
+    const settings = { ...system.draft.settings, directory };
+    return await invoke.setSettings(settings);
   }
 );
 
 export const pullSystemSettings = createAsyncThunk(
   'system/pullSettings',
-  async (): Promise<Reply<Maybe<SettingsData>>> => {
+  async (): Promise<Reply<SettingsData>> => {
     return await invoke.getSettings({});
-  },
-  {
-    condition(_, { getState }) {
-      const { system } = getState() as RootState;
-      if (system.settings.status !== ResourceStatus.PRESENT) return false;
-      if (system.status.type === "loading" || system.status.type === "running") return false;
-    }
   }
 );
 

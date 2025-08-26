@@ -6,18 +6,11 @@ import { AbstractItem } from "../items/AbstractItem";
 /**
  * Stores AbstractItems.
  */
-export abstract class AbstractStore<Item extends AbstractItem<ItemData>, Meta, ItemData = ReturnType<Item["getData"]>> {
+export abstract class AbstractStore<Item extends AbstractItem<ItemData>, ItemData = ReturnType<Item["getData"]>> {
   protected items = new Map<string, Item>();
-
-  /** Any metadata about the store. */
-  public readonly meta: Meta;
 
   /** The name of the store. */
   public abstract readonly name: string;
-
-  public constructor(meta: Meta) {
-    this.meta = meta;
-  }
 
   /**
    * Clear all items in the store.

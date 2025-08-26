@@ -1,4 +1,3 @@
-import "reflect-metadata";
 import { app, BrowserWindow, shell } from 'electron';
 import path from 'path';
 import started from 'electron-squirrel-startup';

@@ -1,28 +1,53 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { type RootState } from '..'
-import { Settings, type SettingsData } from '../../../shared/settings';
-import { resource, Resource, ResourceStatus } from '../../../shared/resource';
-import { killSystem, pullAllQuarters, pullSystemSettings, pullTransformers, pushSystemSettings, startSystem } from './thunk';
+import { type SettingsData } from '../../../shared/settings';
+import { killSystem, pullAllQuarters, pullSystemSettings, pullTransformers, startSystem } from './thunk';
 import { TimeData } from '../../../shared/time';
 import { Question, SystemStatus } from '../../../shared/worker/response';
-import { TransformerFileInfo } from '../../../system/transformer/AdvancedTransformer';
+import { bad, Reply } from '../../../shared/reply';
+import { TransformerFileInfo } from '../../../system/transformer/Transformer';
+
+/** ------------------------------------------------------------------------- */
+
+export interface SettingsDraft {
+  time: TimeData;
+  transformers: {
+    tags: { include: string[]; };
+    names: { include: string[]; };
+  };
+  directory?: string;
+  testing: { enabled: boolean; compare_all: boolean; };
+}
 
 /** ------------------------------------------------------------------------- */
 
 interface SystemState {
   status: SystemStatus;
-  settings: Resource<SettingsData>;
+  settings: Reply<SettingsData>;
   transformers: TransformerFileInfo[];
-  quarters: Resource<TimeData[]>;
+  quarters: TimeData[];
   questions: Record<string, Question>;
+  draft: {
+    settings: SettingsDraft;
+  }
 }
 
 const initialState: SystemState = {
   status: { type: "idle" },
-  settings: resource(Settings.DEFAULT_SETTINGS),
-  quarters: resource([], ResourceStatus.LOADING),
+  settings: bad("Not loaded!"),
+  quarters: [],
   transformers: [],
-  questions: {}
+  questions: {},
+  draft: {
+    settings: {
+      time: { year: 9999, quarter: 1 },
+      transformers: {
+        tags: { include: [] },
+        names: { include: [] }
+      },
+      testing: { enabled: false, compare_all: false }
+    }
+  }
 }
 
 /** ------------------------------------------------------------------------- */
@@ -34,26 +59,26 @@ export const SystemSlice = createSlice({
     setStatus: (state, action: PayloadAction<SystemStatus>) => {
       state.status = action.payload;
     },
-    setSystemTarget: (state, action: PayloadAction<SettingsData["advanced"]["target"]>) => {
-      state.settings.data.advanced.target = action.payload;
+    setTrueSettings: (state, action: PayloadAction<Reply<SettingsData>>) => {
+      state.settings = action.payload;
     },
-    setSystemYear: (state, action: PayloadAction<Maybe<number>>) => {
-      state.settings.data.context.year = action.payload ?? undefined;
+    setDraftSystemDirectory: (state, action: PayloadAction<string>) => {
+      state.draft.settings.directory = action.payload;
     },
-    setSystemQuarter: (state, action: PayloadAction<Maybe<number>>) => {
-      state.settings.data.context.quarter = action.payload ?? undefined;
+    setDraftSystemTime: (state, action: PayloadAction<TimeData>) => {
+      state.draft.settings.time = action.payload ?? undefined;
     },
-    setSystemTesting: (state, action: PayloadAction<boolean>) => {
-      state.settings.data.advanced.doTesting = action.payload;
+    setDraftSystemTesting: (state, action: PayloadAction<boolean>) => {
+      state.draft.settings.testing.enabled = action.payload;
     },
-    setSystemTestAll: (state, action: PayloadAction<boolean>) => {
-      state.settings.data.advanced.doCompareAll = action.payload;
+    setDraftSystemTestAll: (state, action: PayloadAction<boolean>) => {
+      state.draft.settings.testing.compare_all = action.payload;
     },
-    setTransformersNames: (state, action: PayloadAction<Maybe<string[]>>) => {
-      state.settings.data.transformers.names.include = action.payload ?? undefined;
+    setDraftTransformersNames: (state, action: PayloadAction<Maybe<string[]>>) => {
+      state.draft.settings.transformers.names.include = action.payload ?? [];
     },
-    setTransformersTags: (state, action: PayloadAction<Maybe<string[]>>) => {
-      state.settings.data.transformers.tags.include = action.payload ?? undefined;
+    setDraftTransformersTags: (state, action: PayloadAction<Maybe<string[]>>) => {
+      state.draft.settings.transformers.tags.include = action.payload ?? [];
     },
     deleteQuestion: (state, action: PayloadAction<Question>) => {
       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
@@ -68,25 +93,11 @@ export const SystemSlice = createSlice({
   },
   extraReducers(builder) {
     builder
-      .addCase(pushSystemSettings.pending, (state) => {
-        state.settings.status = ResourceStatus.SAVING;
-      })
-      .addCase(pushSystemSettings.fulfilled, (state) => {
-        state.settings.status = ResourceStatus.PRESENT;
-      })
-      .addCase(pushSystemSettings.rejected, (state) => {
-        state.settings.status = ResourceStatus.PRESENT;
-      })
-      .addCase(pullSystemSettings.pending, (state) => {
-        state.settings.status = ResourceStatus.LOADING;
-      })
       .addCase(pullSystemSettings.fulfilled, (state, { payload }) => {
-        state.settings.status = ResourceStatus.PRESENT;
-        if (!payload.ok || payload.data == null) return;
-        state.settings.data = payload.data;
-      })
-      .addCase(pullSystemSettings.rejected, (state) => {
-        state.settings.status = ResourceStatus.PRESENT;
+        state.settings = payload;
+        if (payload.ok) {
+          state.draft.settings = payload.data;
+        }
       })
       .addCase(startSystem.pending, (state) => {
         state.status = { type: "loading", message: "Connecting..." };
@@ -122,16 +133,16 @@ export const SystemSlice = createSlice({
         }
       })
       .addCase(pullAllQuarters.pending, state => {
-        state.quarters = resource([], ResourceStatus.LOADING);
+        state.quarters = []
       })
       .addCase(pullAllQuarters.rejected, (state) => {
-        state.quarters = resource([], ResourceStatus.LOADING);
+        state.quarters = []
       })
       .addCase(pullAllQuarters.fulfilled, (state, { payload }) => {
         if (payload.ok) {
-          state.quarters = resource(payload.data, ResourceStatus.PRESENT);
+          state.quarters = payload.data;
         } else {
-          state.quarters = resource([], ResourceStatus.LOADING);
+          state.quarters = [];
         }
       })
   },
@@ -140,20 +151,21 @@ export const SystemSlice = createSlice({
 /** ------------------------------------------------------------------------- */
 
 export const {
-  setStatus, setSystemTarget, setSystemQuarter, setSystemYear, setSystemTesting,
-  setTransformersNames, setTransformersTags, deleteQuestion, clearQuestions,
-  setSystemTestAll, addQuestion
+  setStatus, setTrueSettings, setDraftSystemDirectory, setDraftSystemTime, setDraftSystemTesting,
+  setDraftTransformersNames, setDraftTransformersTags, deleteQuestion, clearQuestions,
+  setDraftSystemTestAll, addQuestion
 } = SystemSlice.actions
 
 export const getSystemStatus = (state: RootState) => state.system.status;
-export const getSystemSettings = (state: RootState) => state.system.settings;
-export const getContextSettings = (state: RootState) => state.system.settings.data.context;
-export const getTestSettings = (state: RootState) => state.system.settings.data.advanced.doTesting;
-export const getTestAll = (state: RootState) => state.system.settings.data.advanced.doCompareAll;
+export const getTrueSettings = (state: RootState) => state.system.settings;
+export const getDraftSettings = (state: RootState) => state.system.draft.settings;
+export const getDraftTime = (state: RootState) => state.system.draft.settings.time;
+export const getDraftTesting = (state: RootState) => state.system.draft.settings.testing;
+export const getDraftCompareAll = (state: RootState) => state.system.draft.settings.testing.compare_all;
+export const getDraftTransformersSettings = (state: RootState) => state.system.draft.settings.transformers;
 export const getTransformers = (state: RootState) => state.system.transformers;
-export const getTransformersSettings = (state: RootState) => state.system.settings.data.transformers;
 export const getSystemQuestions = (state: RootState) => state.system.questions;
-export const getSystemQuestionCount = (state: RootState) => Object.keys(state.system.questions).length; 
+export const getSystemQuestionCount = (state: RootState) => Object.keys(state.system.questions).length;
 
 export const isSystemLoading = (state: RootState) => {
   return state.system.status.type === "loading";
@@ -183,6 +195,6 @@ export const getSystemProgress = (state: RootState): number => {
   }
 }
 
-export const getQuarterList = (state: RootState): Resource<TimeData[]> => {
+export const getQuarterList = (state: RootState): TimeData[] => {
   return state.system.quarters
 }

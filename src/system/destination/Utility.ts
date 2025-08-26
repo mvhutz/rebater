@@ -1,7 +1,8 @@
 import Papa from "papaparse";
 import { DestinationInput, DestinationOperator } from ".";
 import { UtilityDestinationData } from "../../shared/transformer/advanced";
-import { ReferenceFile, ReferenceSchema } from "../../shared/state/items/ReferenceFile";
+import { ReferenceSchema } from "../../shared/state/items/ReferenceFile";
+import { UtilityFile } from "../../shared/state/stores/UtilityStore";
 
 /** ------------------------------------------------------------------------- */
 
@@ -24,8 +25,7 @@ export class UtilityDestinationOperator implements DestinationOperator {
 
     // Send to the Utility store.
     const filepath = input.state.settings.getUtilityPath(this.name);
-    const utility = new ReferenceFile(filepath, this.name, {
-      group: this.name,
+    const utility = new UtilityFile(filepath, this.name, {
       quarter: input.state.settings.time
     });
 

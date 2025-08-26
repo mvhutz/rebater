@@ -12,18 +12,16 @@ import ListItemContent from '@mui/joy/ListItemContent';
 import Typography from '@mui/joy/Typography';
 import AccordionDetails from '@mui/joy/AccordionDetails';
 import React from 'react';
-import { getSystemSettings, getTestAll, getTestSettings, setSystemTarget, setSystemTestAll, setSystemTesting } from '../store/slices/system';
 import Switch from '@mui/joy/Switch';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { getDraftSettings, getDraftTesting, setDraftSystemDirectory, setDraftSystemTestAll, setDraftSystemTesting } from '../store/slices/system';
 
 /** ------------------------------------------------------------------------- */
 
 function BasicTargetSettings() {
   const { invoke } = window.api;
-  const { data: { advanced: { target } } } = useAppSelector(getSystemSettings);
+  const { directory } = useAppSelector(getDraftSettings);
   const dispatch = useAppDispatch();
-
-  const directory = target.type === "basic" ? target.directory : null;
 
   const handleDirectory = React.useCallback(async () => {
     const [new_directory] = await invoke.chooseDir();
@@ -32,7 +30,7 @@ function BasicTargetSettings() {
       return;
     }
 
-    dispatch(setSystemTarget({ type: "basic", directory: new_directory }));
+    dispatch(setDraftSystemDirectory(new_directory));
   }, [dispatch, invoke]);
 
   return (
@@ -50,28 +48,16 @@ function BasicTargetSettings() {
 
 /** ------------------------------------------------------------------------- */
 
-function TargetSettings() {
-  const { data: { advanced: { target } } } = useAppSelector(getSystemSettings);
-  const { type } = target;
-
-  return <Stack spacing={2}>
-    {type === "basic" && <BasicTargetSettings />}
-  </Stack>;
-}
-
-/** ------------------------------------------------------------------------- */
-
 function AdvancedSettings() {
-  const doTesting = useAppSelector(getTestSettings);
-  const doCompareAll = useAppSelector(getTestAll);
+  const { compare_all, enabled } = useAppSelector(getDraftTesting);
   const dispatch = useAppDispatch();
 
   const handleTesting = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(setSystemTesting(event.target.checked));
+    dispatch(setDraftSystemTesting(event.target.checked));
   }, [dispatch]);
 
   const handleTestAll = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(setSystemTestAll(event.target.checked));
+    dispatch(setDraftSystemTestAll(event.target.checked));
   }, [dispatch]);
 
   return (
@@ -84,19 +70,21 @@ function AdvancedSettings() {
       </AccordionSummary>
       <AccordionDetails>
         <Stack spacing={4} pt={1}>
-          <TargetSettings />
+          <Stack spacing={2}>
+            <BasicTargetSettings />
+          </Stack>
           <Stack spacing={2}>
             <FormControl>
               <Stack direction="row" alignItems="center" justifyContent="space-between">
                 <FormLabel>Run Discrepancy Report</FormLabel>
-                <Switch checked={doTesting ?? false} onChange={handleTesting} />
+                <Switch checked={enabled} onChange={handleTesting} />
               </Stack>
               <FormHelperText>If selected, the system will scrutinize its output against all rebate files in the "truth" folder and note any differences.</FormHelperText>
             </FormControl>
             <FormControl>
               <Stack direction="row" alignItems="center" justifyContent="space-between">
                 <FormLabel>Compare All Suppliers</FormLabel>
-                <Switch disabled={!doTesting} checked={doCompareAll} onChange={handleTestAll} />
+                <Switch disabled={!enabled} checked={compare_all} onChange={handleTestAll} />
               </Stack>
               <FormHelperText>If selected, discrepancies will be checked in all suppliers, not only those produced by the transformers.</FormHelperText>
             </FormControl>

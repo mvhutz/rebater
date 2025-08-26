@@ -1,26 +1,37 @@
 import path from "path";
-import { AbstractStore } from "./AbstractStore";
-import { getSubFiles, getSubFolders } from "./util";
 import { ReferenceFile } from "../items/ReferenceFile";
 import { Time } from "../../../shared/time";
+import { FileStore } from "./FileStore";
 
 /** ------------------------------------------------------------------------- */
 
-interface Meta { directory: string };
+interface Meta { quarter: Time };
+
+export class UtilityFile extends ReferenceFile {
+  public meta: Meta;
+
+  constructor(path: string, name: string, meta: Meta) {
+    super(path, name);
+
+    this.meta = meta;
+  }
+}
+
+/** ------------------------------------------------------------------------- */
 
 /**
  * Holds all utilities created and used by the Transformers.
  */
-export class UtilityStore extends AbstractStore<ReferenceFile<{ quarter: Time }>, Meta> {
+export class UtilityStore extends FileStore<UtilityFile> {
   public readonly name = "utilities";
 
   public async gather(): Promise<void> {
-    for (const [time_path, time_str] of await getSubFolders(this.meta.directory)) {
+    for (const [time_path, time_str] of await FileStore.getSubFolders(this.directory)) {
       const quarter = Time.parse(time_str);
       if (quarter == null) continue;
 
-      for (const [filepath, name] of await getSubFiles(time_path)) {
-        const reference = new ReferenceFile(filepath, path.parse(name).name, { quarter });
+      for (const [filepath, name] of await FileStore.getSubFiles(time_path)) {
+        const reference = new UtilityFile(filepath, path.parse(name).name, { quarter });
         this.add(reference);
       }
     }

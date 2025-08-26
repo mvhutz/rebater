@@ -1,31 +1,18 @@
-import path from "path";
-import { AbstractStore } from "./AbstractStore";
-import { getSubFiles } from "./util";
 import { TransformerFile } from "../items/TransformerFile";
 import { TransformerData } from "../../../shared/transformer";
+import { FileStore } from "./FileStore";
 
 /** ------------------------------------------------------------------------- */
-
-interface Meta { directory: string };
 
 /**
  * Holds all transformers.
  */
-export class TransformerStore extends AbstractStore<TransformerFile, Meta> {
+export class TransformerStore extends FileStore<TransformerFile> {
   public readonly name = "transformers";
 
   public async gather(): Promise<void> {
-    for (const [filepath, name] of await getSubFiles(this.meta.directory)) {
-      let type: "json" | "xml";
-      if (path.parse(name).ext === ".json") {
-        type = "json";
-      } else if (path.parse(name).ext === ".xml") {
-        type = "xml"
-      } else {
-        continue;
-      }
-
-      const reference = new TransformerFile(filepath, { type });
+    for (const [filepath] of await FileStore.getSubFiles(this.directory)) {
+      const reference = new TransformerFile(filepath);
       this.add(reference);
     }
   }

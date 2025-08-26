@@ -7,18 +7,14 @@ import { AbstractItem } from "./AbstractItem";
 /**
  * An Abstract item, specifically gears towards file data.
  */
-export abstract class AbstractFile<Data, Meta> extends AbstractItem<Data> {
+export abstract class AbstractFile<Data> extends AbstractItem<Data> {
   /** The path of the file data. */
   public readonly path: string;
 
-  /** The metadata of the particular item. */
-  public readonly meta: Meta;
-
-  public constructor(path: string, initial: Data, meta: Meta) {
+  public constructor(path: string, initial: Data) {
     super(initial);
 
     this.path = path;
-    this.meta = meta;
   }
 
   hash(): string {
