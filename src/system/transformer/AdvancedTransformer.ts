@@ -1,6 +1,5 @@
 import { DestinationOperator } from "../destination";
 import { TransformerResult } from "../../shared/worker/response";
-import { Runner } from "../runner/Runner";
 import { Row, Table } from "../information/Table";
 import { Transformer } from "./Transformer";
 import { AdvancedTransformerData, DestinationData, RowData, SourceData, TableData } from "../../shared/transformer/advanced";
@@ -41,6 +40,7 @@ import { PercolateTable } from "../table/Percolate";
 import { SelectTable } from "../table/Select";
 import { SetTable } from "../table/Set";
 import { TrimTable } from "../table/Trim";
+import { State } from "../../shared/state";
 
 /** ------------------------------------------------------------------------- */
 
@@ -166,11 +166,11 @@ export class AdvancedTransformer implements Transformer {
    * @param row The row being extracted.
    * @returns The extracted properties.
    */
-  private runRow(runner: Runner, row: Row, table: Table) {
+  private runRow(state: State, row: Row, table: Table) {
     const result = new Array<string>();
 
     for (const { definition } of this.properties) {
-      const output = RowOperator.runMany(definition, { row, runner, table });
+      const output = RowOperator.runMany(definition, { row, state, table });
       if (output == null) {
         return null;
       }
@@ -181,28 +181,28 @@ export class AdvancedTransformer implements Transformer {
     return new Row(result, row.source);
   }
 
-  public run(runner: Runner): TransformerResult {
+  public run(state: State): TransformerResult {
     const start = performance.now();
 
     // 1. Pull sources.
-    const source_data = this.sources.map(s => s.run({ runner })).flat(1);
+    const source_data = this.sources.map(s => s.run({ state })).flat(1);
 
     // 2. Pre-process data.
-    const preprocessed_data = source_data.map(t => TableOperator.runMany(this.preprocess, { table: t, runner }));
+    const preprocessed_data = source_data.map(t => TableOperator.runMany(this.preprocess, { table: t, state }));
     const total = Table.stack(...preprocessed_data);
 
     // 3. Extract properties.
-    const processed = total.update(r => this.runRow(runner, r, total));
+    const processed = total.update(r => this.runRow(state, r, total));
 
     const header = new Row(this.properties.map(p => p.name), "<header>");
     const final = processed.prepend(header);
 
     // 4. Post-process data.
-    const postprocessed_data = TableOperator.runMany(this.postprocess, { table: final, runner });
+    const postprocessed_data = TableOperator.runMany(this.postprocess, { table: final, state });
 
     // 5. Send to destinations.
     for (const destination of this.destinations) {
-      destination.run({ table: postprocessed_data, runner });
+      destination.run({ table: postprocessed_data, state });
     }
 
     const end = performance.now();

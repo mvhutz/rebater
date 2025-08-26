@@ -1,6 +1,6 @@
 import { getPartition, getRebateHash } from "../util";
 import EventEmitter from "events";
-import { DiscrepencyResult, Question, Rebate, RunResults, SystemStatus } from "../../shared/worker/response";
+import { DiscrepencyResult, Rebate, RunResults, SystemStatus } from "../../shared/worker/response";
 import z from "zod/v4";
 import { RebateSet } from "./RebateSet";
 import { Transformer } from "../transformer/Transformer";
@@ -12,7 +12,6 @@ import { ExcelRebateFile } from "../../shared/state/items/ExcelRebateFile";
 /** Runner events to subscribe to. */
 interface RunnerEvents {
   status: [SystemStatus];
-  ask: [Question];
 }
 
 /**
@@ -106,7 +105,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
       const details = transformer.getDetails();
       yield { type: "running", progress: i / transformers.length };
       try {
-        results.config.push(transformer.run(this));
+        results.config.push(transformer.run(this.state));
       } catch (error) {
         const start = `While running ${details.name}:\n\n`;
         if (error instanceof z.ZodError) {
