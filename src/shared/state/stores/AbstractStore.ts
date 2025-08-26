@@ -49,8 +49,12 @@ export abstract class AbstractStore<Item extends AbstractItem<ItemData>, ItemDat
    * @param fn The criteria.
    * @returns A list of items which satisfy the criteria.
    */
-  public filter(fn: (item: Item) => boolean) {
-    return this.getItems().filter(fn);
+  public filter(fn?: (item: Item) => boolean) {
+    if (fn == null) {
+      return this.getItems();
+    } else {
+      return this.getItems().filter(fn);
+    }
   }
 
   /**

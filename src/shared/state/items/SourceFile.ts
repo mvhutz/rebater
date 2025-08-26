@@ -1,4 +1,5 @@
 import { Time } from "../../../shared/time";
+import { good, Reply } from "../../reply";
 import { AbstractFile } from "./AbstractFile";
 
 interface Meta { group: string, quarter: Time };
@@ -10,19 +11,20 @@ export class SourceFile extends AbstractFile<Buffer> {
   public meta: Meta;
 
   constructor(path: string, meta: Meta) {
-    super(path, Buffer.from(""));
+    super(path);
     this.meta = meta;
   }
 
-  serialize(): Buffer {
-    return this.data;
-  }
-
-  deserialize(data: Buffer): Buffer<ArrayBufferLike> {
+  serialize(data: Buffer): Buffer {
     return data;
   }
 
-  insert(datum: Buffer<ArrayBufferLike>): void {
-    this.data = Buffer.concat([this.data, datum]);
+  deserialize(data: Buffer): Reply<Buffer<ArrayBufferLike>> {
+    return good(data);
+  }
+
+  insert(datum: Buffer): void {
+    if (!this.data.ok) return;
+    this.data = good(Buffer.concat([this.data.data, datum]));
   }
 }

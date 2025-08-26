@@ -2,6 +2,8 @@ import { AbstractFile } from "./AbstractFile";
 import z from "zod/v4";
 import Papa from 'papaparse';
 import Fuse from 'fuse.js';
+import { bad, good, Reply } from "../../reply";
+import assert from "assert";
 
 
 /** ------------------------------------------------------------------------- */
@@ -77,7 +79,7 @@ export class ReferenceFile extends AbstractFile<Reference> {
   public readonly name: string;
 
   public constructor(path: string, name: string) {
-    super(path, []);
+    super(path);
     this.name = name;
   }
 
@@ -86,23 +88,29 @@ export class ReferenceFile extends AbstractFile<Reference> {
     return this.name;
   }
 
-  insert(datum: Record<string, string>[]): void {
-    this.data.push(...datum);
+  insert(datum: Reference): void {
+    if (!this.data.ok) return;
+    this.data.data.push(...datum);
   }
 
-  serialize(): Buffer {
+  serialize(data: Reference): Buffer {
     // The files are stored as CSV.
-    return Buffer.from(Papa.unparse(this.data));
+    return Buffer.from(Papa.unparse(data));
   }
 
-  deserialize(raw: Buffer): Reference {
+  deserialize(raw: Buffer): Reply<Reference> {
     // THe files are stored as CSV.
     const { data } = Papa.parse(raw.toString("utf-8"), {
       header: true,
       skipEmptyLines: true,
     });
 
-    return ReferenceSchema.parse(data);
+    const parsed = ReferenceSchema.safeParse(data);
+    if (parsed.success) {
+      return good(parsed.data);
+    } else {
+      return bad(z.prettifyError(parsed.error));
+    }
   }
 
   /**
@@ -129,7 +137,9 @@ export class ReferenceFile extends AbstractFile<Reference> {
    * @returns The unknown property's value.
    */
   public ask(known: Record<string, string>, unknown: string): Maybe<string> {
-    for (const datum of this.data) {
+    assert.ok(this.data.ok, "Reference not loaded!");
+
+    for (const datum of this.data.data) {
       if (this.match(known, datum)) {
         return datum[unknown];
       }
@@ -150,7 +160,9 @@ export class ReferenceFile extends AbstractFile<Reference> {
    * @returns The top suggested field values.
    */
   public suggest(property: string, matches: string, take: string): { key: string; value: string; group: string; }[] {
-    const fuse = new Fuse(this.data, {
+    assert.ok(this.data.ok, "Reference not loaded!");
+
+    const fuse = new Fuse(this.data.data, {
       keys: [property],
       threshold: 0.2
     });
@@ -166,10 +178,12 @@ export class ReferenceFile extends AbstractFile<Reference> {
   private views = new Map<string, ReferenceView>();
 
   public view(key: string) {
+    assert.ok(this.data.ok, "Reference not loaded!");
+    
     const current = this.views.get(key);
     if (current != null) return current;
 
-    const made = new ReferenceView(this.data, key);
+    const made = new ReferenceView(this.data.data, key);
     this.views.set(key, made);
     return made;
   }

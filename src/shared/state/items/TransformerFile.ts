@@ -9,17 +9,13 @@ import { TransformerData, TransformerSchema } from "../../../shared/transformer"
 /**
  * An AbstractFile which holds source data.
  */
-export class TransformerFile extends AbstractFile<Reply<TransformerData>> {
-  constructor(path: string) {
-    super(path, bad("Not loaded!"));
+export class TransformerFile extends AbstractFile<TransformerData> {
+  insert(datum: TransformerData): void {
+    void [datum];
+    throw new Error("Cannot add to transformers!");
   }
-
-  serialize(): Buffer {
-    if (!this.data.ok) {
-      throw new Error("Not loaded!");
-    } else {
-      return Buffer.from(JSON.stringify(this.data.data, null, 2));
-    }
+  serialize(data: TransformerData): Buffer {
+    return Buffer.from(JSON.stringify(data, null, 2));
   }
 
   deserialize(data: Buffer): Reply<TransformerData> {    
@@ -39,7 +35,7 @@ export class TransformerFile extends AbstractFile<Reply<TransformerData>> {
     }
   }
 
-  insert(): void {
-    throw new Error("Cannot add to transformers!");
-  }
+  // insert(): void {
+  //   throw new Error("Cannot add to transformers!");
+  // }
 }

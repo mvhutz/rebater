@@ -8,10 +8,11 @@ import { AbstractFile } from "./AbstractFile";
  */
 export abstract class AbstractRebateFile extends AbstractFile<Rebate[]> {
   public constructor(path: string) {
-    super(path, []);
+    super(path);
   }
 
   insert(datum: Rebate[]): void {
-    this.data.push(...datum);
+    if (!this.data.ok) return;
+    this.data.data.push(...datum);
   }
 }

@@ -2,6 +2,7 @@ import z from "zod/v4";
 import { Rebate, RebateSchema } from "../../../shared/worker/response";
 import { AbstractRebateFile } from "./AbstractRebateFile";
 import Papa from 'papaparse';
+import { bad, good, Reply } from "../../reply";
 
 /** ------------------------------------------------------------------------- */
 
@@ -9,16 +10,21 @@ import Papa from 'papaparse';
  * An AbstractRebateFile, which stores in CSV format.
  */
 export class CSVRebateFile extends AbstractRebateFile {
-  serialize(): Buffer {
-    return Buffer.from(Papa.unparse(this.data));
+  serialize(data: Rebate[]): Buffer {
+    return Buffer.from(Papa.unparse(data));
   }
 
-  deserialize(raw: Buffer): Rebate[] {
+  deserialize(raw: Buffer): Reply<Rebate[]> {
     const { data } = Papa.parse(raw.toString("utf-8"), {
       header: true,
       skipEmptyLines: true,
     });
 
-    return z.array(RebateSchema).parse(data);
+    const parsed = z.array(RebateSchema).safeParse(data);
+    if (parsed.success) {
+      return good(parsed.data);
+    } else {
+      return bad(z.prettifyError(parsed.error));
+    }
   }
 }
