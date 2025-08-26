@@ -1,12 +1,12 @@
-import { Runner } from "../runner/Runner";
 import { Row, Table } from "../information/Table";
+import { State } from "../../shared/state";
 
 /** ------------------------------------------------------------------------- */
 
 export interface RowInput {
   value: string;
   row: Row;
-  runner: Runner;
+  state: State;
   table: Table;
 }
 

@@ -2,8 +2,8 @@ import Papa from "papaparse";
 import { z } from "zod/v4";
 import { DestinationInput, DestinationOperator } from ".";
 import { RebateSchema } from "../../shared/worker/response";
-import { CSVRebateFile } from "../information/items/CSVRebateFile";
 import { RebateDestinationData } from "../../shared/transformer/advanced";
+import { CSVRebateFile } from "../../shared/state/items/CSVRebateFile";
 
 /** ------------------------------------------------------------------------- */
 
@@ -24,13 +24,13 @@ export class RebateDestinationOperator implements DestinationOperator {
     const rebates = z.array(RebateSchema).parse(raw);
 
     // Send to the destination store.
-    const filepath = input.runner.settings.getDestinationPath(this.name);
+    const filepath = input.state.settings.getDestinationPath(this.name);
     const destination = new CSVRebateFile(filepath, {
       group: this.name,
-      quarter: input.runner.settings.time
+      quarter: input.state.settings.time
     });
 
     destination.push(rebates);
-    input.runner.destinations.add(destination);
+    input.state.destinations.add(destination);
   }
 }

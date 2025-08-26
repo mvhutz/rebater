@@ -1,11 +1,11 @@
-import { Runner } from "../runner/Runner";
 import { Table } from "../information/Table";
+import { State } from "../../shared/state";
 
 /** ------------------------------------------------------------------------- */
 
 export interface TableInput {
   table: Table;
-  runner: Runner;
+  state: State;
 }
 
 /**

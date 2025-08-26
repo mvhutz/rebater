@@ -7,6 +7,6 @@ import { RowInput, RowOperator } from ".";
  */
 export class CounterRow implements RowOperator {
   run(input: RowInput): Maybe<string> {
-    return input.runner.counter.getThenIncrement("counter").toString();
+    return input.state.counter.getThenIncrement("counter").toString();
   }
 }

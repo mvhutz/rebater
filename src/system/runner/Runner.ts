@@ -1,20 +1,11 @@
 import { getPartition, getRebateHash } from "../util";
 import EventEmitter from "events";
-import { Settings } from "../../shared/settings";
 import { DiscrepencyResult, Question, Rebate, RunResults, SystemStatus } from "../../shared/worker/response";
-import { ReferenceStore } from "../information/stores/ReferenceStore";
-import { SourceStore } from "../information/stores/SourceStore";
-import { DestinationStore } from "../information/stores/DestinationStore";
-import { OutputStore } from "../information/stores/OutputStore";
-import { TruthStore } from "../information/stores/TruthStore";
-import { Counter } from "../information/Counter";
-import { ExcelRebateFile } from "../information/items/ExcelRebateFile";
-import { UtilityStore } from "../information/stores/UtilityStore";
 import z from "zod/v4";
 import { RebateSet } from "./RebateSet";
-import { bad, good, Reply } from "../../shared/reply";
-import { TransformerStore } from "../information/stores/TransformerStore";
 import { Transformer } from "../transformer/Transformer";
+import { State } from "../../shared/state";
+import { ExcelRebateFile } from "../../shared/state/items/ExcelRebateFile";
 
 /** ------------------------------------------------------------------------- */
 
@@ -28,30 +19,14 @@ interface RunnerEvents {
  * Handles execution of the program.
  */
 export class Runner extends EventEmitter<RunnerEvents> {
-  public readonly counter: Counter;
-  public readonly references: ReferenceStore;
-  public readonly settings: Settings;
-  public readonly sources: SourceStore;
-  public readonly destinations: DestinationStore;
-  public readonly truths: TruthStore;
-  public readonly outputs: OutputStore;
-  public readonly utilities: UtilityStore;
-  public readonly transformers: TransformerStore;
+  public readonly state: State;
 
   private running: boolean;
 
-  public constructor(settings: Settings) {
+  public constructor(state: State) {
     super();
 
-    this.settings = settings;
-    this.counter = new Counter();
-    this.references = new ReferenceStore({ directory: settings.getReferencePath() });
-    this.sources = new SourceStore({ directory: settings.getAllSourcePath() });
-    this.destinations = new DestinationStore({ directory: settings.getAllDestinationPath() });
-    this.outputs = new OutputStore({ directory: settings.getAllOutputPath() });
-    this.truths = new TruthStore({ directory: settings.getAllTruthPath() });
-    this.utilities = new UtilityStore({ directory: settings.getAllUtilityPath() });
-    this.transformers = new TransformerStore({ directory: settings.getAllTransformerPath() });
+    this.state = state;
     this.running = false;
 
     this.emit("status", { type: "idle" });
@@ -83,17 +58,17 @@ export class Runner extends EventEmitter<RunnerEvents> {
    * @returns The results.
    */
   async compareAllRebates(): Promise<DiscrepencyResult[]> {
-    const actual = this.destinations.getItems().map(d => d.getData()).flat(1);
+    const actual = this.state.destinations.getItems().map(d => d.getData()).flat(1);
     const actual_partitions = getPartition(actual, "supplierId");
 
-    const expected = this.truths.getItems().filter(t => t.meta.quarter.is(this.settings.time)).map(t => t.getData()).flat(1);
+    const expected = this.state.truths.getItems().filter(t => t.meta.quarter.is(this.state.settings.time)).map(t => t.getData()).flat(1);
     const expected_partitions = getPartition(expected, "supplierId");
 
     const results = new Array<DiscrepencyResult>();
     const member_ids = new Set([...expected_partitions.keys(), ...actual_partitions.keys()]);
 
     for (const member_id of member_ids) {
-      if (!this.settings.doCompareAll() && !actual_partitions.has(member_id)) {
+      if (!this.state.settings.doCompareAll() && !actual_partitions.has(member_id)) {
         continue;
       }
 
@@ -104,42 +79,6 @@ export class Runner extends EventEmitter<RunnerEvents> {
     }
 
     return results;
-  }
-
-  /**
-   * Load all stores.
-   */
-  private async load(): Promise<Reply> {
-    try {
-      this.sources.wipe();
-      this.references.wipe();
-      this.truths.wipe();
-      this.destinations.wipe();
-      this.outputs.wipe();
-      this.utilities.wipe();
-
-      await this.sources.gather();
-      await this.sources.load();
-      await this.references.gather();
-      await this.references.load();
-      await this.truths.gather();
-      await this.truths.load();
-      await this.transformers.gather();
-      await this.transformers.load();
-      return good(undefined);
-    } catch (err) {
-      return bad(`${err}`);
-    }
-  }
-
-  /**
-   * Save all stores.
-   */
-  public async save() {
-    await this.destinations.save();
-    await this.references.save();
-    await this.outputs.save();
-    await this.utilities.save();
   }
 
   /**
@@ -154,13 +93,13 @@ export class Runner extends EventEmitter<RunnerEvents> {
 
     // Load stores.
     yield { type: "loading", message: "Loading sources..." };
-    const load_reply = await this.load();
+    const load_reply = await this.state.load();
     if (!load_reply.ok) {
       yield { type: "error", message: load_reply.reason };
       return;
     }
 
-    const transformers = Transformer.findValidOrder(this.transformers.getValid().map(Transformer.parseTransformer).filter(t => this.settings.willRun(t.getDetails())));
+    const transformers = Transformer.findValidOrder(this.state.transformers.getValid().map(Transformer.parseTransformer).filter(t => this.state.settings.willRun(t.getDetails())));
 
     // Run the transformers.
     for (const [i, transformer] of transformers.entries()) {
@@ -181,22 +120,22 @@ export class Runner extends EventEmitter<RunnerEvents> {
     }
 
     // Optionally, create a discrepancy report.
-    if (this.settings.testing) {
+    if (this.state.settings.testing) {
       yield { type: "loading", message: "Scoring accuracy..." };
       results.discrepency = await this.compareAllRebates();
     }
 
     // Create the output file.
     yield { type: "loading", message: "Compiling rebates..." };
-    const output = new ExcelRebateFile(this.settings.getOutputFile("xlsx"), {
-      quarter: this.settings.time
+    const output = new ExcelRebateFile(this.state.settings.getOutputFile("xlsx"), {
+      quarter: this.state.settings.time
     });
-    output.add(...this.destinations.getItems());
-    this.outputs.add(output);
+    output.add(...this.state.destinations.getItems());
+    this.state.outputs.add(output);
 
     // Saving stores.
     yield { type: "loading", message: "Saving data..." };
-    await this.save();
+    await this.state.save();
     
     yield { type: "done", results: results };
   }
@@ -212,7 +151,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
 
       if (!this.running) {
         this.emit('status', { type: "loading", message: "Saving data..." });
-        await this.save();
+        await this.state.save();
         
         this.emit('status', { type: "idle" });
         return;

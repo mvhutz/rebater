@@ -24,7 +24,7 @@ export class UtilityRow implements RowOperator {
   }
 
   run(input: RowInput): Maybe<string> {
-    const utility = input.runner.utilities.get(this.table);
+    const utility = input.state.utilities.get(this.table);
     const view = utility.view(this.match);
 
     const result = view.ask({

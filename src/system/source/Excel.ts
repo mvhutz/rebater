@@ -82,8 +82,8 @@ export class ExcelSourceOperator implements SourceOperator {
 
   run(input: SourceInput): Table[] {
     // Get the needed files.
-    const glob = input.runner.settings.getSourcePathGlob(this.group, this.file, ".xls*");
-    const files = input.runner.sources.filter(s => path.matchesGlob(s.path, glob));
+    const glob = input.state.settings.getSourcePathGlob(this.group, this.file, ".xls*");
+    const files = input.state.sources.filter(s => path.matchesGlob(s.path, glob));
     
     // Extract tables.
     const results = new Array<Table>();

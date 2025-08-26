@@ -62,7 +62,7 @@ export class SearchRow implements RowOperator {
   }
 
   run(input: RowInput): Maybe<string> {
-    const search = input.runner.references.get(this.table);
+    const search = input.state.references.get(this.table);
     const view = this.primary == null ? search : search.view(this.primary);
 
     const values: Record<string, string> = {};
@@ -83,7 +83,7 @@ export class SearchRow implements RowOperator {
       suggestions = search.suggest(this.primary, values[this.primary], this.take);
     }
 
-    input.runner.emit("ask", {
+    input.state.tracker.ask({
       hash: JSON.stringify([values, this.take]),
       table: this.table,
       unknown: this.take,

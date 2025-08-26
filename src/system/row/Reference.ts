@@ -61,7 +61,7 @@ export class ReferenceRow implements RowOperator {
   }
 
   run(input: RowInput): Maybe<string> {
-    const reference = input.runner.references.get(this.table);
+    const reference = input.state.references.get(this.table);
     const view = reference.view(this.match);
 
     const result = view.ask({
@@ -76,7 +76,7 @@ export class ReferenceRow implements RowOperator {
     const question = this.getQuestionFormat(input.value);
     const suggestions = reference.suggest(this.match, input.value, this.take);
 
-    input.runner.emit("ask", {
+    input.state.tracker.ask({
       table: this.table,
       hash: question,
       // We only want to match the required property, and the group.
