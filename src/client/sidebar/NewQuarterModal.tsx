@@ -97,13 +97,13 @@ function NewQuarterModal() {
           <FormControl>
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <FormLabel>Copy Structure</FormLabel>
-              <Switch checked={currentStructure} onChange={e => setCurrentStructure(e.target.checked)} />
+              <Switch disabled={!old_ready} checked={currentStructure} onChange={e => setCurrentStructure(e.target.checked)} />
             </Stack>
             <FormHelperText>Copy the directory structure (excluding files) of the current quarter's sources.</FormHelperText>
           </FormControl>
         </Stack>
         <DialogActions>
-          <Button type="submit" onClick={handleCreate} disabled={!old_ready || !new_ready}>Create</Button>
+          <Button type="submit" onClick={handleCreate} disabled={!new_ready || (currentStructure && !old_ready)}>Create</Button>
           <Button type="submit" color="neutral" variant="outlined" onClick={handleClose}>Ignore</Button>
         </DialogActions>
       </ModalDialog>
