@@ -24,8 +24,10 @@ export class UtilityRow implements RowOperator {
   }
 
   run(input: RowInput): Maybe<string> {
-    const utility = input.state.utilities.get(this.table);
-    const view = utility.view(this.match);
+    const reference_reply = input.state.references.getTable(this.table);
+    assert.ok(reference_reply.ok, `Table ${this.table} not loaded!`);
+
+    const view = reference_reply.data.view(this.match);
 
     const result = view.ask({
       [this.match]: input.value,

@@ -4,6 +4,7 @@ import { existsSync } from "fs";
 import { bad, good, Replier, Reply } from "../reply";
 import { lstat, readFile, writeFile } from "fs/promises";
 import z from "zod/v4";
+import { State } from ".";
 
 /** ------------------------------------------------------------------------- */
 
@@ -11,10 +12,12 @@ export class SettingsStore {
   public file: string;
   public watcher: Maybe<FSWatcher>;
   private settings: Reply<Settings>;
+  private state: Reply<State>;
 
   constructor(file: string, watch = true) {
     this.file = file;
     this.settings = bad("Not loaded!");
+    this.state = bad("Not loaded!");
 
     if (watch) {
       this.watch();
@@ -23,6 +26,10 @@ export class SettingsStore {
 
   public getSettings() {
     return this.settings;
+  }
+
+  public getState() {
+    return this.state;
   }
 
   public getSettingsData(): Reply<SettingsData> {
@@ -61,6 +68,11 @@ export class SettingsStore {
 
   public async refresh() {
     this.settings = await SettingsStore.pull(this.file);
+    if (this.settings.ok) {
+      this.state = good(new State(this.settings.data));
+    } else {
+      this.state = this.settings;
+    }
   }
 
   public unwatch() {

@@ -46,6 +46,19 @@ export abstract class FileStore<Data, Item> {
     return data;
   }
 
+  public entries() {
+    return this.items.values();
+  }
+
+  public valid(fn: (entry: { item: Item; data: Reply<Data> }) => boolean = () => true) {
+    return this.items.values()
+      .filter(fn)
+      .map(e => e.data)
+      .filter(e => e.ok)
+      .map(e => e.data)
+      .toArray();
+  }
+
   public async push(entry: { item: Item, data: Reply<Data> }): Promise<Reply<Data>> {
     const { item, data } = entry;
     if (!data.ok) return data;

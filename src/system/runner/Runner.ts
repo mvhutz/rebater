@@ -5,7 +5,7 @@ import z from "zod/v4";
 import { RebateSet } from "./RebateSet";
 import { Transformer } from "../transformer/Transformer";
 import { State } from "../../shared/state";
-import { OutputFile } from "../../shared/state/stores/OutputStore";
+import { good } from "../../shared/reply";
 
 /** ------------------------------------------------------------------------- */
 
@@ -57,10 +57,10 @@ export class Runner extends EventEmitter<RunnerEvents> {
    * @returns The results.
    */
   async compareAllRebates(): Promise<DiscrepencyResult[]> {
-    const actual = this.state.destinations.getValid().flat(1);
+    const actual = this.state.destinations.valid().flat(1);
     const actual_partitions = getPartition(actual, "supplierId");
 
-    const expected = this.state.truths.getValid(t => t.meta.quarter.is(this.state.settings.time)).flat(1);
+    const expected = this.state.truths.valid(t => t.item.quarter.is(this.state.settings.time)).flat(1);
     const expected_partitions = getPartition(expected, "supplierId");
 
     const results = new Array<DiscrepencyResult>();
@@ -90,15 +90,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
       discrepency: undefined,
     }
 
-    // Load stores.
-    yield { type: "loading", message: "Loading sources..." };
-    const load_reply = await this.state.load();
-    if (!load_reply.ok) {
-      yield { type: "error", message: load_reply.reason };
-      return;
-    }
-
-    const transformers = Transformer.findValidOrder(this.state.transformers.getValid().map(Transformer.parseTransformer).filter(t => this.state.settings.willRun(t.getDetails())));
+    const transformers = Transformer.findValidOrder(this.state.transformers.valid().map(Transformer.parseTransformer).filter(t => this.state.settings.willRun(t.getDetails())));
 
     // Run the transformers.
     for (const [i, transformer] of transformers.entries()) {
@@ -126,15 +118,13 @@ export class Runner extends EventEmitter<RunnerEvents> {
 
     // Create the output file.
     yield { type: "loading", message: "Compiling rebates..." };
-    const output = new OutputFile(this.state.settings.getOutputFile("xlsx"), {
-      quarter: this.state.settings.time
+    await this.state.outputs.push({
+      item: {
+        quarter: this.state.settings.time,
+        name: "OUTPUT.xlsx"
+      },
+      data: good(this.state.destinations.valid().flat())
     });
-    output.add(...this.state.destinations.getItems());
-    this.state.outputs.add(output);
-
-    // Saving stores.
-    yield { type: "loading", message: "Saving data..." };
-    await this.state.save();
     
     yield { type: "done", results: results };
   }
@@ -148,10 +138,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     for await (const status of this.iterator()) {
       await new Promise(setImmediate);
 
-      if (!this.running) {
-        this.emit('status', { type: "loading", message: "Saving data..." });
-        await this.state.save();
-        
+      if (!this.running) {        
         this.emit('status', { type: "idle" });
         return;
       }
