@@ -1,8 +1,8 @@
 import Papa from "papaparse";
 import { DestinationInput, DestinationOperator } from ".";
 import { UtilityDestinationData } from "../../shared/transformer/advanced";
-import { ReferenceSchema } from "../../shared/state/items/ReferenceFile";
-import { UtilityFile } from "../../shared/state/stores/UtilityStore";
+import { ReferenceSchema } from "../../shared/state/stores/ReferenceStore";
+import { good } from "../../shared/reply";
 
 /** ------------------------------------------------------------------------- */
 
@@ -17,19 +17,15 @@ export class UtilityDestinationOperator implements DestinationOperator {
     this.name = input.name;
   }
 
-  run(input: DestinationInput): void {
+  async run(input: DestinationInput): Promise<void> {
     // Convert to a reference.
     const data = input.table.split().map(row => row.split());
     const { data: raw } = Papa.parse(Papa.unparse(data), { header: true });
     const reference_data = ReferenceSchema.parse(raw);
 
-    // Send to the Utility store.
-    const filepath = input.state.settings.getUtilityPath(this.name);
-    const utility = new UtilityFile(filepath, this.name, {
-      quarter: input.state.settings.time
+    await input.state.utilities.push({
+      item: { name: this.name, path: `${this.name}.csv` },
+      data: good(reference_data)
     });
-
-    utility.push(reference_data);
-    input.state.utilities.add(utility);
   }
 }

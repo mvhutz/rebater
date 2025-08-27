@@ -1,7 +1,7 @@
 import { FSWatcher, watch } from "chokidar";
 import { Settings, SettingsData, SettingsSchema } from "../settings";
 import { existsSync } from "fs";
-import { bad, good, Reply } from "../reply";
+import { bad, good, Replier, Reply } from "../reply";
 import { lstat, readFile, writeFile } from "fs/promises";
 import z from "zod/v4";
 
@@ -26,11 +26,9 @@ export class SettingsStore {
   }
 
   public getSettingsData(): Reply<SettingsData> {
-    if (this.settings.ok) {
-      return good(this.settings.data.data);
-    } else {
-      return this.settings;
-    }
+    return Replier.of(this.settings)
+      .map(s => s.data)
+      .end();
   }
 
   public async setSettingsData(data: SettingsData): Promise<void> {
