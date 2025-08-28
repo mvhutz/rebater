@@ -99,6 +99,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     await this.state.sources.pullAll();
     this.state.destinations.unwatch();
     this.state.destinations.wipe();
+    this.state.tracker.unwatch();
 
     const transformers = Transformer.findValidOrder(this.state.transformers.getValid().map(Transformer.parseTransformer).filter(t => this.settings.willRun(t.getDetails())));
 
@@ -122,6 +123,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
 
     yield { type: "loading", message: "Saving rebates..." };
     await this.state.destinations.pushAll();
+    await this.state.tracker.push();
 
     // Optionally, create a discrepancy report.
     if (this.settings.data.testing.enabled) {
@@ -139,6 +141,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
       data: good(this.state.destinations.getValid().flat())
     });
     
+    this.state.tracker.watch();
     this.state.destinations.watch();
     yield { type: "done", results: results };
   }

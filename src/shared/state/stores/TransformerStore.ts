@@ -8,6 +8,11 @@ import { TransformerData, TransformerSchema } from "../../transformer";
 
 interface TransformerMeta { name: string };
 
+export interface TransformerFile {
+  item: TransformerMeta;
+  data: Reply<TransformerData>;
+}
+
 export class TransformerStore extends FileStore<TransformerData, TransformerMeta> {
   protected getFileFromItem(item: TransformerMeta): Reply<string> {
     return good(path.join(this.directory, item.name));

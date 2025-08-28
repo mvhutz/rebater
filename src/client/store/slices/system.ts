@@ -5,8 +5,7 @@ import { killSystem, pullAllQuarters, pullSystemSettings, pullTransformers, star
 import { TimeData } from '../../../shared/time';
 import { Question, SystemStatus } from '../../../shared/worker/response';
 import { bad, Reply } from '../../../shared/reply';
-
-import { TransformerData } from '../../../shared/transformer';
+import { TransformerFile } from '../../../shared/state/stores/TransformerStore';
 
 /** ------------------------------------------------------------------------- */
 
@@ -25,7 +24,7 @@ export interface SettingsDraft {
 interface SystemState {
   status: SystemStatus;
   settings: Reply<SettingsData>;
-  transformers: Reply<TransformerData[]>;
+  transformers: Reply<TransformerFile[]>;
   quarters: TimeData[];
   questions: Record<string, Question>;
   draft: {

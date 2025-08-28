@@ -77,7 +77,7 @@ export class ReferenceRow implements RowOperator {
     if (input.state.tracker.has(question)) return null;
 
     const suggestions = reference.suggest(this.match, input.value, this.take);
-    input.state.tracker.ask({
+    input.state.tracker.markAsk({
       table: this.table,
       hash: question,
       // We only want to match the required property, and the group.

@@ -37,7 +37,9 @@ function TransformerSettings() {
     if (!transformers_reply.ok) return [];
     const { data: transformers } = transformers_reply;
     const tags = transformers
-      .map(t => t.type === "advanced" ? t.tags : [t.group])
+      .map(t => t.data)
+      .filter(t => t.ok)
+      .map(t => t.data.type === "advanced" ? t.data.tags : [t.data.group])
       .flat();
 
     return new Set(tags);
@@ -67,8 +69,8 @@ function TransformerSettings() {
               renderValue={(selected) => `${selected.length} Selected`}
             >
               {transformers_reply.ok &&
-                transformers_reply.data.map(t => (
-                  <Option value={t.name} key={t.name}>{t.name}</Option>
+                transformers_reply.data.map(t => t.data.ok && (
+                  <Option value={t.data.data.name} key={t.data.data.name}>{t.data.data.name}</Option>
                 ))
               }
             </Select>

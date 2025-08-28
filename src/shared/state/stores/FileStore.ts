@@ -34,8 +34,6 @@ export abstract class FileStore<Data, Item> {
       retries: { forever: true, randomize: true }
     });
 
-    console.log("RUN PRIVILEGED!");
-
     try {
       const out = await fn();
       await release();

@@ -1,5 +1,5 @@
 import { bad, good, Reply } from "../reply";
-import { SettingsData } from "../settings";
+import { Settings, SettingsData } from "../settings";
 import { Answer, WorkerRequest } from "../worker/request";
 import { SystemStatus, WorkerResponse } from "../worker/response";
 import { app, BrowserWindow } from "electron";
@@ -9,6 +9,7 @@ import { System } from "../../worker";
 import path from "path";
 import { TransformerData } from "../transformer";
 import { Repository } from "../state/Repository";
+import { TransformerFile } from "../state/stores/TransformerStore";
 
 /** ------------------------------------------------------------------------- */
 
@@ -30,16 +31,15 @@ export class IPCHandler {
 
   /** ----------------------------------------------------------------------- */
 
-  async getTransformers() {
+  async getTransformers(): Promise<Reply<TransformerFile[]>> {
     const repository_reply = this.repository.getState();
     if (!repository_reply.ok) return bad("Data not loaded!");
     const { data: repository } = repository_reply;
 
-    const transformers = repository.transformers.getValid();
-    return good(transformers);
+    return good(repository.transformers.getEntries().toArray());
   }
 
-  async createTransformer(data: TransformerData): Promise<Reply<number>> {
+  async createTransformer(data: TransformerData): Promise<Reply<TransformerFile>> {
     // const repo = this.connection.getRepository(TransformerEntity);
     // const built = new TransformerEntity();
     // built.data = data;
@@ -49,38 +49,32 @@ export class IPCHandler {
     return bad("Not yet!");
   }
 
-  async deleteTransformer(id: number): Promise<Reply<number>> {
+  async deleteTransformer(file: TransformerFile): Promise<Reply> {
     // const repo = this.connection.getRepository(TransformerEntity);
     // const result = await repo.delete({ id });
 
     // return good(result.affected ?? 0);
-    void [id];
+    void [file];
     return bad("Not yet!");
   }
 
-  async updateTransformer(options: { id: number, data: TransformerData}): Promise<Reply<number>> {
+  async updateTransformer(file: TransformerFile): Promise<Reply> {
     // const repo = this.connection.getRepository(TransformerEntity);
     // const result = await repo.update({ id: options.id }, { data: options.data });
   
     // return good(result.affected ?? 0);
-    void [options];
+    void [file];
     return bad("Not yet!");
   }
 
   /** ----------------------------------------------------------------------- */
 
-  async refreshSettingsData() {
-    // this.thread.setSettings(this.store.getSettingsData());
-  }
-
   async getSettingsData() {
-    await this.refreshSettingsData();
-    return this.repository.getSettingsData();
+    return this.repository.settings.getSchema();
   }
 
   async setSettingsData(data: SettingsData) {
-    await this.repository.setSettingsData(data);
-    await this.refreshSettingsData();
+    await this.repository.settings.setData(new Settings(data));
     return good("Settings saved!");
   }
 
@@ -90,7 +84,6 @@ export class IPCHandler {
 
 
     const handler = new IPCHandler(window, worker, thread);
-    await handler.refreshSettingsData();
     return handler;
   }
 
@@ -99,7 +92,15 @@ export class IPCHandler {
    * @param answer Their answer.
    */
   async handleAnswerQuestion(answer: Answer) {
-    await this.thread.saveAnswer(answer);
+    const state_reply = this.repository.getState();
+    if (!state_reply.ok) return state_reply;
+
+    const { data: state } = state_reply;
+    await state.tracker.answer(answer);
+    
+    const table = state.references.getTable(answer.reference);
+    const modified = table.insert(answer.answer);
+    await state.references.updateTable(answer.reference, modified);
     return good(undefined);
   }
 
@@ -110,7 +111,6 @@ export class IPCHandler {
     this.worker.terminate();
     this.worker = new Worker('worker.js', { workerData: IPCHandler.SETTINGS_FILE });
     this.thread = await spawn<System>(this.worker);
-    await this.refreshSettingsData();
 
     return good(undefined);
   }

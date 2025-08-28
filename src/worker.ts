@@ -3,7 +3,6 @@ import { z } from "zod/v4";
 import { WorkerResponse } from "./shared/worker/response";
 import { expose } from "threads/worker";
 import { Observable } from "observable-fns";
-import { Answer } from "./shared/worker/request";
 import { Repository } from "./shared/state/Repository";
 import { workerData } from "worker_threads";
 
@@ -23,20 +22,6 @@ console.log("DATA", workerData);
 const repository = new Repository(workerData);
 
 const SYSTEM = {
-  async saveAnswer(answer: Answer) {
-    const state_reply = repository.getState();
-    if (!state_reply.ok) {
-      console.log("Runner does not exist!");
-      return;
-    }
-    
-    const { data: state } = state_reply;
-
-    const table = state.references.getTable(answer.reference);
-    const modified = table.insert(answer.answer);
-    await state.references.updateTable(answer.reference, modified);
-  },
-
   /**
    * Run the program.
    */
@@ -52,7 +37,7 @@ const SYSTEM = {
 
       const { data: state } = state_reply;
 
-      const settings_reply = repository.getSettings();
+      const settings_reply = repository.settings.getData();
       // Get settings.
       if (!settings_reply.ok) {
         observer.next(sendError("Settings not loaded!"));

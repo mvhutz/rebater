@@ -86,7 +86,7 @@ export class SearchRow implements RowOperator {
       suggestions = search.suggest(this.primary, values[this.primary], this.take);
     }
 
-    input.state.tracker.ask({
+    input.state.tracker.markAsk({
       hash: hash,
       table: this.table,
       unknown: this.take,
