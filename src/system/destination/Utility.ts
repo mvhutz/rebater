@@ -20,8 +20,14 @@ export class UtilityDestinationOperator implements DestinationOperator {
   run(input: DestinationInput): void {
     // Convert to a reference.
     const data = input.table.split().map(row => row.split());
+    console.log(data);
     const { data: raw } = Papa.parse(Papa.unparse(data), { header: true });
     const reference_data = ReferenceSchema.parse(raw);
+
+    if (reference_data.length === 0) {
+      console.log("NO DATA", this.name);
+      return;
+    }
 
     input.state.utilities.mark({
       item: { name: this.name, path: `${this.name}.csv` },

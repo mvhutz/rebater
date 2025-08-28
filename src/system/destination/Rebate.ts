@@ -23,6 +23,11 @@ export class RebateDestinationOperator implements DestinationOperator {
     const { data: raw } = Papa.parse(Papa.unparse(data), { header: true });
     const rebates = z.array(RebateSchema).parse(raw);
 
+    if (rebates.length === 0) {
+      console.log("NO DATA", this.name);
+      return;
+    }
+    
     // Send to the destination store.
     input.state.destinations.mark({
       item: {

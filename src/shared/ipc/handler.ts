@@ -2,7 +2,7 @@ import { bad, good, Replier, Reply } from "../reply";
 import { Settings, SettingsData } from "../settings";
 import { Answer, WorkerRequest } from "../worker/request";
 import { Question, SystemStatus, WorkerResponse } from "../worker/response";
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, shell } from "electron";
 import IPC from ".";
 import { ModuleThread, spawn, Worker } from "threads";
 import { System } from "../../worker";
@@ -91,6 +91,26 @@ export class IPCHandler {
     return handler;
   }
 
+  async handleOpenOutputFile() {
+    const state_reply = this.repository.getState();
+    if (!state_reply.ok) return state_reply;
+    const { data: state } = state_reply;
+
+    const settings_reply = this.repository.settings.getData();
+    if (!settings_reply.ok) return settings_reply;
+    const { data: settings } = settings_reply;
+
+    const outputs = state.outputs.getEntries().filter(e => settings.time.is(e.item.quarter));
+    const first = outputs.next();
+    if (first.value == null) return bad("No output file exists!");
+
+    const filepath = state.outputs.getFileFromItem(first.value.item);
+    if (!filepath.ok) return filepath;
+    
+    shell.showItemInFolder(filepath.data);
+    return good("Shown!");
+  }
+
   /**
    * The user wants to answer a question.
    * @param answer Their answer.
@@ -107,6 +127,16 @@ export class IPCHandler {
     await state.references.updateTable(answer.reference, modified);
     
     return good(undefined);
+  }
+
+  async handleClearQuestions() {
+    const state_reply = this.repository.getState();
+    if (!state_reply.ok) return state_reply;
+    const { data: state } = state_reply;
+
+    return await state.tracker.update(async () => {
+      return good(new Map());
+    })
   }
 
   async handleGetQuestions(): Promise<Reply<Question[]>> {
@@ -187,10 +217,11 @@ export class IPCHandler {
     ipcMain.handle.chooseDir();
     ipcMain.handle.getPing();
     ipcMain.handle.openDir();
-    ipcMain.handle.openOutputFile();
     ipcMain.handle.getAllQuarters();
     ipcMain.handle.createQuarter();
 
+    ipcMain.handle.clearQuestions(async () => await this.handleClearQuestions());
+    ipcMain.handle.openOutputFile(async () => await this.handleOpenOutputFile());
     ipcMain.handle.getTransformers(async () => await this.getTransformers());
     ipcMain.handle.createTransformer(async (_, { data }) => await this.createTransformer(data));
     ipcMain.handle.deleteTransformer(async (_, { data }) => await this.deleteTransformer(data));
@@ -207,6 +238,7 @@ export class IPCHandler {
 
     // Remove on window close.
     this.window.on("close", () => {
+      ipcMain.remove.clearQuestions();
       ipcMain.remove.answerQuestion();
       ipcMain.remove.chooseDir();
       ipcMain.remove.getPing();

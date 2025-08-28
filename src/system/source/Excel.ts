@@ -50,6 +50,11 @@ export class ExcelSourceOperator implements SourceOperator {
     const rows = parsed.map(r => new Row(r, filepath));
     const table = Table.join(...rows);
 
+    if (table.size() === 0) {
+      console.log("EMPTY SHEET", filepath);
+      return;
+    }
+
     results.push(table);
   }
 

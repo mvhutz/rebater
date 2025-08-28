@@ -25,8 +25,8 @@ export abstract class FileStore<Data, Item> {
     }
   }
 
-  protected abstract getFileFromItem(item: Item): Reply<string>;
-  protected abstract getItemFromFile(file: string): Reply<Item>;
+  public abstract getFileFromItem(item: Item): Reply<string>;
+  public abstract getItemFromFile(file: string): Reply<Item>;
 
   public abstract serialize(data: Data): Reply<Buffer>;
   public abstract deserialize(data: Buffer): Reply<Data>;
@@ -152,6 +152,7 @@ export abstract class FileStore<Data, Item> {
     
     this.entries.set(file, { item: item.data, data: bad("Not loaded!") });
     if (!this.lazy) {
+      console.log("ADD EAGER PULL");
       await this.pull(item.data);
     }
   }
@@ -181,7 +182,8 @@ export abstract class FileStore<Data, Item> {
       return;
     }
 
-    if (this.lazy) {
+    if (!this.lazy) {
+      console.log("ADD EAGER PULL");
       await this.pull(item.item);
     }
   }

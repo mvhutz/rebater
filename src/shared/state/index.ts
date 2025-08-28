@@ -6,6 +6,7 @@ import { ReferenceStore } from "./stores/ReferenceStore";
 import { SourceStore } from "./stores/SourceStore";
 import { TransformerStore } from "./stores/TransformerStore";
 import { TrackerPointer } from "./pointer/TrackerPointer";
+import { MatrixStore } from "./stores/MatrixStore";
 
 /** ------------------------------------------------------------------------- */
 
@@ -20,6 +21,7 @@ export class State {
   public readonly utilities: ReferenceStore;
   public readonly transformers: TransformerStore;
   public readonly tracker: TrackerPointer;
+  public readonly debug: MatrixStore;
 
   constructor(directory: string) {
     this.directory = directory;
@@ -32,5 +34,6 @@ export class State {
     this.truths = new RebateStore(path.join(directory, "truth"), true);
     this.utilities = new ReferenceStore(path.join(directory, "utility"), true);
     this.transformers = new TransformerStore(path.join(directory, "transformers"), false);
+    this.debug = new MatrixStore(path.join(directory, "debug"), true);
   }
 }

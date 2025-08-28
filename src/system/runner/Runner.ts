@@ -5,7 +5,7 @@ import z from "zod/v4";
 import { RebateSet } from "./RebateSet";
 import { Transformer } from "../transformer/Transformer";
 import { State } from "../../shared/state";
-import { good } from "../../shared/reply";
+import { bad, good } from "../../shared/reply";
 import { Settings } from "../../shared/settings";
 
 /** ------------------------------------------------------------------------- */
@@ -84,6 +84,48 @@ export class Runner extends EventEmitter<RunnerEvents> {
     return results;
   }
 
+  public async disconnect() {
+    try {
+      await this.state.sources.pullAll();
+      this.state.sources.unwatch();
+
+      this.state.destinations.unwatch();
+      this.state.destinations.wipe();
+
+      this.state.utilities.unwatch();
+      this.state.utilities.wipe();
+
+      this.state.debug.unwatch();
+      this.state.debug.wipe();
+
+      this.state.tracker.unwatch();
+      return good(undefined);
+    } catch (err) {
+      return bad(`${err}`);
+    }
+  }
+
+  public async reconnect() {
+    try {
+      await Promise.all([
+        this.state.destinations.pushAll(),
+        this.state.tracker.push(),
+        this.state.utilities.pushAll(),
+        this.state.debug.pushAll(),
+        this.state.outputs.pushAll()
+      ]);
+
+      this.state.sources.watch();
+      this.state.destinations.watch();
+      this.state.utilities.watch();
+      this.state.debug.watch();
+      this.state.tracker.watch();
+      return good(undefined);
+    } catch (err) {
+      return bad(`${err}`);
+    }
+  }
+
   /**
    * Runs the program. Returns an iterator, so that the program can be halted,
    * if needed.
@@ -96,10 +138,11 @@ export class Runner extends EventEmitter<RunnerEvents> {
 
     // Load stores.
     yield { type: "loading", message: "Loading sources..." };
-    await this.state.sources.pullAll();
-    this.state.destinations.unwatch();
-    this.state.destinations.wipe();
-    this.state.tracker.unwatch();
+    const load_reply = await this.disconnect();
+    if (!load_reply.ok) {
+      yield { type: "error", message: load_reply.reason };
+      return;
+    }
 
     const transformers = Transformer.findValidOrder(this.state.transformers.getValid().map(Transformer.parseTransformer).filter(t => this.settings.willRun(t.getDetails())));
 
@@ -112,18 +155,17 @@ export class Runner extends EventEmitter<RunnerEvents> {
       } catch (error) {
         const start = `While running ${details.name}:\n\n`;
         if (error instanceof z.ZodError) {
-          throw Error(`${start}${z.prettifyError(error)}`);
+          yield { type: "error", message: `${start}${z.prettifyError(error)}` };
         } else if (error instanceof Error) {
-          throw Error(`${start}${error.message}`);
+          yield { type: "error", message: `${start}${error.message}` };
         } else {
-          throw Error(`${start}${error}`);
+          yield { type: "error", message: `${start}${error}` };
         }
+
+        await this.reconnect();
+        return;
       }
     }
-
-    yield { type: "loading", message: "Saving rebates..." };
-    await this.state.destinations.pushAll();
-    await this.state.tracker.push();
 
     // Optionally, create a discrepancy report.
     if (this.settings.data.testing.enabled) {
@@ -133,16 +175,23 @@ export class Runner extends EventEmitter<RunnerEvents> {
 
     // Create the output file.
     yield { type: "loading", message: "Compiling rebates..." };
-    await this.state.outputs.push({
+    const output_marked = this.state.outputs.mark({
       item: {
         quarter: this.settings.time,
         name: "OUTPUT.xlsx"
       },
-      data: good(this.state.destinations.getValid().flat())
+      data: good(this.state.destinations.getValid().flat(1))
     });
+
+    if (!output_marked.ok) {
+      yield { type: "error", message: output_marked.reason };
+      await this.reconnect();
+      return;
+    }
+
+    yield { type: "loading", message: "Saving data..." };
+    await this.reconnect();
     
-    this.state.tracker.watch();
-    this.state.destinations.watch();
     yield { type: "done", results: results };
   }
 
