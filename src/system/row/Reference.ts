@@ -1,17 +1,5 @@
-import { z } from "zod/v4";
-import { BaseRow } from ".";
-import { Runner } from "../runner/Runner";
-import { Row } from "../information/Table";
-
-/** ------------------------------------------------------------------------- */
-
-export interface ReferenceRowData {
-  type: "reference";
-  table: string;
-  match: string;
-  take: string;
-  group: string;
-}
+import { RowInput, RowOperator } from ".";
+import { ReferenceRowData } from "../../shared/transformer/advanced";
 
 /** ------------------------------------------------------------------------- */
 
@@ -26,7 +14,7 @@ export interface ReferenceRowData {
  * 
  * If no record is found, it returns null.
  */
-export class ReferenceRow implements BaseRow {
+export class ReferenceRow implements RowOperator {
   /** The reference table to look in. */
   private readonly table: string;
   /** The property to match. */
@@ -43,11 +31,11 @@ export class ReferenceRow implements BaseRow {
    * @param take The property to return.
    * @param group The group of records to consider, within the table.
    */
-  public constructor(table: string, match: string, take: string, group: string) {
-    this.table = table;
-    this.match = match;
-    this.take = take;
-    this.group = group;
+  public constructor(input: ReferenceRowData) {
+    this.table = input.table;
+    this.match = input.match;
+    this.take = input.take;
+    this.group = input.group;
   }
 
   /**
@@ -72,12 +60,12 @@ export class ReferenceRow implements BaseRow {
     return `For *${this.group}*, what is the **\`${this.take}\`** of this **\`${this.table}\`**?\n\n *\`${value}\`*`;
   }
 
-  run(value: string, row: Row, runner: Runner): Maybe<string> {
-    const reference = runner.references.get(this.table);
+  run(input: RowInput): Maybe<string> {
+    const reference = input.state.references.getTable(this.table);
     const view = reference.view(this.match);
 
     const result = view.ask({
-      [this.match]: value,
+      [this.match]: input.value,
       group: this.group,
     }, this.take);
     
@@ -85,15 +73,16 @@ export class ReferenceRow implements BaseRow {
       return result;
     }
 
-    const question = this.getQuestionFormat(value);
-    const suggestions = reference.suggest(this.match, value, this.take);
+    const question = this.getQuestionFormat(input.value);
+    if (input.state.tracker.has(question)) return null;
 
-    runner.emit("ask", {
+    const suggestions = reference.suggest(this.match, input.value, this.take);
+    input.state.tracker.markAsk({
       table: this.table,
       hash: question,
       // We only want to match the required property, and the group.
       known: {
-        [this.match]: value,
+        [this.match]: input.value,
         group: this.group,
       },
       // No properties are optional.
@@ -104,16 +93,4 @@ export class ReferenceRow implements BaseRow {
 
     return null;
   }
-
-  buildJSON(): ReferenceRowData {
-    return { type: "reference", table: this.table, match: this.match, take: this.take, group: this.group };
-  }
-
-  public static readonly SCHEMA: z.ZodType<BaseRow, ReferenceRowData> = z.strictObject({
-    type: z.literal("reference"),
-    table: z.string(),
-    match: z.string(),
-    take: z.string(),
-    group: z.string(),
-  }).transform(s => new ReferenceRow(s.table, s.match, s.take, s.group));
 }

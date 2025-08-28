@@ -1,83 +1,93 @@
-import { bad, good, Reply } from "../reply";
+import { bad, good, Replier, Reply } from "../reply";
 import { Settings, SettingsData } from "../settings";
 import { Answer, WorkerRequest } from "../worker/request";
-import { SystemStatus, WorkerResponse } from "../worker/response";
+import { Question, SystemStatus, WorkerResponse } from "../worker/response";
 import { app, BrowserWindow } from "electron";
 import IPC from ".";
 import { ModuleThread, spawn, Worker } from "threads";
 import { System } from "../../worker";
 import path from "path";
-import { existsSync } from "fs";
-import { lstat, readFile, writeFile } from "fs/promises";
-import z from "zod/v4";
+import { TransformerData } from "../transformer";
+import { Repository } from "../state/Repository";
+import { TransformerFile } from "../state/stores/TransformerStore";
+import { randomBytes } from "crypto";
 
 /** ------------------------------------------------------------------------- */
 
 const { ipcMain } = IPC;
 
 export class IPCHandler {
+  public static readonly SETTINGS_FILE = path.join(app.getPath("userData"), "settings.json");
   private window: BrowserWindow;
   private worker: Worker;
   private thread: ModuleThread<System>;
-  private settings_data: Reply<SettingsData>;
+  private repository: Repository;
 
   constructor(window: BrowserWindow, worker: Worker, thread: ModuleThread<System>) {
     this.worker = worker;
     this.thread = thread;
     this.window = window;
-    this.settings_data = bad("Not loaded!");
+    this.repository = new Repository(IPCHandler.SETTINGS_FILE);
   }
 
-  static async fetchSettingsData(): Promise<Reply<SettingsData>> {
-    const file = path.join(app.getPath("userData"), "settings.json");
-    
-    // Return the default settings, if the file does not exist.
-    if (!existsSync(file)) {
-      return good(Settings.DEFAULT_SETTINGS);
-    }
-  
-    // Should only be a file.
-    const stat = await lstat(file);
-    if (!stat.isFile()) {
-      return bad("File not found in settings location.");
-    }
-  
-    // Parse data.
-    const raw = await readFile(file, 'utf-8');
-    const json = JSON.parse(raw);
-    const parsed = Settings.SCHEMA.safeParse(json);
-  
-    if (!parsed.success) {
-      return bad(z.prettifyError(parsed.error));
-    } else {
-      return good(parsed.data);
-    }
+  /** ----------------------------------------------------------------------- */
+
+  async getTransformers(): Promise<Reply<TransformerFile[]>> {
+    const repository_reply = this.repository.getState();
+    if (!repository_reply.ok) return bad("Data not loaded!");
+    const { data: repository } = repository_reply;
+
+    return good(repository.transformers.getEntries().toArray());
   }
 
-  async refreshSettingsData() {
-    this.settings_data = await IPCHandler.fetchSettingsData();
-    this.thread.setSettings(this.settings_data);
+  async createTransformer(data: TransformerData): Promise<Reply<TransformerFile>> {
+    const repository_reply = this.repository.getState();
+    if (!repository_reply.ok) return bad("Data not loaded!");
+    const { data: repository } = repository_reply;
+
+    const name = data.name.toLowerCase().replaceAll(" ", "_") + "_" + randomBytes(8).toString("base64url");
+
+    return await repository.transformers.push({
+      item: { name: `${name}.json`, },
+      data: good(data)
+    });
   }
+
+  async deleteTransformer(file: TransformerFile): Promise<Reply> {
+    const repository_reply = this.repository.getState();
+    if (!repository_reply.ok) return bad("Data not loaded!");
+    const { data: repository } = repository_reply;
+
+    await repository.transformers.delete(file);
+    return good(undefined);
+  }
+
+  async updateTransformer(file: TransformerFile): Promise<Reply> {
+    const repository_reply = this.repository.getState();
+    if (!repository_reply.ok) return bad("Data not loaded!");
+    const { data: repository } = repository_reply;
+
+    await repository.transformers.push(file);
+    return good(undefined);
+  }
+
+  /** ----------------------------------------------------------------------- */
 
   async getSettingsData() {
-    await this.refreshSettingsData();
-    return this.settings_data;
+    return this.repository.settings.getSchema();
   }
 
   async setSettingsData(data: SettingsData) {
-    const file = path.join(app.getPath("userData"), "settings.json");
-    await writeFile(file, JSON.stringify(data));
-    await this.refreshSettingsData();
-
+    await this.repository.settings.setData(new Settings(data));
     return good("Settings saved!");
   }
 
   static async create(window: BrowserWindow): Promise<IPCHandler> {
-    const worker = new Worker('worker.js');
+    const worker = new Worker('worker.js', { workerData: IPCHandler.SETTINGS_FILE });
     const thread = await spawn<System>(worker);
 
+
     const handler = new IPCHandler(window, worker, thread);
-    await handler.refreshSettingsData();
     return handler;
   }
 
@@ -86,7 +96,35 @@ export class IPCHandler {
    * @param answer Their answer.
    */
   async handleAnswerQuestion(answer: Answer) {
-    await this.thread.saveAnswer(answer);
+    const state_reply = this.repository.getState();
+    if (!state_reply.ok) return state_reply;
+    const { data: state } = state_reply;
+
+    await state.tracker.resolve(answer.hash);
+
+    const table = state.references.getTable(answer.reference);
+    const modified = table.insert(answer.answer);
+    await state.references.updateTable(answer.reference, modified);
+    
+    return good(undefined);
+  }
+
+  async handleGetQuestions(): Promise<Reply<Question[]>> {
+    const state_reply = this.repository.getState();
+    if (!state_reply.ok) return state_reply;
+
+    const { data: state } = state_reply;
+    return Replier.of(state.tracker.getData())
+      .map(d => d.values().toArray())
+      .end();
+  }
+
+  async handleIgnoreQuestion(question: Question): Promise<Reply> {
+    const state_reply = this.repository.getState();
+    if (!state_reply.ok) return state_reply;
+
+    const { data: state } = state_reply;
+    state.tracker.resolve(question.hash);
     return good(undefined);
   }
 
@@ -95,9 +133,8 @@ export class IPCHandler {
    */
   async handleCancelProgram() {
     this.worker.terminate();
-    this.worker = new Worker('worker.js');
+    this.worker = new Worker('worker.js', { workerData: IPCHandler.SETTINGS_FILE });
     this.thread = await spawn<System>(this.worker);
-    await this.refreshSettingsData();
 
     return good(undefined);
   }
@@ -139,8 +176,6 @@ export class IPCHandler {
    */
   async handleRunProgram() {    
     // Create new worker.
-    await this.handleCancelProgram();
-
     const observable = this.thread.run();
     observable.subscribe(m => this.handleWorkerMessage(m));
 
@@ -152,17 +187,19 @@ export class IPCHandler {
     ipcMain.handle.chooseDir();
     ipcMain.handle.getPing();
     ipcMain.handle.openDir();
-    ipcMain.handle.getTransformers();
     ipcMain.handle.openOutputFile();
     ipcMain.handle.getAllQuarters();
     ipcMain.handle.createQuarter();
-    ipcMain.handle.createTransformer();
-    ipcMain.handle.deleteTransformer();
-    ipcMain.handle.updateTransformer();
 
+    ipcMain.handle.getTransformers(async () => await this.getTransformers());
+    ipcMain.handle.createTransformer(async (_, { data }) => await this.createTransformer(data));
+    ipcMain.handle.deleteTransformer(async (_, { data }) => await this.deleteTransformer(data));
+    ipcMain.handle.updateTransformer(async (_, { data }) => await this.updateTransformer(data));
     ipcMain.handle.getSettings(async () => await this.getSettingsData());
     ipcMain.handle.setSettings(async (_, { data }) => await this.setSettingsData(data));
 
+    ipcMain.handle.ignoreQuestion(async (_, { data }) => await this.handleIgnoreQuestion(data));
+    ipcMain.handle.getQuestions(async () => await this.handleGetQuestions());
     ipcMain.handle.answerQuestion(async (_, { data }) => await this.handleAnswerQuestion(data));
     ipcMain.handle.cancelProgram(async () => await this.handleCancelProgram());
     ipcMain.handle.exitProgram(async () => this.handleExitProgram());

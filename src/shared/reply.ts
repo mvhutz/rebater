@@ -1,4 +1,4 @@
-interface BadReply {
+export interface BadReply {
   ok: false;
 
   /** An explanation for the error. */
@@ -18,7 +18,7 @@ export function bad(reason: string, message?: string): BadReply {
   return { ok: false, reason, message };
 }
 
-interface GoodReply<T> {
+export interface GoodReply<T> {
   ok: true;
 
   /** The resulting object. */
@@ -40,3 +40,43 @@ export function good<T>(data: T, message?: string): GoodReply<T> {
 
 /** A error-catching return value. */
 export type Reply<T = undefined> = BadReply | GoodReply<T>;
+
+export class Replier<T> {
+  public readonly reply: Reply<T>;
+
+  private constructor(reply: Reply<T>) {
+    this.reply = reply;
+  }
+
+  public static of<T>(reply: Reply<T>) {
+    return new Replier(reply);
+  }
+
+  bind<O>(fn: (datum: T) => Reply<O>): Replier<O> {
+    if (this.reply.ok) {
+      return new Replier(fn(this.reply.data));
+    } else {
+      return new Replier(this.reply);
+    }
+  }
+
+  map<O>(fn: (datum: T) => O): Replier<O> {
+    if (this.reply.ok) {
+      return new Replier(good(fn(this.reply.data)));
+    } else {
+      return new Replier(this.reply);
+    }
+  }
+
+  async bindAsync<O>(fn: (datum: T) => Promise<Reply<O>>): Promise<Replier<O>> {
+    if (this.reply.ok) {
+      return new Replier(await fn(this.reply.data));
+    } else {
+      return new Replier(this.reply);
+    }
+  }
+
+  end(): Reply<T> {
+    return this.reply;
+  }
+}

@@ -1,3 +1,14 @@
+import z from "zod/v4";
+
+/**
+ * A schema that automatically converts any numbers, strings as numbers, or
+ * Excel indices (A, B, ...) to 0-based indices.
+ */
+export const ExcelIndexSchema: z.ZodType<number> = z.union([
+  z.number(),
+  z.string().regex(/[A-Z]+/)
+]).transform(s => getTrueIndex(s));
+
 /**
  * Convert an Excel index into a 0-based index.
  * @param letters The index to parse. Must be valid.
@@ -29,4 +40,14 @@ export function getExcelFromIndex(n: number) {
   }
 
   return res.split("").reverse().join("");
+}
+
+/**
+ * Attempts to index-like a value into a number.
+ * @param index An index-like value. Could be an Excel index, or just a normal number.
+ * @returns A number.
+ */
+export function getTrueIndex(index: string | number): number {
+  if (typeof index === "number") return index;
+  return getIndexFromExcel(index);
 }

@@ -7,51 +7,58 @@ import { getDisplayTab, toggleNewTransformerModal } from '../../store/slices/ui'
 import Select from '@mui/joy/Select';
 import Option from '@mui/joy/Option';
 import { getTransformers } from '../../store/slices/system';
-import path from 'path-browserify';
 import FlashOffIcon from '@mui/icons-material/FlashOffRounded';
 import { Alert, Button, Card } from '@mui/joy';
-import MalformedTransformerEdit from './MalformedTransformerEdit';
 import AdvancedTransformerEdit from './AdvancedTransformerEdit';
 import AddRounded from '@mui/icons-material/AddRounded';
 import NewTransformerModal from './NewTransformerModal';
-import { TransformerFileInfo } from '../../../system/transformer/BaseTransformers';
 import SimpleTransformerEdit from './SimpleTransformerEdit';
+import { TransformerFile } from '../../../shared/state/stores/TransformerStore';
+import { AdvancedTransformerData } from '../../../shared/transformer/advanced';
+import { good, GoodReply } from '../../../shared/reply';
+import { SimpleTransformerData } from '../../../shared/transformer/simple';
 
 /** ------------------------------------------------------------------------- */
 
 function TransformersTab() {
   const display = useAppSelector(getDisplayTab("transformers"));
-  const transformers = useAppSelector(getTransformers);
+  const transformers_reply = useAppSelector(getTransformers);
   const dispatch = useAppDispatch();
   const [currentGroup, setCurrentGroup] = React.useState<Maybe<string>>(null);
   const [currentTransformer, setCurrentTransformer] = React.useState<Maybe<string>>(null);
 
-  const { groups } = React.useMemo(() => {
-    const result = {
-      groups: {} as Record<string, TransformerFileInfo[]>
-    };
+  const groups = React.useMemo(() => {
+    const result: Record<string, TransformerFile[]> = {};
+    if (!transformers_reply.ok) return transformers_reply;
 
-    for (const transformer of transformers) {
-      switch (transformer.type) {
+    for (const transformer of transformers_reply.data) {
+      if (!transformer.data.ok) continue;
+      switch (transformer.data.data.type) {
         case "advanced":
-          result.groups["Advanced"] ??= [];
-          result.groups["Advanced"].push(transformer);
-          break;
-        case "malformed":
-          result.groups["Malformed"] ??= [];
-          result.groups["Malformed"].push(transformer);
+          result["Advanced"] ??= [];
+          result["Advanced"].push(transformer);
           break;
         case "simple":
-          result.groups[transformer.data.group] ??= [];
-          result.groups[transformer.data.group].push(transformer);
+          result[transformer.data.data.group] ??= [];
+          result[transformer.data.data.group].push(transformer);
       }
     }
-    return result;
-  }, [transformers]);
+    return good(result);
+  }, [transformers_reply]);
+
+  const { currentGroupItems, currentTransformerItem } = React.useMemo(() => {
+    if (!groups.ok) return { currentGroupItems: null, currentTransformerItem: null };
+
+    const currentGroupItems = currentGroup != null ? groups.data[currentGroup] : null;
+    const currentTransformerItem = currentGroupItems != null ? currentGroupItems.find(t => t.item.name === currentTransformer) : null;
+    return { currentGroupItems, currentTransformerItem };
+  }, [currentGroup, currentTransformer, groups]);
 
   const searchGroups = React.useCallback((filepath: Maybe<string>) => {
-    for (const [groupName, items] of Object.entries(groups)) {
-      if (items.find(t => t.path === filepath) != null) {
+    if (!groups.ok) return;
+
+    for (const [groupName, items] of Object.entries(groups.data)) {
+      if (items.find(t => t.item.name === filepath) != null) {
         setCurrentGroup(groupName);
         setCurrentTransformer(filepath);
         return;
@@ -63,9 +70,9 @@ function TransformersTab() {
     searchGroups(currentTransformer);
   }, [currentTransformer, searchGroups]);
 
-  const handleTransformer = React.useCallback((filepath: string) => {
-    setCurrentTransformer(filepath);
-    searchGroups(filepath);
+  const handleTransformer = React.useCallback((file: TransformerFile) => {
+    setCurrentTransformer(file.item.name);
+    searchGroups(file.item.name);
   }, [searchGroups]);
 
   const handleCurrentGroup = React.useCallback((_: unknown, value: Maybe<string>) => {
@@ -82,9 +89,6 @@ function TransformersTab() {
     dispatch(toggleNewTransformerModal());
   }, [dispatch]);
 
-  const currentGroupItems = currentGroup != null ? groups[currentGroup] : null;
-  const currentTransformerItem = currentGroupItems != null ? currentGroupItems.find(t => t.path === currentTransformer) : null;
-
   let editor;
 
   if (currentTransformerItem == null) {
@@ -100,12 +104,20 @@ function TransformersTab() {
         </Alert>
       </Stack>
     );
-  } else if (currentTransformerItem.type === "malformed") {
-    editor = <MalformedTransformerEdit info={currentTransformerItem}/>;
-  } else if (currentTransformerItem.type === "advanced") {
-    editor = <AdvancedTransformerEdit info={currentTransformerItem}/>;
-  } else if (currentTransformerItem.type === "simple") {
-    editor = <SimpleTransformerEdit info={currentTransformerItem}/>;
+  } else if (!currentTransformerItem.data.ok) {
+    // WIP.
+  } else if (currentTransformerItem.data.data.type === "advanced") {
+    editor = (
+      <AdvancedTransformerEdit
+        item={currentTransformerItem.item}
+        data={currentTransformerItem.data as GoodReply<AdvancedTransformerData>}/>
+    );
+  } else if (currentTransformerItem.data.data.type === "simple") {
+    editor = (
+      <SimpleTransformerEdit
+        item={currentTransformerItem.item}
+        data={currentTransformerItem.data as GoodReply<SimpleTransformerData>}/>
+    );
   } else {
     editor = "WIP...";
   }
@@ -117,8 +129,8 @@ function TransformersTab() {
         <Typography level="body-sm" color="neutral" pl={1}>
           From
         </Typography>
-        <Select size="sm" placeholder="Group?" variant="soft" value={currentGroup} onChange={handleCurrentGroup}>
-          {Object.keys(groups).map(g => (
+        <Select disabled={!groups.ok} size="sm" placeholder="Group?" variant="soft" value={currentGroup} onChange={handleCurrentGroup}>
+          {Object.keys(groups.ok ? groups.data : {}).map(g => (
             <Option value={g} key={g}>{g}</Option>
           ))}
         </Select>
@@ -126,8 +138,8 @@ function TransformersTab() {
           edit
         </Typography>
         <Select size="sm" placeholder="Transformer?" variant="soft" value={currentTransformer} onChange={handleCurrentTransformer} disabled={currentGroupItems == null}>
-          {currentGroupItems?.map((g) => (
-            <Option value={g.path} key={g.path}>{g.type !== "malformed" ? g.data.name : path.basename(g.path)}</Option>
+          {currentGroupItems?.map((g) => (g.data.ok &&
+            <Option value={g.item.name} key={g.item.name}>{g.data.data.name}</Option>
           ))}
         </Select>
         </Card>

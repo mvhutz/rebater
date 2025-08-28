@@ -36,13 +36,13 @@ async function copyFileStructure(to: Time, isettings: Settings, from: Time) {
  */
 export async function createQuarter(_: unknown, options: CreateQuarterOptions): Promise<Reply> {
   const { createStructureFrom, quarter: new_quarter_data } = options;
-  const new_quarter = Time.of(new_quarter_data);
+  const new_quarter = new Time(new_quarter_data);
 
   // Get all quarters.
   const quarters_reply = await getAllQuarters();
   if (!quarters_reply.ok) return quarters_reply;
   const { data: quarters_data } = quarters_reply;
-  const quarters = quarters_data.map(Time.of);
+  const quarters = quarters_data.map(d => new Time(d));
 
   // Get settings.
   const settings_reply = await getSettingsInterface();
@@ -61,7 +61,7 @@ export async function createQuarter(_: unknown, options: CreateQuarterOptions): 
 
   // Optionally, copy file structure.
   if (createStructureFrom != null) {
-    const copy_quarter = Time.of(createStructureFrom);
+    const copy_quarter = new Time(createStructureFrom);
 
     if (!quarters.find(q => copy_quarter.is(q))) {
       return bad(`Quarter to create structure from, ${copy_quarter}, does not exist!`);

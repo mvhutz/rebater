@@ -1,20 +1,12 @@
-import { z } from "zod/v4";
-import { BaseRow } from ".";
-
-/** ------------------------------------------------------------------------- */
-
-export interface CoerceNumberRowData {
-  type: "coerce";
-  as: "number";
-  otherwise?: string;
-}
+import { RowInput, RowOperator } from ".";
+import { CoerceNumberRowData } from "../../shared/transformer/advanced";
 
 /** ------------------------------------------------------------------------- */
 
 /**
  * Attempt to coerce a number from a string.
  */
-export class CoerceNumberRow implements BaseRow {
+export class CoerceNumberRow implements RowOperator {
   /** If the value cannot be converted, replace it with this value. */
   private readonly otherwise?: string;
 
@@ -22,12 +14,12 @@ export class CoerceNumberRow implements BaseRow {
    * Create a coerce number operation.
    * @param otherwise If the value cannot be converted, replace it with this value.
    */
-  public constructor(otherwise?: string) {
-    this.otherwise = otherwise;
+  public constructor(input: CoerceNumberRowData) {
+    this.otherwise = input.otherwise;
   }
 
-  run(value: string): Maybe<string> {
-    const float = parseFloat(value);
+  run(input: RowInput): Maybe<string> {
+    const float = parseFloat(input.value);
 
     if (isNaN(float) && this.otherwise != null) {
       return this.otherwise;
@@ -35,18 +27,4 @@ export class CoerceNumberRow implements BaseRow {
       return float.toString();
     }
   }
-  
-  buildJSON(): CoerceNumberRowData {
-    return {
-      type: "coerce",
-      as: "number",
-      otherwise: this.otherwise,
-    }
-  }
-
-  public static readonly SCHEMA: z.ZodType<BaseRow, CoerceNumberRowData> = z.strictObject({
-    type: z.literal("coerce"),
-    as: z.literal("number"),
-    otherwise: z.string().optional(),
-  }).transform(s => new CoerceNumberRow(s.otherwise));
 }

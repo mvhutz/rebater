@@ -1,21 +1,13 @@
-import { z } from "zod/v4";
-import { BaseTable } from ".";
+import { TableInput, TableOperator } from ".";
+import { TrimTableData } from "../../shared/transformer/advanced";
 import { Table } from "../information/Table";
-
-/** ------------------------------------------------------------------------- */
-
-export interface TrimTableData {
-  type: "trim";
-  top?: number;
-  bottom?: number;
-}
 
 /** ------------------------------------------------------------------------- */
 
 /**
  * Trim rows on the top or bottom of a table.
  */
-export class TrimTable implements BaseTable {
+export class TrimTable implements TableOperator {
   /** How many rows to remove from the top of the table. */
   private readonly top?: number;
   /** How many rows to remove from the bottom of the table. */
@@ -26,23 +18,13 @@ export class TrimTable implements BaseTable {
    * @param top How many rows to remove from the top of the table.
    * @param bottom How many rows to remove from the bottom of the table.
    */
-  public constructor(top?: number, bottom?: number) {
-    this.top = top == null ? undefined : top;
-    this.bottom = bottom == null ? undefined : -bottom;
+  public constructor(input: TrimTableData) {
+    this.top = input.top == null ? undefined : input.top;
+    this.bottom = input.bottom == null ? undefined : -input.bottom;
   }
 
-  run(table: Table): Table {
-    return table.slice(this.top, this.bottom);
+  run(input: TableInput): Table {
+    return input.table.slice(this.top, this.bottom);
   }
-
-  buildJSON(): TrimTableData {
-    return { type: "trim", top: this.top, bottom: this.bottom };
-  }
-
-  public static readonly SCHEMA: z.ZodType<BaseTable, TrimTableData> = z.strictObject({
-    type: z.literal("trim"),
-    top: z.number().optional(),
-    bottom: z.number().optional(),
-  }).transform(s => new TrimTable(s.top, s.bottom));
 }
 

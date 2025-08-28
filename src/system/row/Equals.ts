@@ -1,14 +1,6 @@
-import { z } from "zod/v4";
-import { BaseRow, ROW_SCHEMA, RowData } from ".";
-import { Runner } from "../runner/Runner";
-import { Row, Table } from "../information/Table";
-
-/** ------------------------------------------------------------------------- */
-
-export interface EqualsRowData {
-  type: "equals";
-  with: RowData[];
-}
+import { RowInput, RowOperator } from ".";
+import { EqualsRowData } from "../../shared/transformer/advanced";
+import { AdvancedTransformer } from "../transformer/AdvancedTransformer";
 
 /** ------------------------------------------------------------------------- */
 
@@ -18,29 +10,20 @@ export interface EqualsRowData {
  * 
  * If they equal, this operation returns "true". Otherwise, it returns "false".
  */
-export class EqualsRow implements BaseRow {
+export class EqualsRow implements RowOperator {
   /** The other set of row transformations. */
-  private readonly other: BaseRow[];
+  private readonly other: RowOperator[];
 
   /**
    * Create an equals operation.
    * @param other The other set of row transformations.
    */
-  public constructor(other: BaseRow[]) {
-    this.other = other;
+  public constructor(input: EqualsRowData) {
+    this.other = input.with.map(AdvancedTransformer.parseRow);
   }
 
-  run(value: string, row: Row, runner: Runner, table: Table): Maybe<string> {
-    const other_value = BaseRow.runMany(this.other, row, runner, table);
-    return (value === other_value).toString();
+  run(input: RowInput): Maybe<string> {
+    const other_value = RowOperator.runMany(this.other, input);
+    return (input.value === other_value).toString();
   }
-
-  buildJSON(): EqualsRowData {
-    return { type: "equals", with: this.other.map(o => o.buildJSON()) };
-  }
-
-  public static readonly SCHEMA: z.ZodType<BaseRow, EqualsRowData> = z.strictObject({
-    type: z.literal("equals"),
-    with: z.lazy(() => z.array(ROW_SCHEMA)),
-  }).transform(s => new EqualsRow(s.with));
 }

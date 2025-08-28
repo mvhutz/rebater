@@ -1,19 +1,6 @@
-import { z } from "zod/v4";
-import { META_TYPE, MetaRow, MetaRowData } from "./Meta";
-import { BaseRow } from ".";
-import { Runner } from "../runner/Runner";
-import { Row } from "../information/Table";
-
-/** ------------------------------------------------------------------------- */
-
-export interface ReplaceRowData {
-  type: "replace";
-  characters?: string;
-  substring?: string;
-  all?: string;
-  put?: string,
-  put_meta?: MetaRowData["value"],
-}
+import { MetaRow } from "./Meta";
+import { RowInput, RowOperator } from ".";
+import { ReplaceRowData } from "../../shared/transformer/advanced";
 
 /** ------------------------------------------------------------------------- */
 
@@ -27,7 +14,7 @@ export interface ReplaceRowData {
  * Each instance will be replaced with "put".
  * If you specify "put_meta", a meta-value will be replaced, instead.
  */
-export class ReplaceRow implements BaseRow {
+export class ReplaceRow implements RowOperator {
   /** All characters to replace. */
   private readonly characters?: string;
   /** All substrings to replace. */
@@ -47,20 +34,20 @@ export class ReplaceRow implements BaseRow {
    * @param substring All substrings to replace.
    * @param characters All characters to replace.
    */
-  public constructor(put: string, put_meta?: MetaRow["value"], all?: string, substring?: string, characters?: string) {
-    this.characters = characters;
-    this.substring = substring;
-    this.all = all;
-    this.put = put;
-    this.put_meta = put_meta && new MetaRow(put_meta);
+  public constructor(input: ReplaceRowData) {
+    this.characters = input.characters;
+    this.substring = input.substring;
+    this.all = input.all;
+    this.put = input.put;
+    this.put_meta = input.put_meta && new MetaRow({ type: "meta", value: input.put_meta });
   }
 
-  run(value: string, row: Row, runner: Runner): Maybe<string> {
-    let result = value;
+  run(input: RowInput): Maybe<string> {
+    let result = input.value;
 
     let truePut = this.put;
     if (this.put_meta) {
-      truePut = this.put_meta.run("", row, runner) ?? "";
+      truePut = this.put_meta.run(input) ?? "";
     }
 
     if (this.characters != null) {
@@ -81,17 +68,4 @@ export class ReplaceRow implements BaseRow {
 
     return result;
   }
-
-  buildJSON(): ReplaceRowData {
-    return { type: "replace", characters: this.characters, substring: this.substring, all: this.all, put: this.put, put_meta: this.put_meta?.value }
-  }
-
-  public static readonly SCHEMA: z.ZodType<BaseRow, ReplaceRowData> = z.strictObject({
-    type: z.literal("replace"),
-    characters: z.string().min(1).optional(),
-    substring: z.string().min(1).optional(),
-    all: z.string().optional(),
-    put: z.string().default(""),
-    put_meta: META_TYPE.optional(),
-  }).transform(s => new ReplaceRow(s.put, s.put_meta, s.all, s.substring, s.characters));
 }

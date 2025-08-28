@@ -95,7 +95,7 @@ function TabPart_() {
         <ListItemDecorator>
           <FlashOnRounded fontSize="small" />
         </ListItemDecorator>
-        Transformers {transformers.length > 0 && <Chip color="neutral" variant="outlined" size='sm'>{transformers.length}</Chip>}
+        Transformers {transformers.ok && <Chip color="neutral" variant="outlined" size='sm'>{transformers.data.length}</Chip>}
       </Tab>
     </TabList>
   );

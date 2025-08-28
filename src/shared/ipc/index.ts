@@ -1,5 +1,4 @@
 import { createInterprocess } from "interprocess";
-import { getTransformers } from "./system/getTransformers";
 import { openOutputFile } from "./system/openOutputFile";
 import { getAllQuarters } from "./system/getAllQuarters";
 import { createQuarter } from "./system/createQuarter";
@@ -10,9 +9,8 @@ import { getPing } from "./system/getPing";
 import { chooseDir } from "./system/chooseDir";
 import { openDir } from "./system/openDir";
 import { ignore } from "./system/ignore";
-import { deleteTransformer } from "./system/deleteTransformer";
-import { updateTransformer } from "./system/updateTransformer";
-import { createTransformer } from "./system/createTransformer";
+import { TransformerData } from "../transformer";
+import { TransformerFile } from "../state/stores/TransformerStore";
 
 /** ------------------------------------------------------------------------- */
 
@@ -23,20 +21,22 @@ const IPC = createInterprocess({
     getPing,
     chooseDir,
     openDir,
-    getTransformers,
-    getSettings: ignore<unknown, Maybe<SettingsData>>,
+    getSettings: ignore<unknown, SettingsData>,
     openOutputFile,
     getAllQuarters,
     createQuarter,
-    createTransformer,
-    deleteTransformer,
-    updateTransformer,
+    getTransformers: ignore<undefined, TransformerFile[]>,
+    createTransformer: ignore<TransformerData, TransformerFile>,
+    deleteTransformer: ignore<TransformerFile>,
+    updateTransformer: ignore<TransformerFile>,
     setSettings: ignore<SettingsData, string>,
+    getQuestions: ignore<unknown, Question[]>,
+    answerQuestion: ignore<Answer>,
+    ignoreQuestion: ignore<Question>,
 
     // Those that do.
     runProgram: ignore,
     cancelProgram: ignore,
-    answerQuestion: ignore<Answer>,
     ignoreAll: ignore,
     exitProgram: ignore
   },

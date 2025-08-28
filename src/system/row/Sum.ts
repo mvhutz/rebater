@@ -1,23 +1,14 @@
-import { z } from "zod/v4";
-import { ExcelIndexSchema, getExcelFromIndex } from "../util";
-import { BaseRow } from ".";
-import { Row, Table } from "../information/Table";
-import { Runner } from "../runner/Runner";
+import { RowInput, RowOperator } from ".";
+import { SumRowData } from "../../shared/transformer/advanced";
+import { Table } from "../information/Table";
 import assert from "assert";
-
-/** ------------------------------------------------------------------------- */
-
-export interface SumRowData {
-  type: "sum";
-  column: string | number;
-}
 
 /** ------------------------------------------------------------------------- */
 
 /**
  * Find the combined sum of a specific column of the table that the row is from.
  */
-export class SumRow implements BaseRow {
+export class SumRow implements RowOperator {
   /** The column to sum. */
   private readonly column: number;
 
@@ -28,15 +19,15 @@ export class SumRow implements BaseRow {
    * Create a sum operation.
    * @param column The column to be summed.
    */
-  public constructor(column: number) {
-    this.column = column;
+  public constructor(input: SumRowData) {
+    this.column = input.column;
   }
 
-  run(_v: string, _r: Row, _R: Runner, table: Table): Maybe<string> {
+  run(input: RowInput): Maybe<string> {
     // Get table sums.
-    let cached_table = this.cache.get(table);
+    let cached_table = this.cache.get(input.table);
     if (cached_table == null) {
-      this.cache.set(table, cached_table = new Map());
+      this.cache.set(input.table, cached_table = new Map());
     }
 
     // Get sum.
@@ -45,7 +36,7 @@ export class SumRow implements BaseRow {
 
     // Make sum.
     let sum = 0;
-    for (const _row of table.split()) {
+    for (const _row of input.table.split()) {
       const value = parseFloat(_row.get(this.column) ?? "");
       assert.ok(!isNaN(value), `Value ${_row.get(this.column)} is not a number!`);
 
@@ -56,13 +47,4 @@ export class SumRow implements BaseRow {
     cached_table.set(this.column, sum);
     return sum.toString();
   }
-
-  buildJSON(): SumRowData {
-    return { type: "sum", column: getExcelFromIndex(this.column) };
-  }
-
-  public static readonly SCHEMA: z.ZodType<BaseRow, SumRowData> = z.strictObject({
-    type: z.literal("sum"),
-    column: ExcelIndexSchema,
-  }).transform(s => new SumRow(s.column));
 }

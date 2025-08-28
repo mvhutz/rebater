@@ -127,6 +127,10 @@ export class Table {
   }
 
   public transpose(): Table {
+    if (this.data.length === 0) {
+      return this;
+    }
+
     const trans = [];
     for (let i = 0; i < this.data[0].size(); i++) {
       const data = [];

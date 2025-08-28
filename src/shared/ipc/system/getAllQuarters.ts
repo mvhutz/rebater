@@ -24,9 +24,9 @@ export async function getAllQuarters(): Promise<Reply<TimeData[]>> {
     if (!directory.isDirectory()) continue;
 
     const time = Time.parse(directory.name);
-    if (time == null) continue;
+    if (!time.ok) continue;
 
-    quarters.push(time.toJSON());
+    quarters.push(time.data.toJSON());
   }
 
   return good(quarters);

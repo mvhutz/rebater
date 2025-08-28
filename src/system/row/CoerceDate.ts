@@ -1,26 +1,14 @@
-import z from "zod/v4";
 import moment, { Moment } from "moment";
 import assert from "assert";
-import { BaseRow } from ".";
-import { Runner } from "../runner/Runner";
-import { Row } from "../information/Table";
-
-/** ------------------------------------------------------------------------- */
-
-export interface CoerceDateRowData {
-  type: "coerce";
-  as: "date";
-  year?: "assume" | "keep",
-  parse?: string[];
-  format?: string;
-}
+import { RowInput, RowOperator } from ".";
+import { CoerceDateRowData } from "../../shared/transformer/advanced";
 
 /** ------------------------------------------------------------------------- */
 
 /**
  * Attempt to turn a string in a date.
  */
-export class CoerceDateRow implements BaseRow {
+export class CoerceDateRow implements RowOperator {
   /**
    * If "assume", disard the year of the date, and make it the year of the
    * current quarter.
@@ -48,13 +36,14 @@ export class CoerceDateRow implements BaseRow {
    * current quarter.
    * @param parse The format that the date will be parsed to.
    */
-  public constructor(data: CoerceDateRowData) {
-    this.year = data.year ?? "keep";
-    this.parse = data.parse ?? [];
-    this.format = data.format ?? "M/D/YYYY";
+  public constructor(input: CoerceDateRowData) {
+    this.year = input.year;
+    this.parse = input.parse;
+    this.format = input.format;
   }
 
-  run(value: string, _r: Row, runner: Runner): Maybe<string> {
+  run(input: RowInput): Maybe<string> {
+    let { value } = input;
     const attemptInt = Number(value);
     let date: Moment;
 
@@ -69,28 +58,10 @@ export class CoerceDateRow implements BaseRow {
     }
 
     if (this.year === "assume") {
-      date.year(runner.settings.time.year);
+      date.year(input.settings.time.year);
     }
 
     assert.ok(date.isValid(), `Date ${value} could not be parsed.`);
     return date.format(this.format);
   }
-
-  buildJSON(): CoerceDateRowData {
-    return {
-      year: this.year,
-      format: this.format,
-      parse: this.parse,
-      type: "coerce",
-      as: "date"
-    }
-  }
-
-  public static readonly SCHEMA: z.ZodType<BaseRow, CoerceDateRowData> = z.strictObject({
-    type: z.literal("coerce"),
-    as: z.literal("date"),
-    year: z.union([z.literal("assume"), z.literal("keep")]).optional(),
-    parse: z.array(z.string()).optional(),
-    format: z.string().optional()
-  }).transform(s => new CoerceDateRow(s));
 }

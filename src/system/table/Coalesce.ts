@@ -1,16 +1,7 @@
-import { z } from "zod/v4";
-import { ExcelIndexSchema, getExcelFromIndex } from "../util";
-import { BaseTable } from ".";
+import { TableInput, TableOperator } from ".";
 import assert from "assert";
 import { Row, Table } from "../information/Table";
-
-/** ------------------------------------------------------------------------- */
-
-export interface CoalesceTableData {
-  type: "coalesce";
-  match: (string | number)[];
-  combine?: (string | number)[];
-}
+import { CoalesceTableData } from "../../shared/transformer/advanced";
 
 /** ------------------------------------------------------------------------- */
 
@@ -26,7 +17,7 @@ export interface CoalesceTableData {
  * 
  * Then, it collects these "super" rows, and returns them as a table.
  */
-export class CoalesceTable implements BaseTable {
+export class CoalesceTable implements TableOperator {
   /** The columns which the rows should be matched on. */
   private readonly match: number[];
   /** The columns which should be summed, when within the buckets. */
@@ -37,9 +28,9 @@ export class CoalesceTable implements BaseTable {
    * @param match The columns which the rows should be matched on.
    * @param combine The columns which should be summed, when within the buckets.
    */
-  public constructor(match: number[], combine: number[]) {
-    this.match = match;
-    this.combine = combine;
+  public constructor(input: CoalesceTableData) {
+    this.match = input.match;
+    this.combine = input.combine;
   }
 
   /**
@@ -86,9 +77,9 @@ export class CoalesceTable implements BaseTable {
     return row;
   }
 
-  run(table: Table): Table {
+  run(input: TableInput): Table {
     // Create the buckets.
-    const buckets = table.divide(row => this.getHash(row));
+    const buckets = input.table.divide(row => this.getHash(row));
 
     // Combine the buckets.
     const coalesced = buckets
@@ -99,14 +90,4 @@ export class CoalesceTable implements BaseTable {
   
     return Table.join(...coalesced);
   }
-
-  buildJSON(): CoalesceTableData {
-    return { type: "coalesce", combine: this.combine.map(getExcelFromIndex), match: this.match.map(getExcelFromIndex) };
-  }
-
-  public static readonly SCHEMA: z.ZodType<BaseTable, CoalesceTableData> = z.strictObject({
-    type: z.literal("coalesce"),
-    match: z.array(ExcelIndexSchema),
-    combine: z.array(ExcelIndexSchema).default([])
-  }).transform(s => new CoalesceTable(s.match, s.combine));
 }

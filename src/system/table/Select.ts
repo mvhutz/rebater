@@ -1,16 +1,6 @@
-import { z } from "zod/v4";
-import { ExcelIndexSchema, getExcelFromIndex } from "../util";
-import { BaseTable } from ".";
+import { TableInput, TableOperator } from ".";
 import { Table } from "../information/Table";
-
-/** ------------------------------------------------------------------------- */
-
-export interface SelectTableData {
-  type: "select";
-  column: string | number;
-  is: string;
-  action?: "drop" | "keep";
-}
+import { SelectTableData } from "../../shared/transformer/advanced";
 
 /** ------------------------------------------------------------------------- */
 
@@ -26,7 +16,7 @@ export interface SelectTableData {
  * If the user chooses to `"keep"` these rows, they will be returned instead,
  * ignoring all other rows.
  */
-export class SelectTable implements BaseTable {
+export class SelectTable implements TableOperator {
   /** The colunm to check. */
   private readonly column: number;
   /** The value to match against. */
@@ -40,26 +30,15 @@ export class SelectTable implements BaseTable {
    * @param action The value to match against.
    * @param is Whether to keep any matching rows, or delete them.
    */
-  public constructor(column: number, action: "drop" | "keep", is: string) {
-    this.column = column;
-    this.action = action;
-    this.is = is;
+  public constructor(input: SelectTableData) {
+    this.column = input.column;
+    this.action = input.action;
+    this.is = input.is;
   }
 
-  run(table: Table): Table {
-    return table.filter(r => {
+  run(input: TableInput): Table {
+    return input.table.filter(r => {
       return (this.is === r.get(this.column)) === (this.action === "keep");
     });
   }
-
-  buildJSON(): SelectTableData {
-    return { type: "select", column: getExcelFromIndex(this.column), is: this.is, action: this.action };
-  }
-
-  public static readonly SCHEMA: z.ZodType<BaseTable, SelectTableData> = z.strictObject({
-    type: z.literal("select"),
-    column: ExcelIndexSchema,
-    is: z.string(),
-    action: z.union([z.literal("drop"), z.literal("keep")]).default("keep"),
-  }).transform(s => new SelectTable(s.column, s.action, s.is));
 }

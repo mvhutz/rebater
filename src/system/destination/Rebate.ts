@@ -1,53 +1,35 @@
 import Papa from "papaparse";
-import { z, ZodType } from "zod/v4";
-import { BaseDestination } from ".";
+import { z } from "zod/v4";
+import { DestinationInput, DestinationOperator } from ".";
 import { RebateSchema } from "../../shared/worker/response";
-import { Runner } from "../runner/Runner";
-import { CSVRebateFile } from "../information/items/CSVRebateFile";
-import { Table } from "../information/Table";
-
-/** ------------------------------------------------------------------------- */
-
-export interface RebateDestinationData {
-  type: "rebate"
-  name: string;
-}
+import { RebateDestinationData } from "../../shared/transformer/advanced";
+import { good } from "../../shared/reply";
 
 /** ------------------------------------------------------------------------- */
 
 /**
  * Send a table to the `rebates` folder, as a CSV.
  */
-export class RebateDestination implements BaseDestination {
+export class RebateDestinationOperator implements DestinationOperator {
   private name: string;
 
-  public constructor(name: string) {
-    this.name = name;
+  public constructor(input: RebateDestinationData) {
+    this.name = input.name;
   }
 
-  run(table: Table, runner: Runner): void {
+  run(input: DestinationInput): void {
     // Convert to a list of Rebates.
-    const data = table.split().map(row => row.split());
+    const data = input.table.split().map(row => row.split());
     const { data: raw } = Papa.parse(Papa.unparse(data), { header: true });
     const rebates = z.array(RebateSchema).parse(raw);
 
     // Send to the destination store.
-    const filepath = runner.settings.getDestinationPath(this.name);
-    const destination = new CSVRebateFile(filepath, {
-      group: this.name,
-      quarter: runner.settings.time
+    input.state.destinations.mark({
+      item: {
+        quarter: input.settings.time,
+        name: `${this.name}.csv`
+      },
+      data: good(rebates)
     });
-
-    destination.push(rebates);
-    runner.destinations.add(destination);
   }
-
-  buildJSON(): RebateDestinationData {
-    return { type: "rebate", name: this.name };
-  }
-
-  public static readonly SCHEMA: ZodType<BaseDestination, RebateDestinationData> = z.strictObject({
-    type: z.literal("rebate"),
-    name: z.string(),
-  }).transform(s => new RebateDestination(s.name));
 }

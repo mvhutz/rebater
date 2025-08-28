@@ -14,30 +14,42 @@ import Option from '@mui/joy/Option';
 import Select from '@mui/joy/Select';
 import Stack from '@mui/joy/Stack';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { getContextSettings, getQuarterList, setSystemQuarter, setSystemYear } from '../store/slices/system';
-import { ResourceStatus } from '../../shared/resource';
+import { getDraftTime, getQuarterList, setDraftSystemTime } from '../store/slices/system';
 import moment from 'moment';
 import { IconButton } from '@mui/joy';
-import { toggleNewQuarterModal } from '../store/slices/ui';
+import { pushMessage, toggleNewQuarterModal } from '../store/slices/ui';
+import { TimeSchema } from '../../shared/time';
+import z from 'zod/v4';
 
 /** ------------------------------------------------------------------------- */
 
 function ContextSettings() {
-  const { year, quarter } = useAppSelector(getContextSettings);
-  const { data: quarters, status: quarterStatus } = useAppSelector(getQuarterList);
+  const time = useAppSelector(getDraftTime);
+  const quarters = useAppSelector(getQuarterList);
   const dispatch = useAppDispatch();
 
   const handleQuarter = React.useCallback((_: unknown, new_quarter: Maybe<string>) => {
+    if (new_quarter == null) return;
+    
     const new_time = moment(new_quarter, "YYYY-QQ");
-    dispatch(setSystemYear(new_time.year()));
-    dispatch(setSystemQuarter(new_time.quarter()));
+    const time_reply = TimeSchema.safeParse({
+      year: new_time.year(),
+      quarter: new_time.quarter(),
+    });
+
+    if (!time_reply.success) {
+      dispatch(pushMessage({ type: "error", text: z.prettifyError(time_reply.error) }));
+      return;
+    }
+
+    dispatch(setDraftSystemTime(time_reply.data));
   }, [dispatch]);
 
   const handleNewQuarter = React.useCallback(() => {
     dispatch(toggleNewQuarterModal());
   }, [dispatch]);
 
-  const current_quarter = quarterStatus === ResourceStatus.LOADING || year == null || quarter == null ? null : `${year}-Q${quarter}`;
+  const current_quarter = time == null ? null : `${time.year}-Q${time.quarter}`;
 
   return (
     <Accordion>
@@ -53,14 +65,12 @@ function ContextSettings() {
               <FormLabel>Quarter</FormLabel>
               <Select
                 value={current_quarter}
-                disabled={quarterStatus === ResourceStatus.LOADING}
-                placeholder={quarterStatus === ResourceStatus.LOADING ? "Loading..." : "None"}
+                disabled={quarters.length === 0}
+                placeholder={"No quarter!"}
                 onChange={handleQuarter}>
-                { quarterStatus === ResourceStatus.PRESENT && (
-                  quarters.map(q => (
-                    <Option value={`${q.year}-Q${q.quarter}`} key={`${q.year}-Q${q.quarter}`}>{q.year}-Q{q.quarter}</Option>
-                  ))
-                )}
+                {quarters.map(q => (
+                  <Option value={`${q.year}-Q${q.quarter}`} key={`${q.year}-Q${q.quarter}`}>{q.year}-Q{q.quarter}</Option>
+                ))}
               </Select>
               <FormHelperText>The quarter to process.</FormHelperText>
             </FormControl>

@@ -1,22 +1,24 @@
-import { AbstractFile } from "./AbstractFile";
 import z from "zod/v4";
 import Papa from 'papaparse';
 import Fuse from 'fuse.js';
+import { bad, good, Reply } from "../../reply";
+import { FileStore } from "./FileStore";
+import path from "path";
 
 
 /** ------------------------------------------------------------------------- */
 
 export const ReferenceSchema = z.array(z.record(z.string(), z.string()));
-export type Reference = z.infer<typeof ReferenceSchema>;
+export type ReferenceData = z.infer<typeof ReferenceSchema>;
 
 /**
  * A optimized view of a ReferenceFile, based on a primary key.
  */
 export class ReferenceView {
-  private data: Map<string, Set<Reference[number]>>;
+  private readonly data: Map<string, Set<ReferenceData[number]>>;
   public readonly key: string;
 
-  constructor(reference: Reference, key: string) {
+  constructor(reference: ReferenceData, key: string) {
     this.data = new Map();
     this.key = key;
 
@@ -73,36 +75,15 @@ export class ReferenceView {
  * References are used by transformers to lookup tabular data, during
  * processing.
  */
-export class ReferenceFile<Meta = unknown> extends AbstractFile<Reference, Meta> {
-  public readonly name: string;
+export class Reference {
+  public readonly data: ReferenceData;
 
-  public constructor(path: string, name: string, meta: Meta) {
-    super(path, [], meta);
-    this.name = name;
+  public constructor(data: ReferenceData) {
+    this.data = data;
   }
 
-  hash(): string {
-    // The references name is the unique identifier.
-    return this.name;
-  }
-
-  insert(datum: Record<string, string>[]): void {
-    this.data.push(...datum);
-  }
-
-  serialize(): Buffer {
-    // The files are stored as CSV.
-    return Buffer.from(Papa.unparse(this.data));
-  }
-
-  deserialize(raw: Buffer): Reference {
-    // THe files are stored as CSV.
-    const { data } = Papa.parse(raw.toString("utf-8"), {
-      header: true,
-      skipEmptyLines: true,
-    });
-
-    return ReferenceSchema.parse(data);
+  public insert(...records: ReferenceData) {
+    return new Reference(this.data.concat(records));
   }
 
   /**
@@ -163,7 +144,7 @@ export class ReferenceFile<Meta = unknown> extends AbstractFile<Reference, Meta>
     }));
   }
 
-  private views = new Map<string, ReferenceView>();
+  private readonly views = new Map<string, ReferenceView>();
 
   public view(key: string) {
     const current = this.views.get(key);
@@ -172,5 +153,70 @@ export class ReferenceFile<Meta = unknown> extends AbstractFile<Reference, Meta>
     const made = new ReferenceView(this.data, key);
     this.views.set(key, made);
     return made;
+  }
+}
+
+/** ------------------------------------------------------------------------- */
+
+interface ReferenceMeta { path: string, name: string };
+
+export class ReferenceStore extends FileStore<Reference, ReferenceMeta> {
+  protected getFileFromItem(item: ReferenceMeta): Reply<string> {
+    return good(path.join(this.directory, item.path));
+  }
+  
+  protected getItemFromFile(file_path: string): Reply<ReferenceMeta> {
+    const names = path.relative(this.directory, file_path).split(path.sep);
+
+    const last = names.at(-1);
+    if (last == null) {
+      return bad("No name!");
+    }
+
+    const { name } = path.parse(last);
+
+    return good({ path: names.join(path.sep), name });
+  }
+
+  serialize(reference: Reference): Reply<Buffer> {
+    return good(Buffer.from(Papa.unparse(reference.data)));
+  }
+
+  deserialize(raw: Buffer): Reply<Reference> {
+    const { data } = Papa.parse(raw.toString("utf-8"), {
+      header: true,
+      skipEmptyLines: true,
+    });
+
+    const parsed = ReferenceSchema.safeParse(data);
+    if (parsed.success) {
+      return good(new Reference(parsed.data));
+    } else {
+      return bad(z.prettifyError(parsed.error));
+    }
+  }
+
+  public getTable(name: string): Reference {
+    for (const [, entry] of this.entries) {
+      if (entry.item.name !== name) continue;
+      if (!entry.data.ok) continue;
+      return entry.data.data;
+    }
+
+    return new Reference([]);
+  }
+
+  public async updateTable(name: string, reference: Reference) {
+    for (const [, entry] of this.entries) {
+      if (entry.item.name !== name) continue;
+      await this.push({ item: entry.item, data: good(reference) });
+      return;
+    }
+
+    await this.push({
+      item: { path: `${name}.csv`, name: name },
+      data: good(reference)
+    });
+    return;
   }
 }

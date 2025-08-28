@@ -12,9 +12,9 @@ import Stack from '@mui/joy/Stack';
 import { getNewQuarterModal, pushMessage, toggleNewQuarterModal } from '../store/slices/ui';
 import { DialogActions, Option, Select, Switch } from '@mui/joy';
 import { FormHelperText } from '@mui/material';
-import { getSystemSettings } from '../store/slices/system';
 import z from 'zod/v4';
 import { TimeData } from '../../shared/time';
+import { getDraftTime } from '../store/slices/system';
 
 /** ------------------------------------------------------------------------- */
 
@@ -29,7 +29,7 @@ const { invoke } = window.api;
 
 function NewQuarterModal() {
   const open = useAppSelector(getNewQuarterModal);
-  const { data: { context: current_quarter } } = useAppSelector(getSystemSettings);
+  const current_time = useAppSelector(getDraftTime);
   const dispatch = useAppDispatch();
 
   const [currentStructure, setCurrentStructure] = React.useState(false);
@@ -47,8 +47,8 @@ function NewQuarterModal() {
   }, [quarter, year]);
 
   const { success: old_ready, data: old_time } = React.useMemo(() => {
-    return TimeSchema.safeParse(current_quarter);
-  }, [current_quarter]);
+    return TimeSchema.safeParse(current_time);
+  }, [current_time]);
 
   const handleCreate = React.useCallback(async () => {
     if (!new_ready || (currentStructure && !old_ready)) return;

@@ -1,20 +1,5 @@
-import { z } from "zod/v4";
-import { BaseRow, ROW_SCHEMA, RowData } from ".";
-import { Runner } from "../runner/Runner";
-import { Row, Table } from "../information/Table";
-
-/** ------------------------------------------------------------------------- */
-
-export interface SearchRowData {
-  type: "search";
-  table: string;
-  matches?: Record<string, {
-    optional?: boolean;
-    primary?: boolean;
-    definition: RowData[];
-  }>;
-  take: string;
-}
+import { RowInput, RowOperator } from ".";
+import { SearchRowData } from "../../shared/transformer/advanced";
 
 /** ------------------------------------------------------------------------- */
 
@@ -35,7 +20,7 @@ export interface SearchRowData {
  * - If a property is "primary", then suggestions will be made as to what the
  *   answer could be, based on the value of that property.
  */
-export class SearchRow implements BaseRow {
+export class SearchRow implements RowOperator {
   /** The table to search through. */
   private readonly table: string;
   /** The property of the matching record to return. */
@@ -53,7 +38,7 @@ export class SearchRow implements BaseRow {
   /**
    * The properties to match by.
    */
-  private readonly matches: Record<string, BaseRow[]>;
+  private readonly matches: Record<string, RowOperator[]>;
 
   /**
    * Create a search operation.
@@ -63,21 +48,26 @@ export class SearchRow implements BaseRow {
    * @param optional The properties to disregard when asking the user.
    * @param primary The property to generate suggestions from.
    */
-  public constructor(table: string, take: string, matches: Record<string, BaseRow[]>, optional?: string[], primary?: string) {
-    this.table = table;
-    this.take = take;
-    this.matches = matches;
-    this.optional = optional ?? [];
-    this.primary = primary;
+  public constructor(input: SearchRowData) {
+    const matches_entries = Object.entries(input.matches ?? []);
+    const definitions = Object.fromEntries(matches_entries.map(m => m[1].definition));
+    const primary = matches_entries.filter(o => o[1].primary).map(o => o[0]);
+    const optional = matches_entries.filter(o => o[1].optional).map(o => o[0]);
+
+    this.table = input.table;
+    this.take = input.take;
+    this.matches = definitions;
+    this.optional = optional;
+    this.primary = primary[0];
   }
 
-  run(_v: string, row: Row, runner: Runner, table: Table): Maybe<string> {
-    const search = runner.references.get(this.table);
+  run(input: RowInput): Maybe<string> {
+    const search = input.state.references.getTable(this.table);
     const view = this.primary == null ? search : search.view(this.primary);
 
     const values: Record<string, string> = {};
     for (const [property, rows] of Object.entries(this.matches)) {
-      const value = BaseRow.runMany(rows, row, runner, table);
+      const value = RowOperator.runMany(rows, input);
       if (value == null) return null;
 
       values[property] = value;
@@ -88,13 +78,16 @@ export class SearchRow implements BaseRow {
       return result;
     }
 
+    const hash = JSON.stringify([values, this.take]);
+    if (input.state.tracker.has(hash)) return null;
+
     let suggestions: { key: string; value: string; group: string; }[] = [];
     if (this.primary) {
       suggestions = search.suggest(this.primary, values[this.primary], this.take);
     }
 
-    runner.emit("ask", {
-      hash: JSON.stringify([values, this.take]),
+    input.state.tracker.markAsk({
+      hash: hash,
       table: this.table,
       unknown: this.take,
       known: values,
@@ -106,34 +99,4 @@ export class SearchRow implements BaseRow {
 
     return null;
   }
-
-  buildJSON(): SearchRowData {
-    return {
-      type: "search",
-      table: this.table, 
-      take: this.take,
-      matches: Object.fromEntries(Object.entries(this.matches).map(([k, v]) => [k, {
-        optional: this.optional.includes(k),
-        primary: this.primary === k,
-        definition: v.map(vi => vi.buildJSON()),
-    }]))
-    }
-  }
-
-  public static readonly SCHEMA: z.ZodType<BaseRow, SearchRowData> = z.strictObject({
-    type: z.literal("search"),
-    table: z.string(),
-    matches: z.record(z.string(), z.strictObject({
-      optional: z.boolean().default(false),
-      primary: z.boolean().default(false),
-      definition: z.array(z.lazy(() => ROW_SCHEMA))
-    })).default({}),
-    take: z.string(),
-  }).transform(s => {
-    const matches_entries = Object.entries(s.matches);
-    const definitions = Object.fromEntries(matches_entries.map(m => m[1].definition));
-    const primary = matches_entries.filter(o => o[1].primary).map(o => o[0]);
-    const optional = matches_entries.filter(o => o[1].optional).map(o => o[0]);
-    return new SearchRow(s.table, s.take, definitions, optional, primary[0]);
-  });
 }

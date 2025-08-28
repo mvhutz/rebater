@@ -7,14 +7,15 @@ import { Button, IconButton, FormControl, FormLabel, AccordionSummary, Accordion
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import { useAppDispatch } from '../../store/hooks';
 import { pullTransformers } from '../../store/slices/thunk';
-import { SimpleTransformerFileInfo } from '../../../system/transformer/BaseTransformers';
-import { SimpleTransformerData } from '../../../system/transformer/SimpleTransformer';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
 import SummarizeRoundedIcon from '@mui/icons-material/SummarizeRounded';
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import MultiSelect from '../MultiSelect';
 import ColumnInput from '../ColumnInput';
 import { produce } from 'immer';
+import { TransformerFile } from '../../../shared/state/stores/TransformerStore';
+import { good, GoodReply } from '../../../shared/reply';
+import { SimpleTransformerData } from '../../../shared/transformer/simple';
 
 /** ------------------------------------------------------------------------- */
 
@@ -378,11 +379,12 @@ function RebateDataOptions(props: OptionsProps) {
 const { invoke } = window.api;
 
 interface SimpleTransformerEditProps {
-  info: SimpleTransformerFileInfo;
+  item: TransformerFile["item"];
+  data: GoodReply<SimpleTransformerData>
 }
 
 function AdvancedTransformerEdit(props: SimpleTransformerEditProps) {
-  const { info } = props;
+  const { item, data: info } = props;
   const [data, setData] = React.useState<SimpleTransformerData>(info.data);
   const dispatch = useAppDispatch();
 
@@ -395,14 +397,14 @@ function AdvancedTransformerEdit(props: SimpleTransformerEditProps) {
   }, [info.data]);
 
   const handleSave = React.useCallback(async () => {
-    await invoke.updateTransformer({ filepath: info.path, configuration: JSON.stringify(data, null, 2) });
+    await invoke.updateTransformer({ item, data: good(data) });
     await dispatch(pullTransformers());
-  }, [dispatch, info.path, data]);
+  }, [item, data, dispatch]);
 
   const handleDelete = React.useCallback(async () => {
-    await invoke.deleteTransformer({ filepath: info.path });
+    await invoke.deleteTransformer({ item, data: info });
     await dispatch(pullTransformers());
-  }, [dispatch, info.path]);
+  }, [dispatch, info, item]);
 
   return (
     <Stack padding={2} width={1} boxSizing="border-box" spacing={2} position="relative">

@@ -1,17 +1,6 @@
-import { z } from "zod/v4";
-import { ExcelIndexSchema } from "../util";
-import { BaseTable } from ".";
+import { TableInput, TableOperator } from ".";
 import { Table } from "../information/Table";
-
-/** ------------------------------------------------------------------------- */
-
-export interface ChopTableData {
-  type: "chop",
-  column: string | number,
-  is: string[]
-  keep?: "top" | "bottom";
-  otherwise?: "drop" | "take";
-}
+import { ChopTableData } from "../../shared/transformer/advanced";
 
 /** ------------------------------------------------------------------------- */
 
@@ -25,7 +14,7 @@ export interface ChopTableData {
  * If it cannot find a row, it `otherwise` chooses to either `"drop"` the entire
  * table, or `"take"` it and leave it as is.
  */
-export class ChopTable implements BaseTable {
+export class ChopTable implements TableOperator {
   /** The column to check. */
   private readonly column: number;
   /** The list of values that the column must match. */
@@ -42,15 +31,15 @@ export class ChopTable implements BaseTable {
    * @param keep Whether to keep the top or bottom of the table.
    * @param otherwise Whether to discard to entire table or not, if a row cannot be found.
    */
-  public constructor(column: number, is: string[], keep: "top" | "bottom", otherwise: "drop" | "take") {
-    this.column = column;
-    this.is = is;
-    this.keep = keep;
-    this.otherwise = otherwise;
+  public constructor(input: ChopTableData) {
+    this.column = input.column;
+    this.is = input.is;
+    this.keep = input.keep;
+    this.otherwise = input.otherwise;
   }
 
-  run(table: Table): Table {
-    const index = table.split().findIndex(row => {
+  run(input: TableInput): Table {
+    const index = input.table.split().findIndex(row => {
       const datum = row.get(this.column);
       if (datum == null) return;
       return this.is.includes(datum.trim());
@@ -58,28 +47,16 @@ export class ChopTable implements BaseTable {
 
     if (index === -1) {
       if (this.otherwise === "take") {
-        return table;
+        return input.table;
       } else {
         return Table.join();
       }
     }
 
     if (this.keep === "top") {
-      return table.slice(undefined, index);
+      return input.table.slice(undefined, index);
     } else {
-      return table. slice(index, undefined);
+      return input.table. slice(index, undefined);
     }
   }
-
-  buildJSON(): ChopTableData {
-    return { type: "chop", column: this.column, is: this.is, keep: this.keep };
-  }
-
-  public static readonly SCHEMA = z.strictObject({
-    type: z.literal("chop"),
-    column: ExcelIndexSchema,
-    is: z.array(z.string()),
-    keep: z.union([z.literal("top"), z.literal("bottom")]).default("bottom"),
-    otherwise: z.union([z.literal("drop"), z.literal("take")]).default("drop")
-  }).transform(s => new ChopTable(s.column, s.is, s.keep, s.otherwise));
 }

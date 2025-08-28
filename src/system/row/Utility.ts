@@ -1,19 +1,6 @@
-import { z } from "zod/v4";
-import { BaseRow } from ".";
-import { Runner } from "../runner/Runner";
 import assert from "assert";
-import { Row } from "../information/Table";
-
-/** ------------------------------------------------------------------------- */
-
-export interface UtilityRowData {
-  type: "utility";
-  table: string;
-  match: string;
-  take: string;
-  group: string;
-}
-
+import { RowInput, RowOperator } from ".";
+import { UtilityRowData } from "../../shared/transformer/advanced";
 /** ------------------------------------------------------------------------- */
 
 /**
@@ -23,42 +10,29 @@ export interface UtilityRowData {
  * 
  * @see ReferenceRow
  */
-export class UtilityRow implements BaseRow {
+export class UtilityRow implements RowOperator {
   private readonly table: string;
   private readonly match: string;
   private readonly take: string;
   private readonly group: string;
 
-  public constructor(table: string, match: string, take: string, group: string) {
-    this.table = table;
-    this.match = match;
-    this.take = take;
-    this.group = group;
+  public constructor(input: UtilityRowData) {
+    this.table = input.table;
+    this.match = input.match;
+    this.take = input.take;
+    this.group = input.group;
   }
 
-  run(value: string, _r: Row, runner: Runner): Maybe<string> {
-    const utility = runner.utilities.get(this.table);
-    const view = utility.view(this.match);
+  run(input: RowInput): Maybe<string> {
+    const reference = input.state.references.getTable(this.table);
+    const view = reference.view(this.match);
 
     const result = view.ask({
-      [this.match]: value,
+      [this.match]: input.value,
       group: this.group,
     }, this.take);
     
-    assert.ok(result != null, `Table '${this.table}' has no '${this.match}' for '${value}'.`);
-    
+    assert.ok(result != null, `Table '${this.table}' has no '${this.match}' for '${input.value}'.`);
     return result;
   }
-
-  buildJSON(): UtilityRowData {
-    return { type: "utility", table: this.table, match: this.match, take: this.take, group: this.group };
-  }
-
-  public static readonly SCHEMA: z.ZodType<BaseRow, UtilityRowData> = z.strictObject({
-    type: z.literal("utility"),
-    table: z.string(),
-    match: z.string(),
-    take: z.string(),
-    group: z.string(),
-  }).transform(s => new UtilityRow(s.table, s.match, s.take, s.group));
 }
