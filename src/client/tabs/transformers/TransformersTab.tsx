@@ -7,15 +7,16 @@ import { getDisplayTab, toggleNewTransformerModal } from '../../store/slices/ui'
 import Select from '@mui/joy/Select';
 import Option from '@mui/joy/Option';
 import { getTransformers } from '../../store/slices/system';
-import path from 'path-browserify';
 import FlashOffIcon from '@mui/icons-material/FlashOffRounded';
 import { Alert, Button, Card } from '@mui/joy';
-import MalformedTransformerEdit from './MalformedTransformerEdit';
 import AdvancedTransformerEdit from './AdvancedTransformerEdit';
 import AddRounded from '@mui/icons-material/AddRounded';
 import NewTransformerModal from './NewTransformerModal';
 import SimpleTransformerEdit from './SimpleTransformerEdit';
-import { TransformerData } from '../../../shared/transformer';
+import { TransformerFile } from '../../../shared/state/stores/TransformerStore';
+import { AdvancedTransformerData } from '../../../shared/transformer/advanced';
+import { GoodReply } from '../../../shared/reply';
+import { SimpleTransformerData } from '../../../shared/transformer/simple';
 
 /** ------------------------------------------------------------------------- */
 
@@ -28,20 +29,21 @@ function TransformersTab() {
 
   const { groups } = React.useMemo(() => {
     const result = {
-      groups: {} as Record<string, TransformerData[]>
+      groups: {} as Record<string, TransformerFile[]>
     };
 
     if (!transformers_reply.ok) return result;
 
     for (const transformer of transformers_reply.data) {
-      switch (transformer.type) {
+      if (!transformer.data.ok) continue;
+      switch (transformer.data.data.type) {
         case "advanced":
           result.groups["Advanced"] ??= [];
           result.groups["Advanced"].push(transformer);
           break;
         case "simple":
-          result.groups[transformer.group] ??= [];
-          result.groups[transformer.group].push(transformer);
+          result.groups[transformer.data.data.group] ??= [];
+          result.groups[transformer.data.data.group].push(transformer);
       }
     }
     return result;
@@ -49,7 +51,7 @@ function TransformersTab() {
 
   const searchGroups = React.useCallback((filepath: Maybe<string>) => {
     for (const [groupName, items] of Object.entries(groups)) {
-      if (items.find(t => t.path === filepath) != null) {
+      if (items.find(t => t.item.name === filepath) != null) {
         setCurrentGroup(groupName);
         setCurrentTransformer(filepath);
         return;
@@ -61,9 +63,9 @@ function TransformersTab() {
     searchGroups(currentTransformer);
   }, [currentTransformer, searchGroups]);
 
-  const handleTransformer = React.useCallback((filepath: string) => {
-    setCurrentTransformer(filepath);
-    searchGroups(filepath);
+  const handleTransformer = React.useCallback((file: TransformerFile) => {
+    setCurrentTransformer(file.item.name);
+    searchGroups(file.item.name);
   }, [searchGroups]);
 
   const handleCurrentGroup = React.useCallback((_: unknown, value: Maybe<string>) => {
@@ -81,7 +83,7 @@ function TransformersTab() {
   }, [dispatch]);
 
   const currentGroupItems = currentGroup != null ? groups[currentGroup] : null;
-  const currentTransformerItem = currentGroupItems != null ? currentGroupItems.find(t => t.path === currentTransformer) : null;
+  const currentTransformerItem = currentGroupItems != null ? currentGroupItems.find(t => t.item.name === currentTransformer) : null;
 
   let editor;
 
@@ -98,12 +100,20 @@ function TransformersTab() {
         </Alert>
       </Stack>
     );
-  } else if (currentTransformerItem.type === "malformed") {
-    editor = <MalformedTransformerEdit info={currentTransformerItem}/>;
-  } else if (currentTransformerItem.type === "advanced") {
-    editor = <AdvancedTransformerEdit info={currentTransformerItem}/>;
-  } else if (currentTransformerItem.type === "simple") {
-    editor = <SimpleTransformerEdit info={currentTransformerItem}/>;
+  } else if (!currentTransformerItem.data.ok) {
+    // WIP.
+  } else if (currentTransformerItem.data.data.type === "advanced") {
+    editor = (
+      <AdvancedTransformerEdit
+        item={currentTransformerItem.item}
+        data={currentTransformerItem.data as GoodReply<AdvancedTransformerData>}/>
+    );
+  } else if (currentTransformerItem.data.data.type === "simple") {
+    editor = (
+      <SimpleTransformerEdit
+        item={currentTransformerItem.item}
+        data={currentTransformerItem.data as GoodReply<SimpleTransformerData>}/>
+    );
   } else {
     editor = "WIP...";
   }
@@ -124,8 +134,8 @@ function TransformersTab() {
           edit
         </Typography>
         <Select size="sm" placeholder="Transformer?" variant="soft" value={currentTransformer} onChange={handleCurrentTransformer} disabled={currentGroupItems == null}>
-          {currentGroupItems?.map((g) => (
-            <Option value={g.path} key={g.path}>{g.type !== "malformed" ? g.data.name : path.basename(g.path)}</Option>
+          {currentGroupItems?.map((g) => (g.data.ok &&
+            <Option value={g.item.name} key={g.item.name}>{g.data.data.name}</Option>
           ))}
         </Select>
         </Card>

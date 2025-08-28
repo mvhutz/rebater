@@ -4,7 +4,7 @@ import Stack from '@mui/joy/Stack';
 import NightsStayRoundedIcon from '@mui/icons-material/NightsStayRounded';
 import DoneRoundedIcon from '@mui/icons-material/DoneRounded';
 import PriorityHighRoundedIcon from '@mui/icons-material/PriorityHighRounded';
-import { getSystemQuestionCount, getSystemStatus } from '../store/slices/system';
+import { getSystemQuestionCount, getSystemStatus, getTransformers } from '../store/slices/system';
 import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded';
@@ -20,8 +20,8 @@ import { SystemStatus } from '../../shared/worker/response';
 import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
 import QuestionsTab from '../tabs/questions/QuestionsTab';
 import Chip from '@mui/joy/Chip';
-// import { FlashOnRounded } from '@mui/icons-material';
-// import TransformersTab from '../tabs/transformers/TransformersTab';
+import { FlashOnRounded } from '@mui/icons-material';
+import TransformersTab from '../tabs/transformers/TransformersTab';
 
 /** ------------------------------------------------------------------------- */
 
@@ -67,7 +67,7 @@ function TabPart_() {
   const status = useAppSelector(getSystemStatus);
   const { tabs: show_tabs } = useAppSelector(getVisible);
   const questions_count = useAppSelector(getSystemQuestionCount);
-  // const transformers = useAppSelector(getTransformers);
+  const transformers = useAppSelector(getTransformers);
 
   if (!show_tabs) return null;
 
@@ -91,12 +91,12 @@ function TabPart_() {
         </ListItemDecorator>
         Questions {questions_count > 0 && <Chip color="primary" variant="solid" size='sm'>{questions_count}</Chip>}
       </Tab>
-      {/* <Tab value="transformers" indicatorPlacement="top" sx={TAB_SX_PROPS}>
+      <Tab value="transformers" indicatorPlacement="top" sx={TAB_SX_PROPS}>
         <ListItemDecorator>
           <FlashOnRounded fontSize="small" />
         </ListItemDecorator>
-        Transformers {transformers.length > 0 && <Chip color="neutral" variant="outlined" size='sm'>{transformers.length}</Chip>}
-      </Tab> */}
+        Transformers {transformers.ok && <Chip color="neutral" variant="outlined" size='sm'>{transformers.data.length}</Chip>}
+      </Tab>
     </TabList>
   );
 }
@@ -130,7 +130,7 @@ function ViewPane() {
         <DocumentationTab />
         <SystemTab />
         <QuestionsTab />
-        {/* <TransformersTab /> */}
+        <TransformersTab />
       </Tabs>
     </Stack>
   );

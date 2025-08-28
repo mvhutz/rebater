@@ -1,4 +1,4 @@
-interface BadReply {
+export interface BadReply {
   ok: false;
 
   /** An explanation for the error. */
@@ -18,7 +18,7 @@ export function bad(reason: string, message?: string): BadReply {
   return { ok: false, reason, message };
 }
 
-interface GoodReply<T> {
+export interface GoodReply<T> {
   ok: true;
 
   /** The resulting object. */

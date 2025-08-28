@@ -11,9 +11,10 @@ import Modal from '@mui/joy/Modal';
 import ModalDialog from '@mui/joy/ModalDialog';
 import Stack from '@mui/joy/Stack';
 import { DialogActions, FormHelperText, Radio, RadioGroup } from '@mui/joy';
-import { AdvancedTransformerData } from '../../../system/transformer/AdvancedTransformer';
 import { pullTransformers } from '../../store/slices/thunk';
-import { SimpleTransformerData } from '../../../system/transformer/SimpleTransformer';
+import { AdvancedTransformerData } from '../../../shared/transformer/advanced';
+import { SimpleTransformerData } from '../../../shared/transformer/simple';
+import { TransformerFile } from '../../../shared/state/stores/TransformerStore';
 
 /** ------------------------------------------------------------------------- */
 
@@ -83,7 +84,7 @@ function generateBasicConfiguration(name: string, group: string): SimpleTransfor
 /** ------------------------------------------------------------------------- */
 
 interface NewTransformerModalProps {
-  onTransformer?: (filepath: string) => unknown;
+  onTransformer?: (file: TransformerFile) => unknown;
 }
 
 const { invoke } = window.api;
@@ -122,10 +123,7 @@ function NewTransformerModal(props: NewTransformerModalProps) {
     switch (type) {
       case "advanced": {
         const config = generateAdvancedConfiguration(name);
-        const reply = await invoke.createTransformer({
-          name: name,
-          configuration: JSON.stringify(config, null, 2),
-        });
+        const reply = await invoke.createTransformer(config);
 
         if (!reply.ok) {
           dispatch(pushMessage({ type: "error", text: reply.reason }));
@@ -142,10 +140,7 @@ function NewTransformerModal(props: NewTransformerModalProps) {
         }
 
         const config = generateBasicConfiguration(name, group);
-        const reply = await invoke.createTransformer({
-          name: name,
-          configuration: JSON.stringify(config, null, 2),
-        });
+        const reply = await invoke.createTransformer(config);
 
         if (!reply.ok) {
           dispatch(pushMessage({ type: "error", text: reply.reason }));
