@@ -3,9 +3,6 @@ import path from 'path';
 import started from 'electron-squirrel-startup';
 import { IPCHandler } from './shared/ipc/handler';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-if (require('electron-squirrel-startup') === true) app.quit();
-
 /** ------------------------------------------------------------------------- */
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
