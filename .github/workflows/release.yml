@@ -1,8 +1,9 @@
 # .github/workflows/release.yml
 name: Release app
 on:
-  branches:
-    - main
+  push:
+    branches:
+      - main
 jobs:
   build:
     strategy:
