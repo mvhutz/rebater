@@ -26,7 +26,7 @@ export class RebateDestinationOperator implements DestinationOperator {
     // Send to the destination store.
     await input.state.destinations.push({
       item: {
-        quarter: input.state.settings.time,
+        quarter: input.settings.time,
         name: `${this.name}.csv`
       },
       data: good(rebates)

@@ -1,10 +1,12 @@
 import { Table } from "../information/Table";
 import { State } from "../../shared/state";
+import { Settings } from "../../shared/settings";
 
 /** ------------------------------------------------------------------------- */
 
 export interface SourceInput {
   state: State;
+  settings: Settings;
 }
 
 /**

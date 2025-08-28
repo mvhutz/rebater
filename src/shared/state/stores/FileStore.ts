@@ -1,4 +1,4 @@
-import { FSWatcher } from "chokidar";
+import { FSWatcher, watch as fsWatch } from "chokidar";
 import path from "path";
 import { bad, Reply } from "../../reply";
 import { mkdir, readFile, rm, writeFile } from "fs/promises";
@@ -7,19 +7,15 @@ import { mkdir, readFile, rm, writeFile } from "fs/promises";
 
 export abstract class FileStore<Data, Item> {
   public readonly directory: string;
-  private readonly watcher: FSWatcher;
-  public readonly items: Map<string, { item: Item, data: Reply<Data> }>;
+  private watcher: Maybe<FSWatcher>;
+  public readonly entries: Map<string, { item: Item, data: Reply<Data> }>;
   public readonly lazy: boolean;
 
-  constructor(directory: string, lazy: boolean, watch: boolean) {
+  constructor(directory: string, lazy: boolean, watch = true) {
     this.directory = directory;
-    this.items = new Map();
-    this.watcher = new FSWatcher();
+    this.entries = new Map();
+    this.watcher = null;
     this.lazy = lazy;
-
-    this.watcher.on("add", file =>  this.handleAddFile(file));
-    this.watcher.on("change", file => this.handleUpdateFile(file));
-    this.watcher.on("unlink", file => this.handleDeleteFile(file));
 
     if (watch) {
       this.watch();
@@ -36,22 +32,26 @@ export abstract class FileStore<Data, Item> {
     const file = this.getFileFromItem(item);
     if (!file.ok) return file;
 
-    const entry = this.items.get(file.data);
+    const entry = this.entries.get(file.data);
     if (entry == null) return bad(`No entry for ${file.data}`);
     
     const raw = await readFile(file.data);
     const data = this.deserialize(raw);
 
-    this.items.set(file.data, { item, data });
+    this.entries.set(file.data, { item, data });
     return data;
   }
 
-  public entries() {
-    return this.items.values();
+  public async pullAll(): Promise<void> {
+    await Promise.all(this.entries.values().map(e => this.pull(e.item)));
   }
 
-  public valid(fn: (entry: { item: Item; data: Reply<Data> }) => boolean = () => true) {
-    return this.items.values()
+  public getEntries() {
+    return this.entries.values();
+  }
+
+  public getValid(fn: (entry: { item: Item; data: Reply<Data> }) => boolean = () => true) {
+    return this.entries.values()
       .filter(fn)
       .map(e => e.data)
       .filter(e => e.ok)
@@ -69,7 +69,7 @@ export abstract class FileStore<Data, Item> {
     const serialized = this.serialize(data.data);
     if (!serialized.ok) return serialized;
 
-    this.items.set(file.data, { item, data });
+    this.entries.set(file.data, { item, data });
 
     await mkdir(path.dirname(file.data), { recursive: true });
     await writeFile(file.data, serialized.data);
@@ -84,39 +84,45 @@ export abstract class FileStore<Data, Item> {
   }
 
   private async handleAddFile(file: string) {
-    console.log(`FILE '${file}' ADDED`);
+    console.log(`ADDED '${path.relative(this.directory, file)}'`);
 
-    const entry = this.items.get(file);
+    const entry = this.entries.get(file);
     if (entry != null) {
-      throw Error(`Adding file ${file}, with already exists in store!`);
+      console.log(`DUPLICATE FILE "${file}"`);
+      return;
     }
 
     const item = this.getItemFromFile(file);
     if (!item.ok) {
-      throw Error(`Could not parse metadata from file ${file}!`);
+      console.log(`UNVALID METADATA "${file}": ${item.reason}`);
+      return;
     }
     
-    this.items.set(file, { item: item.data, data: bad("Not loaded!") });
+    this.entries.set(file, { item: item.data, data: bad("Not loaded!") });
     if (!this.lazy) {
       await this.pull(item.data);
     }
   }
 
   private async handleDeleteFile(file: string) {
-    console.log(`FILE '${file}' DELETED`);
+    console.log(`DELETED '${path.relative(this.directory, file)}'`);
 
-    const item = this.items.get(file);
-    if (item == null) return;
+    const item = this.entries.get(file);
+    if (item == null) {
+      console.log(`MISSING DELETE ITEM "${file}"`);
+      return;
+    }
 
-    this.items.delete(file);
+    this.entries.delete(file);
   }
 
   private async handleUpdateFile(file: string) {
-    console.log(`FILE '${file}' UPDATED`);
+    console.log(`UPDATED '${path.relative(this.directory, file)}'`);
 
-    const item = this.items.get(file);
+    const item = this.entries.get(file);
     if (item == null) {
-      throw Error(`Updating file ${file}, with does not exist in store!`);
+      console.log(`MISSING UPDATE ITEM "${file}"`);
+      return;
     }
 
     if (this.lazy) {
@@ -125,10 +131,17 @@ export abstract class FileStore<Data, Item> {
   }
 
   public watch() {
-    this.watcher.add(this.directory);
+    this.watcher = fsWatch(path.dirname(this.directory), {
+      ignored: f => path.dirname(this.directory) !== f && !f.startsWith(this.directory)
+    });
+
+    this.watcher.on("add", file =>  this.handleAddFile(file));
+    this.watcher.on("change", file => this.handleUpdateFile(file));
+    this.watcher.on("unlink", file => this.handleDeleteFile(file));
   }
 
   public unwatch() {
-    this.watcher.unwatch(this.directory);
+    this.watcher?.close();
+    this.watcher = null;
   }
 }

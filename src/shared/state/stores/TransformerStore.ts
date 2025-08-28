@@ -14,11 +14,7 @@ export class TransformerStore extends FileStore<TransformerData, TransformerMeta
   }
   
   protected getItemFromFile(file_path: string): Reply<TransformerMeta> {
-    const [dot, ...names] = path.relative(this.directory, file_path).split(path.sep);
-    if (dot == "") {
-      return bad("File not in directory!");
-    }
-
+    const names = path.relative(this.directory, file_path).split(path.sep);
     return good({ name: names.join(path.sep) });
   }
 

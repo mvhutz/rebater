@@ -1,5 +1,5 @@
-import { RowInput, RowOperator } from ".";
 import assert from "assert";
+import { RowInput, RowOperator } from ".";
 import { UtilityRowData } from "../../shared/transformer/advanced";
 /** ------------------------------------------------------------------------- */
 
@@ -24,10 +24,8 @@ export class UtilityRow implements RowOperator {
   }
 
   run(input: RowInput): Maybe<string> {
-    const reference_reply = input.state.references.getTable(this.table);
-    assert.ok(reference_reply.ok, `Table ${this.table} not loaded!`);
-
-    const view = reference_reply.data.view(this.match);
+    const reference = input.state.references.getTable(this.table);
+    const view = reference.view(this.match);
 
     const result = view.ask({
       [this.match]: input.value,

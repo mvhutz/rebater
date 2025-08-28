@@ -1,5 +1,6 @@
 import { Row, Table } from "../information/Table";
 import { State } from "../../shared/state";
+import { Settings } from "../../shared/settings";
 
 /** ------------------------------------------------------------------------- */
 
@@ -8,6 +9,7 @@ export interface RowInput {
   row: Row;
   state: State;
   table: Table;
+  settings: Settings;
 }
 
 /**

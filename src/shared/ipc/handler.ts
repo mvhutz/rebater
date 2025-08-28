@@ -8,33 +8,35 @@ import { ModuleThread, spawn, Worker } from "threads";
 import { System } from "../../worker";
 import path from "path";
 import { TransformerData } from "../transformer";
-import { SettingsStore } from "../state/SettingsStore";
+import { Repository } from "../state/Repository";
 
 /** ------------------------------------------------------------------------- */
 
 const { ipcMain } = IPC;
 
 export class IPCHandler {
+  public static readonly SETTINGS_FILE = path.join(app.getPath("userData"), "settings.json");
   private window: BrowserWindow;
   private worker: Worker;
   private thread: ModuleThread<System>;
-  private store: SettingsStore;
+  private repository: Repository;
 
   constructor(window: BrowserWindow, worker: Worker, thread: ModuleThread<System>) {
     this.worker = worker;
     this.thread = thread;
     this.window = window;
-    this.store = new SettingsStore(path.join(app.getPath("userData"), "settings.json"));
+    this.repository = new Repository(IPCHandler.SETTINGS_FILE);
   }
 
   /** ----------------------------------------------------------------------- */
 
   async getTransformers() {
-    // const repo = this.connection.getRepository(TransformerEntity);
-    // const transformers = await repo.find();
+    const repository_reply = this.repository.getState();
+    if (!repository_reply.ok) return bad("Data not loaded!");
+    const { data: repository } = repository_reply;
 
-    // return good(transformers);
-    return bad("Not yet!");
+    const transformers = repository.transformers.getValid();
+    return good(transformers);
   }
 
   async createTransformer(data: TransformerData): Promise<Reply<number>> {
@@ -68,22 +70,22 @@ export class IPCHandler {
   /** ----------------------------------------------------------------------- */
 
   async refreshSettingsData() {
-    this.thread.setSettings(this.store.getSettingsData());
+    // this.thread.setSettings(this.store.getSettingsData());
   }
 
   async getSettingsData() {
     await this.refreshSettingsData();
-    return this.store.getSettingsData();
+    return this.repository.getSettingsData();
   }
 
   async setSettingsData(data: SettingsData) {
-    await this.store.setSettingsData(data);
+    await this.repository.setSettingsData(data);
     await this.refreshSettingsData();
     return good("Settings saved!");
   }
 
   static async create(window: BrowserWindow): Promise<IPCHandler> {
-    const worker = new Worker('worker.js');
+    const worker = new Worker('worker.js', { workerData: IPCHandler.SETTINGS_FILE });
     const thread = await spawn<System>(worker);
 
 
@@ -106,7 +108,7 @@ export class IPCHandler {
    */
   async handleCancelProgram() {
     this.worker.terminate();
-    this.worker = new Worker('worker.js');
+    this.worker = new Worker('worker.js', { workerData: IPCHandler.SETTINGS_FILE });
     this.thread = await spawn<System>(this.worker);
     await this.refreshSettingsData();
 
@@ -150,8 +152,6 @@ export class IPCHandler {
    */
   async handleRunProgram() {    
     // Create new worker.
-    await this.handleCancelProgram();
-
     const observable = this.thread.run();
     observable.subscribe(m => this.handleWorkerMessage(m));
 

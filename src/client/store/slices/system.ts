@@ -5,7 +5,8 @@ import { killSystem, pullAllQuarters, pullSystemSettings, pullTransformers, star
 import { TimeData } from '../../../shared/time';
 import { Question, SystemStatus } from '../../../shared/worker/response';
 import { bad, Reply } from '../../../shared/reply';
-import { TransformerFileInfo } from '../../../system/transformer/Transformer';
+
+import { TransformerData } from '../../../shared/transformer';
 
 /** ------------------------------------------------------------------------- */
 
@@ -24,7 +25,7 @@ export interface SettingsDraft {
 interface SystemState {
   status: SystemStatus;
   settings: Reply<SettingsData>;
-  transformers: TransformerFileInfo[];
+  transformers: Reply<TransformerData[]>;
   quarters: TimeData[];
   questions: Record<string, Question>;
   draft: {
@@ -36,7 +37,7 @@ const initialState: SystemState = {
   status: { type: "idle" },
   settings: bad("Not loaded!"),
   quarters: [],
-  transformers: [],
+  transformers: bad("Not loaded!"),
   questions: {},
   draft: {
     settings: {
@@ -125,12 +126,11 @@ export const SystemSlice = createSlice({
       .addCase(killSystem.rejected, (state, { error }) => {
         state.status = { type: "error", message: error.message ?? "Unknown error!" };
       })
+      .addCase(pullTransformers.pending, (state) => {
+        state.transformers = bad("Loading...");
+      })
       .addCase(pullTransformers.fulfilled, (state, { payload }) => {
-        if (payload.ok) {
-          state.transformers = payload.data;
-        } else {
-          state.transformers = [];
-        }
+        state.transformers = payload;
       })
       .addCase(pullAllQuarters.pending, state => {
         state.quarters = []

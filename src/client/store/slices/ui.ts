@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { RootState } from '..';
-import { pullAllQuarters, pushSystemSettings } from './thunk';
+import { pullAllQuarters, pullTransformers, pushSystemSettings } from './thunk';
 
 /** ------------------------------------------------------------------------- */
 
@@ -72,6 +72,11 @@ export const UISlice = createSlice({
       })
       .addCase(pushSystemSettings.rejected, (state, { error }) => {
         state.messages.push({ type: "error", text: error.message ?? "Unknown error saving settings." });
+      })
+      .addCase(pullTransformers.fulfilled, (state, { payload }) => {
+        if (!payload.ok) {
+          state.messages.push({ type: "error", text: payload.reason });
+        }
       })
       .addCase(pullAllQuarters.rejected, (state, { error }) => {
         state.messages.push({ type: "error", text: error.message ?? "Unknown error loading quarters." });

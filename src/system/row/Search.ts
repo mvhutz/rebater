@@ -1,4 +1,3 @@
-import assert from "assert";
 import { RowInput, RowOperator } from ".";
 import { SearchRowData } from "../../shared/transformer/advanced";
 
@@ -63,10 +62,7 @@ export class SearchRow implements RowOperator {
   }
 
   run(input: RowInput): Maybe<string> {
-    const reference_reply = input.state.references.getTable(this.table);
-    assert.ok(reference_reply.ok, `Table ${this.table} not loaded!`);
-
-    const search = reference_reply.data;
+    const search = input.state.references.getTable(this.table);
     const view = this.primary == null ? search : search.view(this.primary);
 
     const values: Record<string, string> = {};

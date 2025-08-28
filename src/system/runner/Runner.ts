@@ -6,6 +6,7 @@ import { RebateSet } from "./RebateSet";
 import { Transformer } from "../transformer/Transformer";
 import { State } from "../../shared/state";
 import { good } from "../../shared/reply";
+import { Settings } from "../../shared/settings";
 
 /** ------------------------------------------------------------------------- */
 
@@ -19,14 +20,16 @@ interface RunnerEvents {
  */
 export class Runner extends EventEmitter<RunnerEvents> {
   public readonly state: State;
+  public readonly settings: Settings;
 
   private running: boolean;
 
-  public constructor(state: State) {
+  public constructor(state: State, settings: Settings) {
     super();
 
     this.state = state;
     this.running = false;
+    this.settings = settings;
 
     this.emit("status", { type: "idle" });
   }
@@ -57,17 +60,18 @@ export class Runner extends EventEmitter<RunnerEvents> {
    * @returns The results.
    */
   async compareAllRebates(): Promise<DiscrepencyResult[]> {
-    const actual = this.state.destinations.valid().flat(1);
+    const actual = this.state.destinations.getValid().flat(1);
     const actual_partitions = getPartition(actual, "supplierId");
 
-    const expected = this.state.truths.valid(t => t.item.quarter.is(this.state.settings.time)).flat(1);
+    await this.state.truths.pullAll();
+    const expected = this.state.truths.getValid(t => t.item.quarter.is(this.settings.time)).flat(1);
     const expected_partitions = getPartition(expected, "supplierId");
 
     const results = new Array<DiscrepencyResult>();
     const member_ids = new Set([...expected_partitions.keys(), ...actual_partitions.keys()]);
 
     for (const member_id of member_ids) {
-      if (!this.state.settings.data.testing.compare_all && !actual_partitions.has(member_id)) {
+      if (!this.settings.data.testing.compare_all && !actual_partitions.has(member_id)) {
         continue;
       }
 
@@ -90,14 +94,18 @@ export class Runner extends EventEmitter<RunnerEvents> {
       discrepency: undefined,
     }
 
-    const transformers = Transformer.findValidOrder(this.state.transformers.valid().map(Transformer.parseTransformer).filter(t => this.state.settings.willRun(t.getDetails())));
+    // Load stores.
+    yield { type: "loading", message: "Loading sources..." };
+    await this.state.sources.pullAll();
+
+    const transformers = Transformer.findValidOrder(this.state.transformers.getValid().map(Transformer.parseTransformer).filter(t => this.settings.willRun(t.getDetails())));
 
     // Run the transformers.
     for (const [i, transformer] of transformers.entries()) {
       const details = transformer.getDetails();
       yield { type: "running", progress: i / transformers.length };
       try {
-        results.config.push(transformer.run(this.state));
+        results.config.push(transformer.run(this.state, this.settings));
       } catch (error) {
         const start = `While running ${details.name}:\n\n`;
         if (error instanceof z.ZodError) {
@@ -111,7 +119,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     }
 
     // Optionally, create a discrepancy report.
-    if (this.state.settings.data.testing.enabled) {
+    if (this.settings.data.testing.enabled) {
       yield { type: "loading", message: "Scoring accuracy..." };
       results.discrepency = await this.compareAllRebates();
     }
@@ -120,10 +128,10 @@ export class Runner extends EventEmitter<RunnerEvents> {
     yield { type: "loading", message: "Compiling rebates..." };
     await this.state.outputs.push({
       item: {
-        quarter: this.state.settings.time,
+        quarter: this.settings.time,
         name: "OUTPUT.xlsx"
       },
-      data: good(this.state.destinations.valid().flat())
+      data: good(this.state.destinations.getValid().flat())
     });
     
     yield { type: "done", results: results };

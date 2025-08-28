@@ -1,12 +1,11 @@
 import { Runner } from "./system/runner/Runner";
 import { z } from "zod/v4";
-import { Settings, SettingsData } from "./shared/settings";
 import { WorkerResponse } from "./shared/worker/response";
 import { expose } from "threads/worker";
 import { Observable } from "observable-fns";
 import { Answer } from "./shared/worker/request";
-import { bad, Reply } from "./shared/reply";
-import { State } from "./shared/state";
+import { Repository } from "./shared/state/Repository";
+import { workerData } from "worker_threads";
 
 /** ------------------------------------------------------------------------- */
 
@@ -20,32 +19,22 @@ function sendError(message?: string): WorkerResponse {
 
 /** ------------------------------------------------------------------------- */
 
-let state: Maybe<State>;
-let settings_data: Reply<SettingsData> = bad("Not loaded!");
+console.log("DATA", workerData);
+const repository = new Repository(workerData);
 
 const SYSTEM = {
   async saveAnswer(answer: Answer) {
-    if (state == null) {
+    const state_reply = repository.getState();
+    if (!state_reply.ok) {
       console.log("Runner does not exist!");
       return;
     }
+    
+    const { data: state } = state_reply;
 
-    await state.references.gather();
-    await state.references.load();
-    const table = state.references.get(answer.reference);
-    table.insert([answer.answer]);
-    await table.save();
-  },
-
-  async setSettings(data: Reply<SettingsData>) {
-    settings_data = data;
-
-    if (settings_data.ok) {
-      const settings = new Settings(settings_data.data);
-      state = new State(settings);
-    } else {
-      state = null;
-    }
+    const table = state.references.getTable(answer.reference);
+    const modified = table.insert(answer.answer);
+    await state.references.update(modified);
   },
 
   /**
@@ -53,15 +42,28 @@ const SYSTEM = {
    */
   run(): Observable<WorkerResponse> {
     return new Observable(observer => {
+      const state_reply = repository.getState();
       // Get settings.
-      if (state == null) {
+      if (!state_reply.ok) {
         observer.next(sendError("State not loaded!"));
         observer.complete();
         return;
       }
+
+      const { data: state } = state_reply;
+
+      const settings_reply = repository.getSettings();
+      // Get settings.
+      if (!settings_reply.ok) {
+        observer.next(sendError("Settings not loaded!"));
+        observer.complete();
+        return;
+      }
+
+      const { data: settings } = settings_reply;
       
       // Create runner.
-      const runner = new Runner(state);
+      const runner = new Runner(state, settings);
       runner.on("status", status => observer.next({ type: "status", status }));
 
       // Run it.
@@ -69,7 +71,6 @@ const SYSTEM = {
         .catch(async error => {
           if (runner == null) return;
 
-          await runner.state.save();
           if (error instanceof z.ZodError) {
             observer.next(sendError(z.prettifyError(error)));
           } else if (error instanceof Error) {

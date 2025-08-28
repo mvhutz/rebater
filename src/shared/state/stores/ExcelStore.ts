@@ -1,8 +1,7 @@
 import path from "path";
-import { bad, good, Reply } from "../../reply";
-import { Time, TimeSchema } from "../../time";
+import { good, Replier, Reply } from "../../reply";
+import { Time } from "../../time";
 import { FileStore } from "./FileStore";
-import z from "zod/v4";
 import { Rebate } from "../../worker/response";
 import * as XLSX from 'xlsx';
 
@@ -16,17 +15,11 @@ export class ExcelStore extends FileStore<Rebate[], ExcelMeta> {
   }
 
   protected getItemFromFile(file_path: string): Reply<ExcelMeta> {
-    const [dot, quarter, ...names] = path.relative(this.directory, file_path).split(path.sep);
-    if (dot == "") {
-      return bad("File not in directory!");
-    }
+    const [quarter, ...names] = path.relative(this.directory, file_path).split(path.sep);
 
-    const time_schema = TimeSchema.safeParse(quarter);
-    if (!time_schema.success) {
-      return bad(`Could not parse time '${quarter}': ${z.prettifyError(time_schema.error)}`);
-    }
-
-    return good({ quarter: new Time(time_schema.data), name: names.join(path.sep) });
+    return Replier.of(Time.parse(quarter))
+      .map(t => ({ quarter: t, name: names.join(path.sep) }))
+      .end();
   }
 
   serialize(data: Rebate[]): Reply<Buffer> {

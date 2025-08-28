@@ -8,7 +8,7 @@ import { State } from ".";
 
 /** ------------------------------------------------------------------------- */
 
-export class SettingsStore {
+export class Repository {
   public file: string;
   public watcher: Maybe<FSWatcher>;
   private settings: Reply<Settings>;
@@ -42,7 +42,7 @@ export class SettingsStore {
     await writeFile(this.file, JSON.stringify(data));
   }
 
-  private static async pull(file: string): Promise<Reply<Settings>> {
+  private static async pullSettings(file: string): Promise<Reply<Settings>> {
     // Return the default settings, if the file does not exist.
     if (!existsSync(file)) {
       return bad("No file!");
@@ -67,10 +67,13 @@ export class SettingsStore {
   }
 
   public async refresh() {
-    this.settings = await SettingsStore.pull(this.file);
+    this.settings = await Repository.pullSettings(this.file);
     if (this.settings.ok) {
-      this.state = good(new State(this.settings.data));
+      if (this.state.ok && this.state.data.directory === this.settings.data.data.directory) return;
+      console.log("NEW STATE");
+      this.state = good(new State(this.settings.data.data.directory));
     } else {
+      console.log("BAD STATE");
       this.state = this.settings;
     }
   }

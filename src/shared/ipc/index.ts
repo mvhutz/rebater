@@ -10,7 +10,6 @@ import { chooseDir } from "./system/chooseDir";
 import { openDir } from "./system/openDir";
 import { ignore } from "./system/ignore";
 import { TransformerData } from "../transformer";
-import { TransformerFileInfo } from "../../system/transformer/Transformer";
 
 /** ------------------------------------------------------------------------- */
 
@@ -25,7 +24,7 @@ const IPC = createInterprocess({
     openOutputFile,
     getAllQuarters,
     createQuarter,
-    getTransformers: ignore<undefined, TransformerFileInfo[]>,
+    getTransformers: ignore<undefined, TransformerData[]>,
     createTransformer: ignore<TransformerData, number>,
     deleteTransformer: ignore<number, number>,
     updateTransformer: ignore<{ id: number, data: TransformerData}, number>,

@@ -58,7 +58,7 @@ export class CoerceDateRow implements RowOperator {
     }
 
     if (this.year === "assume") {
-      date.year(input.state.settings.time.year);
+      date.year(input.settings.time.year);
     }
 
     assert.ok(date.isValid(), `Date ${value} could not be parsed.`);

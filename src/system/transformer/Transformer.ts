@@ -6,6 +6,7 @@ import { TransformerData } from "../../shared/transformer";
 import { AdvancedTransformer } from "./AdvancedTransformer";
 import { SimpleTransformer } from "./SimpleTransformer";
 import { State } from "../../shared/state";
+import { Settings } from "../../shared/settings";
 
 /** ------------------------------------------------------------------------- */
 
@@ -40,7 +41,7 @@ export abstract class Transformer {
    * @param runner The context to run in.
    * @returns Information as to how well the transformer ran.
    */
-  public abstract run(state: State): TransformerResult;
+  public abstract run(state: State, settings: Settings): TransformerResult;
 
   public abstract getDetails(): { name: string, tags: string[] };
 

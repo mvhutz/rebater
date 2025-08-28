@@ -14,40 +14,38 @@ import MalformedTransformerEdit from './MalformedTransformerEdit';
 import AdvancedTransformerEdit from './AdvancedTransformerEdit';
 import AddRounded from '@mui/icons-material/AddRounded';
 import NewTransformerModal from './NewTransformerModal';
-import { TransformerFileInfo } from '../../../system/transformer/Transformer';
 import SimpleTransformerEdit from './SimpleTransformerEdit';
+import { TransformerData } from '../../../shared/transformer';
 
 /** ------------------------------------------------------------------------- */
 
 function TransformersTab() {
   const display = useAppSelector(getDisplayTab("transformers"));
-  const transformers = useAppSelector(getTransformers);
+  const transformers_reply = useAppSelector(getTransformers);
   const dispatch = useAppDispatch();
   const [currentGroup, setCurrentGroup] = React.useState<Maybe<string>>(null);
   const [currentTransformer, setCurrentTransformer] = React.useState<Maybe<string>>(null);
 
   const { groups } = React.useMemo(() => {
     const result = {
-      groups: {} as Record<string, TransformerFileInfo[]>
+      groups: {} as Record<string, TransformerData[]>
     };
 
-    for (const transformer of transformers) {
+    if (!transformers_reply.ok) return result;
+
+    for (const transformer of transformers_reply.data) {
       switch (transformer.type) {
         case "advanced":
           result.groups["Advanced"] ??= [];
           result.groups["Advanced"].push(transformer);
           break;
-        case "malformed":
-          result.groups["Malformed"] ??= [];
-          result.groups["Malformed"].push(transformer);
-          break;
         case "simple":
-          result.groups[transformer.data.group] ??= [];
-          result.groups[transformer.data.group].push(transformer);
+          result.groups[transformer.group] ??= [];
+          result.groups[transformer.group].push(transformer);
       }
     }
     return result;
-  }, [transformers]);
+  }, [transformers_reply]);
 
   const searchGroups = React.useCallback((filepath: Maybe<string>) => {
     for (const [groupName, items] of Object.entries(groups)) {

@@ -63,51 +63,6 @@ export class Settings {
   }
 
   /**
-   * Find the directory of all reference tables.
-   * @returns The location of all reference tables.
-   */
-  getReferencePath() {
-    return path.join(this.data.directory, "tables");
-  }
-
-  /**
-   * Given a destination name, figure out where it should be placed.
-   * @param name The name of the destination.
-   * @returns The location.
-   */
-  getDestinationPath(name: string) {
-    return path.join(this.data.directory, "rebates", this.time.toString(), `${name}.csv`);
-  }
-
-  /**
-   * Get the directory holding all destination rebates.
-   */
-  getAllDestinationPath() {
-    return path.join(this.data.directory, "rebates");
-  }
-
-  /**
-   * Find specific source files.
-   * @param group The specific type of sources to look for.
-   * @param file The name of the file you which to find.
-   * @param extension The specific extension to look for.
-   * @returns A glob string which iterates over all valid source files.
-   */
-  getSourcePathGlob(group: string, file = "*", extension = "") {
-    return path.join(this.data.directory, "sources", this.time.toString(), group, `**/${file}${extension}`);
-  }
-
-  /**
-   * Find the location a source file hould go to.
-   * @param group The group which the source is a part of.
-   * @param t The quarter which the source is for. Defaults to the current quarter.
-   * @returns 
-   */
-  getSingleSourcePath(group: string, t = this.time) {
-    return path.join(this.data.directory, "sources", t.toString(), group);
-  }
-
-  /**
    * Get the directory for all sources for a certain quarter.
    * @param t The quarter to search for. Defaults to the current quarter.
    * @returns The location of the directory.
@@ -121,72 +76,6 @@ export class Settings {
    */
   getAllSourcePath() {
     return path.join(this.data.directory, "sources");
-  }
-
-  /**
-   * Get a glob of all destination rebates for the current quarter.
-   */
-  getRebatePathGlob() {
-    return path.join(this.data.directory, "rebates", this.time.toString(), `**/*.csv`);
-  }
-
-  /**
-   * Get the top-level directory for the expected results.
-   */
-  getAllTruthPath() {
-    return path.join(this.data.directory, "truth");
-  }
-
-  /**
-   * Get the top-level directory for utilities.
-   */
-  getAllUtilityPath() {
-    return path.join(this.data.directory, "utility");
-  }
-
-  /**
-   * Get the expected location of a utility.
-   * @param name The name of the utility.
-   * @returns The location.
-   */
-  getUtilityPath(name: string) {
-    return path.join(this.data.directory, "utility", this.time.toString(), `${name}.csv`);
-  }
-
-  /**
-   * Get a glob of all expected rebates (truths) for the current quarter.
-   */
-  getTruthPathGlob() {
-    return path.join(this.data.directory, "truth", this.time.toString(), `**/*.csv`);
-  }
-
-  /**
-   * Get a glob of all JSON transformers.
-   */
-  getTransformerPathGlob() {
-    return path.join(this.data.directory, 'transformers', '**/*.json');
-  }
-
-  /**
-   * Get the expected location of a JSON transformer.
-   * @param name The name of the transformer.
-   */
-  getTransformerPath(name: string) {
-    return path.join(this.data.directory, "transformers", `${name}.json`);
-  }
-  
-  /**
-   * Get the  location of all transformers.
-   */
-  getAllTransformerPath() {
-    return path.join(this.data.directory, "transformers");
-  }
-  
-  /**
-   * Get the top-level directory, containing all output files.
-   */
-  getAllOutputPath() {
-    return path.join(this.data.directory, "upload");
   }
 
   /**

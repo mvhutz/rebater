@@ -13,12 +13,13 @@ import { ExcelSourceData } from "../../shared/transformer/advanced";
  */
 export class ExcelSourceOperator implements SourceOperator {
   /** The group of sources the extract from. */
-  private group: string;
+  private readonly group: string;
   /** The name of the files to extract. Supports glob. */
-  private file: string;
+  private readonly file: string;
   /** The names of the sheets to extract. Supports regex. */
-  private sheets: string[];
+  private readonly sheets: string[];
 
+  private static readonly VALID_EXTENSIONS = new Set(['.xlm', '.xls', '.xlsm', '.xlsx', '.xlt', '.xltm', '.xltx']);
   /**
    * Create an Excel source operation.
    * @param group The group of sources the extract from.
@@ -82,16 +83,19 @@ export class ExcelSourceOperator implements SourceOperator {
 
   run(input: SourceInput): Table[] {
     // Get the needed files.
-    const files = input.state.sources.entries()
-      .filter(e => path.matchesGlob(e.item.name, `**/.xls*`));
+    const files = input.state.sources.getEntries()
+      .filter(e =>
+        e.item.group === this.group
+          && input.settings.time.is(e.item.quarter)
+          && ExcelSourceOperator.VALID_EXTENSIONS.has(path.extname(e.item.name)));
     
     // Extract tables.
     const results = new Array<Table>();
     for (const file of files) {
-      const raw = file;
-      assert.ok(raw != null, `Source file '${file.item.name}' not loaded!`);
+      const { data: source } = file;
+      assert.ok(source.ok, `Source file '${file.item.name}' not loaded!`);
 
-      const workbook = XLSX.read(raw, { type: "buffer" });
+      const workbook = XLSX.read(source.data, { type: "buffer" });
       this.extractWorkBook(workbook, file.item.name, results);
     }
 

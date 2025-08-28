@@ -1,4 +1,3 @@
-import assert from "assert";
 import { RowInput, RowOperator } from ".";
 import { ReferenceRowData } from "../../shared/transformer/advanced";
 
@@ -62,10 +61,7 @@ export class ReferenceRow implements RowOperator {
   }
 
   run(input: RowInput): Maybe<string> {
-    const reference_reply = input.state.references.getTable(this.table);
-    assert.ok(reference_reply.ok, `Table ${this.table} not loaded!`);
-
-    const reference = reference_reply.data;
+    const reference = input.state.references.getTable(this.table);
     const view = reference.view(this.match);
 
     const result = view.ask({

@@ -1,6 +1,6 @@
 import path from "path";
 import { bad, good, Replier, Reply } from "../../reply";
-import { Time, TimeSchema } from "../../time";
+import { Time } from "../../time";
 import { FileStore } from "./FileStore";
 import z from "zod/v4";
 import { Rebate, RebateSchema } from "../../worker/response";
@@ -16,17 +16,11 @@ export class RebateStore extends FileStore<Rebate[], RebateMeta> {
   }
   
   protected getItemFromFile(file_path: string): Reply<RebateMeta> {
-    const [dot, quarter, ...names] = path.relative(this.directory, file_path).split(path.sep);
-    if (dot === "") {
-      return bad("File not in directory!");
-    }
-
-    const time_schema = TimeSchema.safeParse(quarter);
-    if (!time_schema.success) {
-      return bad(`Could not parse time '${quarter}': ${z.prettifyError(time_schema.error)}`);
-    }
-
-    return good({ quarter: new Time(time_schema.data), name: names.join(path.sep) });
+    const [quarter, ...names] = path.relative(this.directory, file_path).split(path.sep);
+    
+    return Replier.of(Time.parse(quarter))
+      .map(t => ({ quarter: t, name: names.join(path.sep) }))
+      .end();
   }
 
   public serialize(data: Rebate[]): Reply<Buffer> {

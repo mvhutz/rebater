@@ -259,6 +259,12 @@ export const CoerceUSDRowSchema = z.strictObject({
   round: z.union([z.literal("up"), z.literal("down"), z.literal("default")]).default("default"),
 });
 
+export const CoerceRowSchema = z.discriminatedUnion("as", [
+  CoerceDateRowSchema,
+  CoerceNumberRowSchema,
+  CoerceUSDRowSchema
+]);
+
 export interface ColumnRowData {
   type: "column";
   index: number;
@@ -483,9 +489,7 @@ export const RowSchema: z.ZodType<RowData> = z.discriminatedUnion("type", [
   AbsoluteRowSchema,
   AddRowSchema,
   CharacterRowSchema,
-  CoerceDateRowSchema,
-  CoerceNumberRowSchema,
-  CoerceUSDRowSchema,
+  CoerceRowSchema,
   ColumnRowSchema,
   ConcatRowSchema,
   CounterRowSchema,

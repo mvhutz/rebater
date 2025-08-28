@@ -15,7 +15,7 @@ export type ReferenceData = z.infer<typeof ReferenceSchema>;
  * A optimized view of a ReferenceFile, based on a primary key.
  */
 export class ReferenceView {
-  private data: Map<string, Set<ReferenceData[number]>>;
+  private readonly data: Map<string, Set<ReferenceData[number]>>;
   public readonly key: string;
 
   constructor(reference: ReferenceData, key: string) {
@@ -76,10 +76,16 @@ export class ReferenceView {
  * processing.
  */
 export class Reference {
-  public data: ReferenceData;
+  public readonly data: ReferenceData;
+  public readonly name: string;
 
-  public constructor(data: ReferenceData) {
+  public constructor(name: string, data: ReferenceData) {
     this.data = data;
+    this.name = name;
+  }
+
+  public insert(...records: ReferenceData) {
+    return new Reference(this.name, this.data.concat(records));
   }
 
   /**
@@ -162,10 +168,7 @@ export class ReferenceStore extends FileStore<ReferenceData, ReferenceMeta> {
   }
   
   protected getItemFromFile(file_path: string): Reply<ReferenceMeta> {
-    const [dot, ...names] = path.relative(this.directory, file_path).split(path.sep);
-    if (dot == "") {
-      return bad("File not in directory!");
-    }
+    const names = path.relative(this.directory, file_path).split(path.sep);
 
     const last = names.at(-1);
     if (last == null) {
@@ -195,13 +198,27 @@ export class ReferenceStore extends FileStore<ReferenceData, ReferenceMeta> {
     }
   }
 
-  public getTable(name: string): Reply<Reference> {
-    for (const [, entry] of this.items) {
+  public getTable(name: string): Reference {
+    for (const [, entry] of this.entries) {
       if (entry.item.name !== name) continue;
-      if (!entry.data.ok) return entry.data;
-      return good(new Reference(entry.data.data));
+      if (!entry.data.ok) continue;
+      return new Reference(name, entry.data.data);
     }
 
-    return bad("No table found!");
+    return new Reference(name, []);
+  }
+
+  public async update(reference: Reference) {
+    for (const [, entry] of this.entries) {
+      if (entry.item.name !== reference.name) continue;
+      await this.push({ item: entry.item, data: good(reference.data) });
+      return;
+    }
+
+    await this.push({
+      item: { path: `${reference.name}.csv`, name: reference.name },
+      data: good(reference.data)
+    });
+    return;
   }
 }
