@@ -8,13 +8,15 @@ import Lockfile from 'proper-lockfile';
 
 export abstract class FileStore<Data, Item> {
   public readonly directory: string;
+  public readonly parent: string;
   private watcher: Maybe<FSWatcher>;
   public readonly entries: Map<string, { item: Item, data: Reply<Data> }>;
   public readonly lazy: boolean;
   private ready: boolean;
 
   constructor(directory: string, lazy: boolean, watch = true) {
-    this.directory = directory;
+    this.directory = path.resolve(directory);
+    this.parent = path.resolve(directory);
     this.entries = new Map();
     this.watcher = null;
     this.ready = false;
@@ -196,8 +198,8 @@ export abstract class FileStore<Data, Item> {
     this.wipe();
     this.ready = false;
 
-    this.watcher = fsWatch(path.dirname(this.directory), {
-      ignored: f => path.dirname(this.directory) !== f && !f.startsWith(this.directory)
+    this.watcher = fsWatch(this.parent, {
+      ignored: f => path.resolve(f) !== this.parent && !path.resolve(f).startsWith(this.directory)
     });
 
     this.watcher.on("add", file =>  this.handleAddFile(file));

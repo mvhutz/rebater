@@ -33,18 +33,17 @@ function SettingsPane() {
 
   const handleSave = React.useCallback(async () => {
     await dispatch(pushSystemSettings());
-    await dispatch(pullTransformers());
     await dispatch(pullSystemSettings());
+    await dispatch(pullTransformers());
     await dispatch(pullAllQuarters());
     await dispatch(pullQuestions());
   }, [dispatch]);
 
   const handleRefresh = React.useCallback(async () => {
     await dispatch(pullSystemSettings());
-    await dispatch(pullTransformers());
-    await dispatch(pullSystemSettings());
     await dispatch(pullAllQuarters());
     await dispatch(pullQuestions());
+    await dispatch(pullTransformers());
   }, [dispatch]);
 
   if (!show) return null;

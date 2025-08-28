@@ -10,12 +10,15 @@ import { EventEmitter } from "stream";
 
 export abstract class FilePointer<Data> {
   public readonly file: string;
+  public readonly parent: string;
   public watcher: Maybe<FSWatcher>;
   protected data: Reply<Data>;
   public readonly emitter: EventEmitter<{ refresh: [Reply<Data>] }>;
 
   constructor(file: string, watch = true) {
-    this.file = file;
+    this.file = path.resolve(file);
+    this.parent = path.resolve(path.dirname(file));
+
     this.data = bad("Not loaded!");
     this.emitter = new EventEmitter();
 
@@ -102,8 +105,8 @@ export abstract class FilePointer<Data> {
 
   public watch() {
     this.data = bad("Not loaded!");
-    this.watcher = fsWatch(path.dirname(this.file), {
-      ignored: f => path.dirname(this.file) !== f && f !== this.file
+    this.watcher = fsWatch(this.parent, {
+      ignored: f => path.resolve(f) !== this.parent && path.resolve(f) !== this.file
     });
 
     this.watcher.on("add", () =>  this.pull());
