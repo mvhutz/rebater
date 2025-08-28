@@ -104,7 +104,7 @@ export abstract class FilePointer<Data> {
     this.data = bad("Not loaded!");
     this.watcher = fsWatch(path.dirname(this.file), {
       ignored: f => {
-        console.log("CHECK", f);
+        console.log("CHECK", f, path.dirname(this.file), this.file);
         return path.dirname(this.file) !== f && f !== this.file
       }
     });
