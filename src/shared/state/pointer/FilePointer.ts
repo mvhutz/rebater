@@ -106,11 +106,7 @@ export abstract class FilePointer<Data> {
   public watch() {
     this.data = bad("Not loaded!");
     this.watcher = fsWatch(this.parent, {
-      ignored: f => {
-        const f_safe = path.resolve(f);
-        console.log("CHECK", f_safe, this.parent, this.file);
-        return f_safe !== this.parent && f_safe !== this.file
-      }
+      ignored: f => path.resolve(f) !== this.parent && path.resolve(f) !== this.file
     });
 
     this.watcher.on("add", () =>  this.pull());
