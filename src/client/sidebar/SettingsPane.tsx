@@ -9,7 +9,7 @@ import ContextSettings from './ContextSettings';
 import TransformerSettings from './TransformerSettings';
 import AdvancedSettings from './AdvancedSettings';
 import { SaveRounded } from '@mui/icons-material';
-import { pullAllQuarters, pullSystemSettings, pullTransformers, pushSystemSettings } from '../../client/store/slices/thunk';
+import { pullAllQuarters, pullQuestions, pullSystemSettings, pullTransformers, pushSystemSettings } from '../../client/store/slices/thunk';
 import { getVisible } from '../../client/store/slices/ui';
 import { Divider, IconButton } from '@mui/joy';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
@@ -36,6 +36,7 @@ function SettingsPane() {
     await dispatch(pullTransformers());
     await dispatch(pullSystemSettings());
     await dispatch(pullAllQuarters());
+    await dispatch(pullQuestions());
   }, [dispatch]);
 
   const handleRefresh = React.useCallback(async () => {
@@ -43,6 +44,7 @@ function SettingsPane() {
     await dispatch(pullTransformers());
     await dispatch(pullSystemSettings());
     await dispatch(pullAllQuarters());
+    await dispatch(pullQuestions());
   }, [dispatch]);
 
   if (!show) return null;

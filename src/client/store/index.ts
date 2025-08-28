@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { addQuestion, setStatus, SystemSlice } from './slices/system';
+import { setStatus, SystemSlice } from './slices/system';
 import { UISlice } from './slices/ui';
-import { pullAllQuarters, pullSystemSettings, pullTransformers } from './slices/thunk';
+import { pullAllQuarters, pullQuestions, pullSystemSettings, pullTransformers } from './slices/thunk';
 import { good } from '../../shared/reply';
 
 /** ------------------------------------------------------------------------- */
@@ -22,6 +22,7 @@ async function load() {
   await Store.dispatch(pullSystemSettings());
   await Store.dispatch(pullTransformers());
   await Store.dispatch(pullAllQuarters());
+  await Store.dispatch(pullQuestions());
 }
 
 load();
@@ -29,11 +30,9 @@ load();
 // Handle system responses.
 handle.runnerUpdate(async (_, { data }) => {
   Store.dispatch(setStatus(data));
-  return good(undefined);
-});
-
-handle.runnerQuestion(async (_, { data }) => {
-  Store.dispatch(addQuestion(data));
+  if (data.type === "done") {
+    Store.dispatch(pullQuestions());
+  }
   return good(undefined);
 });
 

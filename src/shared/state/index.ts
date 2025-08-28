@@ -24,7 +24,7 @@ export class State {
   constructor(directory: string) {
     this.directory = directory;
     this.counter = new Counter();
-    this.tracker = new TrackerPointer(path.join(directory, "tracker.json"));
+    this.tracker = new TrackerPointer(path.join(directory, "tracker.json"), true);
     this.references = new ReferenceStore(path.join(directory, "tables"), false);
     this.sources = new SourceStore(path.join(directory, "sources"), true, true);
     this.destinations = new RebateStore(path.join(directory, "rebates"), true);

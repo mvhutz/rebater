@@ -2,7 +2,6 @@ import z from "zod/v4";
 import { bad, good, Reply } from "../../reply";
 import { Question, QuestionSchema } from "../../worker/response";
 import { FilePointer } from "./FilePointer";
-import { Answer } from "../../worker/request";
 
 /** ------------------------------------------------------------------------- */
 
@@ -15,6 +14,7 @@ export class TrackerPointer extends FilePointer<Map<string, Question>> {
   public serialize(data: Map<string, Question>): Reply<string> {
     return good(JSON.stringify(data.entries().toArray()));
   }
+  
   public deserialize(data: string): Reply<Map<string, Question>> {
     let json: unknown;
     try {
@@ -37,12 +37,12 @@ export class TrackerPointer extends FilePointer<Map<string, Question>> {
     return this.data.data.has(hash);
   }
 
-  async answer(answer: Answer) {
+  async resolve(hash: string) {
     await this.update(async tracker => {
       if (!tracker.ok) return tracker;
 
       const new_questions = new Map(tracker.data.entries());
-      new_questions.delete(answer.hash);
+      new_questions.delete(hash);
 
       return good(new_questions);
     });

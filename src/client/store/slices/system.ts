@@ -1,10 +1,10 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { type RootState } from '..'
 import { type SettingsData } from '../../../shared/settings';
-import { killSystem, pullAllQuarters, pullSystemSettings, pullTransformers, startSystem } from './thunk';
+import { killSystem, pullAllQuarters, pullQuestions, pullSystemSettings, pullTransformers, startSystem } from './thunk';
 import { TimeData } from '../../../shared/time';
 import { Question, SystemStatus } from '../../../shared/worker/response';
-import { bad, Reply } from '../../../shared/reply';
+import { bad, good, Reply } from '../../../shared/reply';
 import { TransformerFile } from '../../../shared/state/stores/TransformerStore';
 
 /** ------------------------------------------------------------------------- */
@@ -26,7 +26,7 @@ interface SystemState {
   settings: Reply<SettingsData>;
   transformers: Reply<TransformerFile[]>;
   quarters: TimeData[];
-  questions: Record<string, Question>;
+  questions: Reply<Question[]>;
   draft: {
     settings: SettingsDraft;
   }
@@ -37,7 +37,7 @@ const initialState: SystemState = {
   settings: bad("Not loaded!"),
   quarters: [],
   transformers: bad("Not loaded!"),
-  questions: {},
+  questions: bad("Not loaded!"),
   draft: {
     settings: {
       time: { year: 9999, quarter: 1 },
@@ -81,15 +81,9 @@ export const SystemSlice = createSlice({
       state.draft.settings.transformers.tags.include = action.payload ?? [];
     },
     deleteQuestion: (state, action: PayloadAction<Question>) => {
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-      delete state.questions[action.payload.hash];
+      if (!state.questions.ok) return;
+      state.questions = good(state.questions.data.filter(t => t.hash !== action.payload.hash));
     },
-    addQuestion: (state, action: PayloadAction<Question>) => {
-      state.questions[action.payload.hash] = action.payload;
-    },
-    clearQuestions: (state) => {
-      state.questions = {};
-    }
   },
   extraReducers(builder) {
     builder
@@ -122,6 +116,9 @@ export const SystemSlice = createSlice({
           state.status = { type: "error", message: payload.reason };
         }
       })
+      .addCase(pullQuestions.fulfilled, (state, { payload }) => {
+        state.questions = payload;
+      })
       .addCase(killSystem.rejected, (state, { error }) => {
         state.status = { type: "error", message: error.message ?? "Unknown error!" };
       })
@@ -151,8 +148,8 @@ export const SystemSlice = createSlice({
 
 export const {
   setStatus, setTrueSettings, setDraftSystemDirectory, setDraftSystemTime, setDraftSystemTesting,
-  setDraftTransformersNames, setDraftTransformersTags, deleteQuestion, clearQuestions,
-  setDraftSystemTestAll, addQuestion
+  setDraftTransformersNames, setDraftTransformersTags, deleteQuestion,
+  setDraftSystemTestAll
 } = SystemSlice.actions
 
 export const getSystemStatus = (state: RootState) => state.system.status;
@@ -164,7 +161,7 @@ export const getDraftCompareAll = (state: RootState) => state.system.draft.setti
 export const getDraftTransformersSettings = (state: RootState) => state.system.draft.settings.transformers;
 export const getTransformers = (state: RootState) => state.system.transformers;
 export const getSystemQuestions = (state: RootState) => state.system.questions;
-export const getSystemQuestionCount = (state: RootState) => Object.keys(state.system.questions).length;
+export const getSystemQuestionCount = (state: RootState) => state.system.questions.ok ? state.system.questions.data.length : 0;
 
 export const isSystemLoading = (state: RootState) => {
   return state.system.status.type === "loading";

@@ -30,11 +30,13 @@ const IPC = createInterprocess({
     deleteTransformer: ignore<TransformerFile>,
     updateTransformer: ignore<TransformerFile>,
     setSettings: ignore<SettingsData, string>,
+    getQuestions: ignore<unknown, Question[]>,
+    answerQuestion: ignore<Answer>,
+    ignoreQuestion: ignore<Question>,
 
     // Those that do.
     runProgram: ignore,
     cancelProgram: ignore,
-    answerQuestion: ignore<Answer>,
     ignoreAll: ignore,
     exitProgram: ignore
   },

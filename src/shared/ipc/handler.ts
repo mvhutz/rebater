@@ -1,7 +1,7 @@
-import { bad, good, Reply } from "../reply";
+import { bad, good, Replier, Reply } from "../reply";
 import { Settings, SettingsData } from "../settings";
 import { Answer, WorkerRequest } from "../worker/request";
-import { SystemStatus, WorkerResponse } from "../worker/response";
+import { Question, SystemStatus, WorkerResponse } from "../worker/response";
 import { app, BrowserWindow } from "electron";
 import IPC from ".";
 import { ModuleThread, spawn, Worker } from "threads";
@@ -94,13 +94,33 @@ export class IPCHandler {
   async handleAnswerQuestion(answer: Answer) {
     const state_reply = this.repository.getState();
     if (!state_reply.ok) return state_reply;
-
     const { data: state } = state_reply;
-    await state.tracker.answer(answer);
-    
+
+    await state.tracker.resolve(answer.hash);
+
     const table = state.references.getTable(answer.reference);
     const modified = table.insert(answer.answer);
     await state.references.updateTable(answer.reference, modified);
+    
+    return good(undefined);
+  }
+
+  async handleGetQuestions(): Promise<Reply<Question[]>> {
+    const state_reply = this.repository.getState();
+    if (!state_reply.ok) return state_reply;
+
+    const { data: state } = state_reply;
+    return Replier.of(state.tracker.getData())
+      .map(d => d.values().toArray())
+      .end();
+  }
+
+  async handleIgnoreQuestion(question: Question): Promise<Reply> {
+    const state_reply = this.repository.getState();
+    if (!state_reply.ok) return state_reply;
+
+    const { data: state } = state_reply;
+    state.tracker.resolve(question.hash);
     return good(undefined);
   }
 
@@ -174,6 +194,8 @@ export class IPCHandler {
     ipcMain.handle.getSettings(async () => await this.getSettingsData());
     ipcMain.handle.setSettings(async (_, { data }) => await this.setSettingsData(data));
 
+    ipcMain.handle.ignoreQuestion(async (_, { data }) => await this.handleIgnoreQuestion(data));
+    ipcMain.handle.getQuestions(async () => await this.handleGetQuestions());
     ipcMain.handle.answerQuestion(async (_, { data }) => await this.handleAnswerQuestion(data));
     ipcMain.handle.cancelProgram(async () => await this.handleCancelProgram());
     ipcMain.handle.exitProgram(async () => this.handleExitProgram());

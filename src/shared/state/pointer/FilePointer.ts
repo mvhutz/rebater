@@ -52,21 +52,23 @@ export abstract class FilePointer<Data> {
       const updated = await fn(data);
       if (!updated.ok) return updated;
 
-      await this.setData(updated.data);
+      await this.setDataUnsafe(updated.data);
       return good(undefined);
     })
   }
 
+  public async setDataUnsafe(data: Data) {
+    const serialized = this.serialize(data);
+    if (!serialized.ok) return serialized;
+
+    this.data = good(data);
+
+    await writeFile(this.file, serialized.data);
+    return good(undefined);
+  }
+
   public async setData(data: Data): Promise<void> {
-    await this.runPrivileged(async () => {
-      const serialized = this.serialize(data);
-      if (!serialized.ok) return serialized;
-
-      this.data = good(data);
-
-      await writeFile(this.file, serialized.data);
-      return good(undefined);
-    });
+    await this.runPrivileged(() => this.setDataUnsafe(data));
   }
 
   private async fetch(file: string): Promise<Reply<Data>> {

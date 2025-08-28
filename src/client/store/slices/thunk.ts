@@ -4,6 +4,7 @@ import { RootState } from "..";
 import { SettingsData } from "../../../shared/settings";
 import { TimeData } from "../../../shared/time";
 import { TransformerFile } from "../../../shared/state/stores/TransformerStore";
+import { Question } from "../../../shared/worker/response";
 
 /** ------------------------------------------------------------------------- */
 
@@ -34,6 +35,13 @@ export const pullSystemSettings = createAsyncThunk(
   'system/pullSettings',
   async (): Promise<Reply<SettingsData>> => {
     return await invoke.getSettings({});
+  }
+);
+
+export const pullQuestions = createAsyncThunk(
+  'system/pullQuestions',
+  async (): Promise<Reply<Question[]>> => {
+    return await invoke.getQuestions({});
   }
 );
 

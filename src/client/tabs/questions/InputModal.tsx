@@ -3,11 +3,11 @@ import Button from '@mui/joy/Button';
 import FormControl from '@mui/joy/FormControl';
 import FormLabel from '@mui/joy/FormLabel';
 import Input from '@mui/joy/Input';
-import { deleteQuestion } from '../../store/slices/system';
 import { useAppDispatch } from '../../store/hooks';
 import { CardContent, Typography, Card, CardActions, Checkbox, Stack, Table } from '@mui/joy';
 import Markdown from 'react-markdown';
 import { Question } from '../../../shared/worker/response';
+import { deleteQuestion } from '../../store/slices/system';
 
 /** ------------------------------------------------------------------------- */
 
@@ -43,9 +43,11 @@ function InputModal({ question }: { question: Question }) {
     setOptional(question.optional);
   }, [question]);
 
-  const handleForm = React.useCallback((event: React.FormEvent<HTMLFormElement>) => {
+  const handleForm = React.useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
+    const { currentTarget } = event;
+    
+    const data = new FormData(currentTarget);
     const { hash, unknown } = question;
 
     const known_copy = {...known};
@@ -54,11 +56,9 @@ function InputModal({ question }: { question: Question }) {
     }
 
     const answer = data.get("answer")?.toString();
-    event.currentTarget.reset();
-    
     if (answer == null) return;
 
-    invoke.answerQuestion({
+    await invoke.answerQuestion({
       hash,
       answer: {
         ...known_copy,
@@ -67,11 +67,15 @@ function InputModal({ question }: { question: Question }) {
       reference: question.table
     });
 
+    currentTarget.reset();
+
     dispatch(deleteQuestion(question));
   }, [dispatch, known, optional, question]);
 
-  const handleIgnore = React.useCallback((event: React.UIEvent) => {
+  const handleIgnore = React.useCallback(async (event: React.UIEvent) => {
     event.preventDefault();
+
+    await invoke.ignoreQuestion(question);
     dispatch(deleteQuestion(question));
   }, [dispatch, question]);
 
