@@ -5,7 +5,6 @@ import { FSWatcher, watch as fsWatch } from "chokidar";
 import path from "path";
 import Lockfile from 'proper-lockfile';
 import { EventEmitter } from "stream";
-import { fileURLToPath } from "url";
 
 /** ------------------------------------------------------------------------- */
 
@@ -17,8 +16,8 @@ export abstract class FilePointer<Data> {
   public readonly emitter: EventEmitter<{ refresh: [Reply<Data>] }>;
 
   constructor(file: string, watch = true) {
-    this.file = fileURLToPath(file);
-    this.parent = fileURLToPath(path.dirname(file));
+    this.file = path.resolve(file);
+    this.parent = path.resolve(path.dirname(file));
 
     this.data = bad("Not loaded!");
     this.emitter = new EventEmitter();
@@ -108,7 +107,7 @@ export abstract class FilePointer<Data> {
     this.data = bad("Not loaded!");
     this.watcher = fsWatch(this.parent, {
       ignored: f => {
-        const f_safe = fileURLToPath(f);
+        const f_safe = path.resolve(f);
         console.log("CHECK", f_safe, this.parent, this.file);
         return f_safe !== this.parent && f_safe !== this.file
       }
