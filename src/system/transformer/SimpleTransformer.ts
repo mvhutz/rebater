@@ -124,7 +124,7 @@ export class SimpleTransformer implements Transformer {
       ] });
     }
 
-    if (rebateAmount.column) {
+    if (rebateAmount.column != null) {
       if (this.data.options.canadian_rebate) {
         properties.push({ name: "rebateAmount", definition: [
           { type: "column", index: rebateAmount.column },

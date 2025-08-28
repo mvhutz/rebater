@@ -16,7 +16,7 @@ import ErrorCard from './ErrorCard';
 import DiscrepancyTable from './DiscrepancyTable';
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded';
 import TabMenu from '../../view/TabMenu';
-import { getDisplayTab } from '../../store/slices/ui';
+import { getDisplayTab, pushMessage } from '../../store/slices/ui';
 import { Button, IconButton } from '@mui/joy';
 import FileOpenRoundedIcon from '@mui/icons-material/FileOpenRounded';
 import { killSystem, pushSystemSettings, startSystem } from '../../store/slices/thunk';
@@ -71,8 +71,11 @@ function SystemTab() {
   }, []);
 
   const handleOutput = React.useCallback(async () => {
-    await invoke.openOutputFile();
-  }, []);
+    const reply = await invoke.openOutputFile();
+    if (!reply.ok) {
+      dispatch(pushMessage({ type: "error", text: reply.reason }));
+    }
+  }, [dispatch]);
 
   return (
     <Stack padding={0} display={display}>

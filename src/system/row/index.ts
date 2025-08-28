@@ -31,7 +31,10 @@ export abstract class RowOperator {
 
     for (const operation of rows) {
       const result = operation.run(input);
-      if (result == null) return result;
+      if (result == null) {
+        // console.log("NULL", JSON.stringify(input.row));
+        return result;
+      }
       input.value = result;
     }
 

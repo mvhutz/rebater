@@ -51,8 +51,16 @@ export class Table {
     this.data = data;
   }
 
+  public size(): number {
+    return this.data.length;
+  }
+
   public get(index: number): Maybe<Row> {
     return this.data[index];
+  }
+
+  public matrix(): string[][] {
+    return this.data.map(r => [...r.split()]);
   }
 
   public update(fn: (value: Row, index: number) => Maybe<Row>): Table {

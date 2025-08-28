@@ -7,7 +7,8 @@ import { useAppDispatch } from '../../store/hooks';
 import { CardContent, Typography, Card, CardActions, Checkbox, Stack, Table } from '@mui/joy';
 import Markdown from 'react-markdown';
 import { Question } from '../../../shared/worker/response';
-import { deleteQuestion } from '../../store/slices/system';
+import { clearQuestions, deleteQuestion } from '../../store/slices/system';
+import { pushMessage } from '../../store/slices/ui';
 
 /** ------------------------------------------------------------------------- */
 
@@ -79,6 +80,17 @@ function InputModal({ question }: { question: Question }) {
     dispatch(deleteQuestion(question));
   }, [dispatch, question]);
 
+  const handleIgnoreAll = React.useCallback(async (event: React.UIEvent) => {
+    event.preventDefault();
+
+    const reply = await invoke.clearQuestions({});
+    if (!reply.ok) {
+      dispatch(pushMessage({ type: "error", text: reply.reason }));
+    } else {
+      dispatch(clearQuestions());
+    }
+  }, [dispatch]);
+
   const toggleOptional = React.useCallback((value: string) => {
     setOptional(o => {
       if (o.includes(value)) {
@@ -143,6 +155,7 @@ function InputModal({ question }: { question: Question }) {
           </Stack>
         </CardContent>
         <CardActions sx={{ mt: 2 }}>
+          <Button fullWidth color="neutral" variant="plain" onClick={handleIgnoreAll}>IgnoreAll</Button>
           <Button fullWidth color="neutral" variant="outlined" onClick={handleIgnore}>Ignore</Button>
           <Button fullWidth type="submit">Submit</Button>
         </CardActions>

@@ -46,8 +46,8 @@ export abstract class FilePointer<Data> {
   public abstract serialize(data: Data): Reply<string>;
   public abstract deserialize(data: string): Reply<Data>;
 
-  public async update(fn: (data: Reply<Data>) => Promise<Reply<Data>>) {
-    await this.runPrivileged(async () => {
+  public async update(fn: (data: Reply<Data>) => Promise<Reply<Data>>): Promise<Reply> {
+    return await this.runPrivileged(async () => {
       const data = await this.pull();
       const updated = await fn(data);
       if (!updated.ok) return updated;
@@ -89,6 +89,7 @@ export abstract class FilePointer<Data> {
   }
 
   public async pull() {
+    console.log("REFRESH", this.file);
     this.data = await this.fetch(this.file);
     this.emitter.emit("refresh", this.data);
     return this.data;

@@ -1,7 +1,8 @@
 import { TableInput, TableOperator } from ".";
 import { Table } from "../information/Table";
 import { DebugTableData } from "../../shared/transformer/advanced";
-import { UtilityDestinationOperator } from "../destination/Utility";
+import { good } from "../../shared/reply";
+import { randomBytes } from "crypto";
 
 /** ------------------------------------------------------------------------- */
 
@@ -21,14 +22,10 @@ export class DebugTable implements TableOperator {
   }
 
   run(input: TableInput): Table {
-    // The debug table is stored as a utility, under the `debug` folder.
-    const true_name = `debug/${this.name}/${crypto.randomUUID()}`;
-    const utility = new UtilityDestinationOperator({
-      type: "utility",
-      name: true_name,
+    input.state.debug.mark({
+      item: { name: `${randomBytes(8).toString("base64url")}.csv`, group: this.name },
+      data: good(input.table.matrix())
     });
-
-    utility.run(input);
     return input.table;
   }
 }

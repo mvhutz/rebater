@@ -11,11 +11,11 @@ import Papa from 'papaparse';
 interface RebateMeta { quarter: Time, name: string };
 
 export class RebateStore extends FileStore<Rebate[], RebateMeta> {
-  protected getFileFromItem(item: RebateMeta): Reply<string> {
+  public getFileFromItem(item: RebateMeta): Reply<string> {
     return good(path.join(this.directory, item.quarter.toString(), item.name));
   }
   
-  protected getItemFromFile(file_path: string): Reply<RebateMeta> {
+  public getItemFromFile(file_path: string): Reply<RebateMeta> {
     const [quarter, ...names] = path.relative(this.directory, file_path).split(path.sep);
     
     return Replier.of(Time.parse(quarter))

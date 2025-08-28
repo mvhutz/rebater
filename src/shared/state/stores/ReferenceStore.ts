@@ -161,11 +161,11 @@ export class Reference {
 interface ReferenceMeta { path: string, name: string };
 
 export class ReferenceStore extends FileStore<Reference, ReferenceMeta> {
-  protected getFileFromItem(item: ReferenceMeta): Reply<string> {
+  public getFileFromItem(item: ReferenceMeta): Reply<string> {
     return good(path.join(this.directory, item.path));
   }
   
-  protected getItemFromFile(file_path: string): Reply<ReferenceMeta> {
+  public getItemFromFile(file_path: string): Reply<ReferenceMeta> {
     const names = path.relative(this.directory, file_path).split(path.sep);
 
     const last = names.at(-1);
@@ -190,8 +190,10 @@ export class ReferenceStore extends FileStore<Reference, ReferenceMeta> {
 
     const parsed = ReferenceSchema.safeParse(data);
     if (parsed.success) {
+      console.log("REFERENCE PULL");
       return good(new Reference(parsed.data));
     } else {
+      console.log("REFERENCE ERROR", z.prettifyError(parsed.error));
       return bad(z.prettifyError(parsed.error));
     }
   }

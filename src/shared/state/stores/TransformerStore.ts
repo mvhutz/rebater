@@ -14,11 +14,11 @@ export interface TransformerFile {
 }
 
 export class TransformerStore extends FileStore<TransformerData, TransformerMeta> {
-  protected getFileFromItem(item: TransformerMeta): Reply<string> {
+  public getFileFromItem(item: TransformerMeta): Reply<string> {
     return good(path.join(this.directory, item.name));
   }
   
-  protected getItemFromFile(file_path: string): Reply<TransformerMeta> {
+  public getItemFromFile(file_path: string): Reply<TransformerMeta> {
     const names = path.relative(this.directory, file_path).split(path.sep);
     return good({ name: names.join(path.sep) });
   }

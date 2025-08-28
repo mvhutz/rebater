@@ -187,6 +187,10 @@ export class AdvancedTransformer implements Transformer {
 
     // 1. Pull sources.
     const source_data = this.sources.map(s => s.run({ state, settings })).flat(1);
+    if (source_data.length === 0) {
+      const end = performance.now();
+      return { start, end, name: this.name };
+    }
 
     // 2. Pre-process data.
     const preprocessed_data = source_data.map(table => TableOperator.runMany(this.preprocess, { table, state, settings }));

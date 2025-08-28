@@ -84,6 +84,9 @@ export const SystemSlice = createSlice({
       if (!state.questions.ok) return;
       state.questions = good(state.questions.data.filter(t => t.hash !== action.payload.hash));
     },
+    clearQuestions: (state) => {
+      state.questions = good([]);
+    }
   },
   extraReducers(builder) {
     builder
@@ -149,7 +152,7 @@ export const SystemSlice = createSlice({
 export const {
   setStatus, setTrueSettings, setDraftSystemDirectory, setDraftSystemTime, setDraftSystemTesting,
   setDraftTransformersNames, setDraftTransformersTags, deleteQuestion,
-  setDraftSystemTestAll
+  setDraftSystemTestAll,clearQuestions
 } = SystemSlice.actions
 
 export const getSystemStatus = (state: RootState) => state.system.status;

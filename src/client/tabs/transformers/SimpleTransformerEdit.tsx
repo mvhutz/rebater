@@ -78,7 +78,7 @@ function TuneOptions(props: OptionsProps) {
 
   const handlePostprocessing = React.useCallback<React.ChangeEventHandler<HTMLTextAreaElement>>(e => {
     const value = e.target.value === "" ? undefined : e.target.value;
-    setData(d => ({ ...d, options: { ...d.options, additional_preprocessing: value } }));
+    setData(d => ({ ...d, options: { ...d.options, additional_postprocessing: value } }));
   }, [setData]);
 
   return (
