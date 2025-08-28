@@ -10,6 +10,7 @@ import path from "path";
 import { TransformerData } from "../transformer";
 import { Repository } from "../state/Repository";
 import { TransformerFile } from "../state/stores/TransformerStore";
+import { randomBytes } from "crypto";
 
 /** ------------------------------------------------------------------------- */
 
@@ -40,31 +41,34 @@ export class IPCHandler {
   }
 
   async createTransformer(data: TransformerData): Promise<Reply<TransformerFile>> {
-    // const repo = this.connection.getRepository(TransformerEntity);
-    // const built = new TransformerEntity();
-    // built.data = data;
-    // const saved = await repo.save(built);
-    // return good(saved.id);
-    void [data];
-    return bad("Not yet!");
+    const repository_reply = this.repository.getState();
+    if (!repository_reply.ok) return bad("Data not loaded!");
+    const { data: repository } = repository_reply;
+
+    const name = data.name.toLowerCase().replaceAll(" ", "_") + "_" + randomBytes(8).toString("base64url");
+
+    return await repository.transformers.push({
+      item: { name: `${name}.json`, },
+      data: good(data)
+    });
   }
 
   async deleteTransformer(file: TransformerFile): Promise<Reply> {
-    // const repo = this.connection.getRepository(TransformerEntity);
-    // const result = await repo.delete({ id });
+    const repository_reply = this.repository.getState();
+    if (!repository_reply.ok) return bad("Data not loaded!");
+    const { data: repository } = repository_reply;
 
-    // return good(result.affected ?? 0);
-    void [file];
-    return bad("Not yet!");
+    await repository.transformers.delete(file);
+    return good(undefined);
   }
 
   async updateTransformer(file: TransformerFile): Promise<Reply> {
-    // const repo = this.connection.getRepository(TransformerEntity);
-    // const result = await repo.update({ id: options.id }, { data: options.data });
-  
-    // return good(result.affected ?? 0);
-    void [file];
-    return bad("Not yet!");
+    const repository_reply = this.repository.getState();
+    if (!repository_reply.ok) return bad("Data not loaded!");
+    const { data: repository } = repository_reply;
+
+    await repository.transformers.push(file);
+    return good(undefined);
   }
 
   /** ----------------------------------------------------------------------- */

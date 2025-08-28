@@ -11,11 +11,13 @@ export abstract class FileStore<Data, Item> {
   private watcher: Maybe<FSWatcher>;
   public readonly entries: Map<string, { item: Item, data: Reply<Data> }>;
   public readonly lazy: boolean;
+  private ready: boolean;
 
   constructor(directory: string, lazy: boolean, watch = true) {
     this.directory = directory;
     this.entries = new Map();
     this.watcher = null;
+    this.ready = false;
     this.lazy = lazy;
 
     if (watch) {
@@ -75,7 +77,7 @@ export abstract class FileStore<Data, Item> {
       .toArray();
   }
 
-  private async pushUnsafe(entry: { item: Item, data: Reply<Data> }): Promise<Reply<Data>> {
+  private async pushUnsafe(entry: { item: Item, data: Reply<Data> }): Promise<Reply<{ item: Item, data: Reply<Data> }>> {
     const { item, data } = entry;
     if (!data.ok) return data;
 
@@ -85,14 +87,14 @@ export abstract class FileStore<Data, Item> {
     const serialized = this.serialize(data.data);
     if (!serialized.ok) return serialized;
 
-    this.entries.set(file.data, { item, data });
+    this.entries.set(file.data, entry);
 
     await mkdir(path.dirname(file.data), { recursive: true });
     await writeFile(file.data, serialized.data);
-    return data;
+    return good(entry);
   }
 
-  public async push(entry: { item: Item, data: Reply<Data> }): Promise<Reply<Data>> {
+  public async push(entry: { item: Item, data: Reply<Data> }): Promise<Reply<{ item: Item, data: Reply<Data> }>> {
     return await this.runPrivileged(() => this.pushUnsafe(entry));
   }
 
@@ -132,6 +134,10 @@ export abstract class FileStore<Data, Item> {
   }
 
   private async handleAddFile(file: string) {
+    if (this.ready) {
+      console.log(`ADDED '${path.relative(this.directory, file)}'`);
+    }
+
     const entry = this.entries.get(file);
     if (entry != null) {
       console.log(`DUPLICATE FILE "${file}"`);
@@ -151,7 +157,9 @@ export abstract class FileStore<Data, Item> {
   }
 
   private async handleDeleteFile(file: string) {
-    // console.log(`DELETED '${path.relative(this.directory, file)}'`);
+    if (this.ready) {
+      console.log(`DELETED '${path.relative(this.directory, file)}'`);
+    }
 
     const item = this.entries.get(file);
     if (item == null) {
@@ -163,7 +171,9 @@ export abstract class FileStore<Data, Item> {
   }
 
   private async handleUpdateFile(file: string) {
-    // console.log(`UPDATED '${path.relative(this.directory, file)}'`);
+    if (this.ready) {
+      console.log(`UPDATED '${path.relative(this.directory, file)}'`);
+    }
 
     const item = this.entries.get(file);
     if (item == null) {
@@ -182,6 +192,7 @@ export abstract class FileStore<Data, Item> {
 
   public watch() {
     this.wipe();
+    this.ready = false;
 
     this.watcher = fsWatch(path.dirname(this.directory), {
       ignored: f => path.dirname(this.directory) !== f && !f.startsWith(this.directory)
@@ -190,6 +201,7 @@ export abstract class FileStore<Data, Item> {
     this.watcher.on("add", file =>  this.handleAddFile(file));
     this.watcher.on("change", file => this.handleUpdateFile(file));
     this.watcher.on("unlink", file => this.handleDeleteFile(file));
+    this.watcher.on("ready", () => { this.ready = true; });
   }
 
   public unwatch() {

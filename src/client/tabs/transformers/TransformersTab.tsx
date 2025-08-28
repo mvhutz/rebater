@@ -15,7 +15,7 @@ import NewTransformerModal from './NewTransformerModal';
 import SimpleTransformerEdit from './SimpleTransformerEdit';
 import { TransformerFile } from '../../../shared/state/stores/TransformerStore';
 import { AdvancedTransformerData } from '../../../shared/transformer/advanced';
-import { GoodReply } from '../../../shared/reply';
+import { good, GoodReply } from '../../../shared/reply';
 import { SimpleTransformerData } from '../../../shared/transformer/simple';
 
 /** ------------------------------------------------------------------------- */
@@ -27,30 +27,37 @@ function TransformersTab() {
   const [currentGroup, setCurrentGroup] = React.useState<Maybe<string>>(null);
   const [currentTransformer, setCurrentTransformer] = React.useState<Maybe<string>>(null);
 
-  const { groups } = React.useMemo(() => {
-    const result = {
-      groups: {} as Record<string, TransformerFile[]>
-    };
-
-    if (!transformers_reply.ok) return result;
+  const groups = React.useMemo(() => {
+    const result: Record<string, TransformerFile[]> = {};
+    if (!transformers_reply.ok) return transformers_reply;
 
     for (const transformer of transformers_reply.data) {
       if (!transformer.data.ok) continue;
       switch (transformer.data.data.type) {
         case "advanced":
-          result.groups["Advanced"] ??= [];
-          result.groups["Advanced"].push(transformer);
+          result["Advanced"] ??= [];
+          result["Advanced"].push(transformer);
           break;
         case "simple":
-          result.groups[transformer.data.data.group] ??= [];
-          result.groups[transformer.data.data.group].push(transformer);
+          result[transformer.data.data.group] ??= [];
+          result[transformer.data.data.group].push(transformer);
       }
     }
-    return result;
+    return good(result);
   }, [transformers_reply]);
 
+  const { currentGroupItems, currentTransformerItem } = React.useMemo(() => {
+    if (!groups.ok) return { currentGroupItems: null, currentTransformerItem: null };
+
+    const currentGroupItems = currentGroup != null ? groups.data[currentGroup] : null;
+    const currentTransformerItem = currentGroupItems != null ? currentGroupItems.find(t => t.item.name === currentTransformer) : null;
+    return { currentGroupItems, currentTransformerItem };
+  }, [currentGroup, currentTransformer, groups]);
+
   const searchGroups = React.useCallback((filepath: Maybe<string>) => {
-    for (const [groupName, items] of Object.entries(groups)) {
+    if (!groups.ok) return;
+
+    for (const [groupName, items] of Object.entries(groups.data)) {
       if (items.find(t => t.item.name === filepath) != null) {
         setCurrentGroup(groupName);
         setCurrentTransformer(filepath);
@@ -81,9 +88,6 @@ function TransformersTab() {
   const handleNewTransformer = React.useCallback(() => {
     dispatch(toggleNewTransformerModal());
   }, [dispatch]);
-
-  const currentGroupItems = currentGroup != null ? groups[currentGroup] : null;
-  const currentTransformerItem = currentGroupItems != null ? currentGroupItems.find(t => t.item.name === currentTransformer) : null;
 
   let editor;
 
@@ -125,8 +129,8 @@ function TransformersTab() {
         <Typography level="body-sm" color="neutral" pl={1}>
           From
         </Typography>
-        <Select size="sm" placeholder="Group?" variant="soft" value={currentGroup} onChange={handleCurrentGroup}>
-          {Object.keys(groups).map(g => (
+        <Select disabled={!groups.ok} size="sm" placeholder="Group?" variant="soft" value={currentGroup} onChange={handleCurrentGroup}>
+          {Object.keys(groups.ok ? groups.data : {}).map(g => (
             <Option value={g} key={g}>{g}</Option>
           ))}
         </Select>
