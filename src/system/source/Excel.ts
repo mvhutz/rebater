@@ -87,7 +87,8 @@ export class ExcelSourceOperator implements SourceOperator {
       .filter(e =>
         e.item.group === this.group
           && input.settings.time.is(e.item.quarter)
-          && ExcelSourceOperator.VALID_EXTENSIONS.has(path.extname(e.item.name)));
+          && ExcelSourceOperator.VALID_EXTENSIONS.has(path.extname(e.item.name))
+          && path.matchesGlob(e.item.name, this.file));
     
     // Extract tables.
     const results = new Array<Table>();

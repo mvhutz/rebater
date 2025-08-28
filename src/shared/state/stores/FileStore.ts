@@ -1,7 +1,8 @@
 import { FSWatcher, watch as fsWatch } from "chokidar";
 import path from "path";
-import { bad, Reply } from "../../reply";
+import { bad, good, Reply } from "../../reply";
 import { mkdir, readFile, rm, writeFile } from "fs/promises";
+import Lockfile from 'proper-lockfile';
 
 /** ------------------------------------------------------------------------- */
 
@@ -27,6 +28,23 @@ export abstract class FileStore<Data, Item> {
 
   public abstract serialize(data: Data): Reply<Buffer>;
   public abstract deserialize(data: Buffer): Reply<Data>;
+
+  public async runPrivileged<T>(fn: () => Promise<Reply<T>>): Promise<Reply<T>> {
+    const release = await Lockfile.lock(path.dirname(this.directory), {
+      retries: { forever: true, randomize: true }
+    });
+
+    console.log("RUN PRIVILEGED!");
+
+    try {
+      const out = await fn();
+      await release();
+      return out;
+    } catch (err) {
+      await release();
+      return bad(`${err}`);
+    }
+  }
 
   public async pull(item: Item): Promise<Reply<Data>> {
     const file = this.getFileFromItem(item);
@@ -59,7 +77,7 @@ export abstract class FileStore<Data, Item> {
       .toArray();
   }
 
-  public async push(entry: { item: Item, data: Reply<Data> }): Promise<Reply<Data>> {
+  private async pushUnsafe(entry: { item: Item, data: Reply<Data> }): Promise<Reply<Data>> {
     const { item, data } = entry;
     if (!data.ok) return data;
 
@@ -76,16 +94,46 @@ export abstract class FileStore<Data, Item> {
     return data;
   }
 
-  public async delete(entry: { item: Item, data: Reply<Data> }): Promise<void> {
+  public async push(entry: { item: Item, data: Reply<Data> }): Promise<Reply<Data>> {
+    return await this.runPrivileged(() => this.pushUnsafe(entry));
+  }
+
+  public mark(entry: { item: Item, data: Reply<Data> }): Reply<Data> {
+    const { item, data } = entry;
+    if (!data.ok) return data;
+
+    const file = this.getFileFromItem(item);
+    if (!file.ok) return file;
+
+    const serialized = this.serialize(data.data);
+    if (!serialized.ok) return serialized;
+
+    this.entries.set(file.data, { item, data });
+    return data;
+  }
+
+  public async pushAll() {
+    return await this.runPrivileged(async () => {
+      await Promise.all(this.entries.values().map(e => this.pushUnsafe(e)));
+      return good(undefined);
+    });
+  }
+
+  private async deleteUnsafe(entry: { item: Item, data: Reply<Data> }): Promise<Reply> {
     const file = this.getFileFromItem(entry.item);
-    if (!file.ok) return;
+    if (!file.ok) return file;
+
+    this.entries.delete(file.data);
 
     await rm(file.data);
+    return good(undefined);
+  }
+
+  public async delete(entry: { item: Item, data: Reply<Data> }): Promise<Reply> {
+    return await this.runPrivileged(() => this.deleteUnsafe(entry));
   }
 
   private async handleAddFile(file: string) {
-    console.log(`ADDED '${path.relative(this.directory, file)}'`);
-
     const entry = this.entries.get(file);
     if (entry != null) {
       console.log(`DUPLICATE FILE "${file}"`);
@@ -105,7 +153,7 @@ export abstract class FileStore<Data, Item> {
   }
 
   private async handleDeleteFile(file: string) {
-    console.log(`DELETED '${path.relative(this.directory, file)}'`);
+    // console.log(`DELETED '${path.relative(this.directory, file)}'`);
 
     const item = this.entries.get(file);
     if (item == null) {
@@ -117,7 +165,7 @@ export abstract class FileStore<Data, Item> {
   }
 
   private async handleUpdateFile(file: string) {
-    console.log(`UPDATED '${path.relative(this.directory, file)}'`);
+    // console.log(`UPDATED '${path.relative(this.directory, file)}'`);
 
     const item = this.entries.get(file);
     if (item == null) {
@@ -130,7 +178,13 @@ export abstract class FileStore<Data, Item> {
     }
   }
 
+  public wipe() {
+    this.entries.clear();
+  }
+
   public watch() {
+    this.wipe();
+
     this.watcher = fsWatch(path.dirname(this.directory), {
       ignored: f => path.dirname(this.directory) !== f && !f.startsWith(this.directory)
     });

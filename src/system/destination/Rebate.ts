@@ -17,14 +17,14 @@ export class RebateDestinationOperator implements DestinationOperator {
     this.name = input.name;
   }
 
-  async run(input: DestinationInput): Promise<void> {
+  run(input: DestinationInput): void {
     // Convert to a list of Rebates.
     const data = input.table.split().map(row => row.split());
     const { data: raw } = Papa.parse(Papa.unparse(data), { header: true });
     const rebates = z.array(RebateSchema).parse(raw);
 
     // Send to the destination store.
-    await input.state.destinations.push({
+    input.state.destinations.mark({
       item: {
         quarter: input.settings.time,
         name: `${this.name}.csv`

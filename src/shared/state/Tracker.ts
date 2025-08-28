@@ -4,7 +4,11 @@ import { Question } from "../worker/response";
  * Stores any question makde by the Transformers.
  */
 export class Tracker {
-  private values = new Map<string, Question>();
+  private readonly values = new Map<string, Question>();
+
+  has(hash: string) {
+    return this.values.has(hash);
+  }
 
   ask(question: Question) {
     const current = this.values.get(question.hash);

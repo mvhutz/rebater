@@ -77,15 +77,13 @@ export class ReferenceView {
  */
 export class Reference {
   public readonly data: ReferenceData;
-  public readonly name: string;
 
-  public constructor(name: string, data: ReferenceData) {
+  public constructor(data: ReferenceData) {
     this.data = data;
-    this.name = name;
   }
 
   public insert(...records: ReferenceData) {
-    return new Reference(this.name, this.data.concat(records));
+    return new Reference(this.data.concat(records));
   }
 
   /**
@@ -146,7 +144,7 @@ export class Reference {
     }));
   }
 
-  private views = new Map<string, ReferenceView>();
+  private readonly views = new Map<string, ReferenceView>();
 
   public view(key: string) {
     const current = this.views.get(key);
@@ -162,7 +160,7 @@ export class Reference {
 
 interface ReferenceMeta { path: string, name: string };
 
-export class ReferenceStore extends FileStore<ReferenceData, ReferenceMeta> {
+export class ReferenceStore extends FileStore<Reference, ReferenceMeta> {
   protected getFileFromItem(item: ReferenceMeta): Reply<string> {
     return good(path.join(this.directory, item.path));
   }
@@ -180,11 +178,11 @@ export class ReferenceStore extends FileStore<ReferenceData, ReferenceMeta> {
     return good({ path: names.join(path.sep), name });
   }
 
-  serialize(data: ReferenceData): Reply<Buffer> {
-    return good(Buffer.from(Papa.unparse(data)));
+  serialize(reference: Reference): Reply<Buffer> {
+    return good(Buffer.from(Papa.unparse(reference.data)));
   }
 
-  deserialize(raw: Buffer): Reply<ReferenceData> {
+  deserialize(raw: Buffer): Reply<Reference> {
     const { data } = Papa.parse(raw.toString("utf-8"), {
       header: true,
       skipEmptyLines: true,
@@ -192,7 +190,7 @@ export class ReferenceStore extends FileStore<ReferenceData, ReferenceMeta> {
 
     const parsed = ReferenceSchema.safeParse(data);
     if (parsed.success) {
-      return good(parsed.data);
+      return good(new Reference(parsed.data));
     } else {
       return bad(z.prettifyError(parsed.error));
     }
@@ -202,22 +200,22 @@ export class ReferenceStore extends FileStore<ReferenceData, ReferenceMeta> {
     for (const [, entry] of this.entries) {
       if (entry.item.name !== name) continue;
       if (!entry.data.ok) continue;
-      return new Reference(name, entry.data.data);
+      return entry.data.data;
     }
 
-    return new Reference(name, []);
+    return new Reference([]);
   }
 
-  public async update(reference: Reference) {
+  public async updateTable(name: string, reference: Reference) {
     for (const [, entry] of this.entries) {
-      if (entry.item.name !== reference.name) continue;
-      await this.push({ item: entry.item, data: good(reference.data) });
+      if (entry.item.name !== name) continue;
+      await this.push({ item: entry.item, data: good(reference) });
       return;
     }
 
     await this.push({
-      item: { path: `${reference.name}.csv`, name: reference.name },
-      data: good(reference.data)
+      item: { path: `${name}.csv`, name: name },
+      data: good(reference)
     });
     return;
   }

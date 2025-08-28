@@ -78,13 +78,16 @@ export class SearchRow implements RowOperator {
       return result;
     }
 
+    const hash = JSON.stringify([values, this.take]);
+    if (input.state.tracker.has(hash)) return null;
+
     let suggestions: { key: string; value: string; group: string; }[] = [];
     if (this.primary) {
       suggestions = search.suggest(this.primary, values[this.primary], this.take);
     }
 
     input.state.tracker.ask({
-      hash: JSON.stringify([values, this.take]),
+      hash: hash,
       table: this.table,
       unknown: this.take,
       known: values,

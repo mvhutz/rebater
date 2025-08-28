@@ -21,5 +21,5 @@ export interface DestinationOperator {
    * @param table The table to send.
    * @param runner The running context.
    */
-  run(input: DestinationInput): Promise<void>;
+  run(input: DestinationInput): void;
 }

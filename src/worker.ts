@@ -34,7 +34,7 @@ const SYSTEM = {
 
     const table = state.references.getTable(answer.reference);
     const modified = table.insert(answer.answer);
-    await state.references.update(modified);
+    await state.references.updateTable(answer.reference, modified);
   },
 
   /**

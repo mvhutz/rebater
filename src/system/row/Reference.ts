@@ -74,8 +74,9 @@ export class ReferenceRow implements RowOperator {
     }
 
     const question = this.getQuestionFormat(input.value);
-    const suggestions = reference.suggest(this.match, input.value, this.take);
+    if (input.state.tracker.has(question)) return null;
 
+    const suggestions = reference.suggest(this.match, input.value, this.take);
     input.state.tracker.ask({
       table: this.table,
       hash: question,
