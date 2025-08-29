@@ -212,14 +212,12 @@ export class ReferenceStore extends FileStore<Reference, ReferenceMeta> {
   public async updateTable(name: string, reference: Reference) {
     for (const [, entry] of this.entries) {
       if (entry.item.name !== name) continue;
-      await this.push({ item: entry.item, data: good(reference) });
-      return;
+      return await this.push({ item: entry.item, data: good(reference) });
     }
 
-    await this.push({
+    return await this.push({
       item: { path: `${name}.csv`, name: name },
       data: good(reference)
     });
-    return;
   }
 }

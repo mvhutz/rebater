@@ -38,7 +38,7 @@ export class TrackerPointer extends FilePointer<Map<string, Question>> {
   }
 
   async resolve(hash: string) {
-    await this.update(async tracker => {
+    return await this.update(async tracker => {
       if (!tracker.ok) return tracker;
 
       const new_questions = new Map(tracker.data.entries());
