@@ -17,7 +17,7 @@ import DiscrepancyTable from './DiscrepancyTable';
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded';
 import TabMenu from '../../view/TabMenu';
 import { getContextFilter, getDisplayTab, pushMessage, toggleContextFilter, toggleNewQuarterModal } from '../../store/slices/ui';
-import { Box, Button, Chip, IconButton, Option, Select, Tooltip } from '@mui/joy';
+import { Badge, Box, Button, Chip, IconButton, Option, Select, Tooltip } from '@mui/joy';
 import FileOpenRoundedIcon from '@mui/icons-material/FileOpenRounded';
 import { killSystem, showOutputFile, startSystem } from '../../store/slices/thunk';
 import BlockRounded from '@mui/icons-material/BlockRounded';
@@ -175,9 +175,11 @@ function IdleMenu() {
             ))}
           </Select>
           <Tooltip title="Toggle Filters">
-            <IconButton onClick={handleContextFilter} sx={{ borderRadius: 18 }} variant={context_filter ? "soft" : "outlined"}>
-              <TuneRounded fontSize="small" />
-            </IconButton>
+            <Badge invisible={selected_names.length === 0 && selected_tags.length === 0} badgeInset="14%">
+              <IconButton onClick={handleContextFilter} sx={{ borderRadius: 18 }} variant={context_filter ? "soft" : "outlined"}>
+                <TuneRounded fontSize="small" />
+              </IconButton>
+            </Badge>
           </Tooltip>
         </Stack>
         {context_filter && <Stack spacing={1}>
