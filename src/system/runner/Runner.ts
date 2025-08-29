@@ -7,6 +7,7 @@ import { Transformer } from "../transformer/Transformer";
 import { State } from "../../shared/state";
 import { bad, good } from "../../shared/reply";
 import { Settings } from "../../shared/settings";
+import { Context } from "../../shared/context";
 
 /** ------------------------------------------------------------------------- */
 
@@ -21,15 +22,17 @@ interface RunnerEvents {
 export class Runner extends EventEmitter<RunnerEvents> {
   public readonly state: State;
   public readonly settings: Settings;
+  public readonly context: Context;
 
   private running: boolean;
 
-  public constructor(state: State, settings: Settings) {
+  public constructor(state: State, settings: Settings, context: Context) {
     super();
 
     this.state = state;
     this.running = false;
     this.settings = settings;
+    this.context = context;
 
     this.emit("status", { type: "idle" });
   }
@@ -64,7 +67,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     const actual_partitions = getPartition(actual, "supplierId");
 
     await this.state.truths.pullAll();
-    const expected = this.state.truths.getValid(t => t.item.quarter.is(this.settings.time)).flat(1);
+    const expected = this.state.truths.getValid(t => t.item.quarter.is(this.context.time)).flat(1);
     const expected_partitions = getPartition(expected, "supplierId");
 
     const results = new Array<DiscrepencyResult>();
@@ -144,14 +147,14 @@ export class Runner extends EventEmitter<RunnerEvents> {
       return;
     }
 
-    const transformers = Transformer.findValidOrder(this.state.transformers.getValid().map(Transformer.parseTransformer).filter(t => this.settings.willRun(t.getDetails())));
+    const transformers = Transformer.findValidOrder(this.state.transformers.getValid().map(Transformer.parseTransformer).filter(t => this.context.willRun(t.getDetails())));
 
     // Run the transformers.
     for (const [i, transformer] of transformers.entries()) {
       const details = transformer.getDetails();
       yield { type: "running", progress: i / transformers.length };
       try {
-        results.config.push(transformer.run(this.state, this.settings));
+        results.config.push(transformer.run(this.state, this.context));
       } catch (error) {
         const start = `While running ${details.name}:\n\n`;
         if (error instanceof z.ZodError) {
@@ -177,7 +180,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     yield { type: "loading", message: "Compiling rebates..." };
     const output_marked = this.state.outputs.mark({
       item: {
-        quarter: this.settings.time,
+        quarter: this.context.time,
         name: "OUTPUT.xlsx"
       },
       data: good(this.state.destinations.getValid().flat(1))

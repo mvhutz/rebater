@@ -1,13 +1,13 @@
 import { Table } from "../information/Table";
 import { State } from "../../shared/state";
-import { Settings } from "../../shared/settings";
+import { Context } from "../../shared/context";
 
 /** ------------------------------------------------------------------------- */
 
 export interface TableInput {
   table: Table;
   state: State;
-  settings: Settings;
+  context: Context;
 }
 
 /**

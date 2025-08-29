@@ -11,6 +11,8 @@ import { TransformerData } from "../transformer";
 import { Repository } from "../state/Repository";
 import { TransformerFile } from "../state/stores/TransformerStore";
 import { randomBytes } from "crypto";
+import { ContextData } from "../context";
+import { Time } from "../time";
 
 /** ------------------------------------------------------------------------- */
 
@@ -91,16 +93,14 @@ export class IPCHandler {
     return handler;
   }
 
-  async handleOpenOutputFile() {
+  async handleOpenOutputFile(context: ContextData) {
     const state_reply = this.repository.getState();
     if (!state_reply.ok) return state_reply;
     const { data: state } = state_reply;
 
-    const settings_reply = this.repository.settings.getData();
-    if (!settings_reply.ok) return settings_reply;
-    const { data: settings } = settings_reply;
+    const current_quarter = new Time(context.time);
 
-    const outputs = state.outputs.getEntries().filter(e => settings.time.is(e.item.quarter));
+    const outputs = state.outputs.getEntries().filter(e => current_quarter.is(e.item.quarter));
     const first = outputs.next();
     if (first.value == null) return bad("No output file exists!");
 
@@ -108,7 +108,7 @@ export class IPCHandler {
     if (!filepath.ok) return filepath;
     
     shell.showItemInFolder(filepath.data);
-    return good("Shown!");
+    return good(undefined);
   }
 
   /**
@@ -204,9 +204,9 @@ export class IPCHandler {
    * Handle all interaction between the main thread and the renderer.
    * @param mainWindow The renderer.
    */
-  async handleRunProgram() {    
+  async handleRunProgram(context: ContextData) {    
     // Create new worker.
-    const observable = this.thread.run();
+    const observable = this.thread.run(context);
     observable.subscribe(m => this.handleWorkerMessage(m));
 
     return good(undefined);
@@ -221,7 +221,7 @@ export class IPCHandler {
     ipcMain.handle.createQuarter();
 
     ipcMain.handle.clearQuestions(async () => await this.handleClearQuestions());
-    ipcMain.handle.openOutputFile(async () => await this.handleOpenOutputFile());
+    ipcMain.handle.openOutputFile(async (_, { data }) => await this.handleOpenOutputFile(data));
     ipcMain.handle.getTransformers(async () => await this.getTransformers());
     ipcMain.handle.createTransformer(async (_, { data }) => await this.createTransformer(data));
     ipcMain.handle.deleteTransformer(async (_, { data }) => await this.deleteTransformer(data));
@@ -234,7 +234,7 @@ export class IPCHandler {
     ipcMain.handle.answerQuestion(async (_, { data }) => await this.handleAnswerQuestion(data));
     ipcMain.handle.cancelProgram(async () => await this.handleCancelProgram());
     ipcMain.handle.exitProgram(async () => this.handleExitProgram());
-    ipcMain.handle.runProgram(async () => await this.handleRunProgram());
+    ipcMain.handle.runProgram(async (_, { data }) => await this.handleRunProgram(data));
 
     // Remove on window close.
     this.window.on("close", () => {

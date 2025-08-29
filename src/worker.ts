@@ -5,6 +5,7 @@ import { expose } from "threads/worker";
 import { Observable } from "observable-fns";
 import { Repository } from "./shared/state/Repository";
 import { workerData } from "worker_threads";
+import { Context, ContextData } from "./shared/context";
 
 /** ------------------------------------------------------------------------- */
 
@@ -25,8 +26,9 @@ const SYSTEM = {
   /**
    * Run the program.
    */
-  run(): Observable<WorkerResponse> {
+  run(context_data: ContextData): Observable<WorkerResponse> {
     return new Observable(observer => {
+      const context = new Context(context_data);
       const state_reply = repository.getState();
       // Get settings.
       if (!state_reply.ok) {
@@ -48,7 +50,7 @@ const SYSTEM = {
       const { data: settings } = settings_reply;
       
       // Create runner.
-      const runner = new Runner(state, settings);
+      const runner = new Runner(state, settings, context);
       runner.on("status", status => observer.next({ type: "status", status }));
 
       // Run it.

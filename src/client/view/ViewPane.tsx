@@ -54,6 +54,7 @@ const TAB_LIST_SX: SxProps = {
       },
     },
   },
+  flexShrink: 0,
   overflow: 'auto',
   scrollSnapType: 'x mandatory',
   '&::-webkit-scrollbar': { display: 'none' },
