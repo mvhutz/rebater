@@ -4,7 +4,7 @@ import Fuse from 'fuse.js';
 import { bad, good, Reply } from "../../reply";
 import { FileStore } from "./FileStore";
 import path from "path";
-import { isSlugEqual, slugify } from "../../../system/util";
+import { slugify } from "../../../system/util";
 
 
 /** ------------------------------------------------------------------------- */
@@ -26,7 +26,7 @@ export class ReferenceView {
     for (const object of reference) {
       const set = this.data.get(slugify(object[key]));
       if (set == null) {
-        this.data.set(object[key], new Set([object]));
+        this.data.set(slugify(object[key]), new Set([object]));
       } else {
         set.add(object);
       }
@@ -42,7 +42,7 @@ export class ReferenceView {
    */
   private match(ask: Record<string, string>, datum: Record<string, string>) {
     for (const property in ask) {
-      if (datum[property] !== "*" && !isSlugEqual(datum[property], ask[property])) {
+      if (datum[property] !== "*" && slugify(datum[property]) !== slugify(ask[property])) {
         return false;
       }
     }
@@ -96,7 +96,7 @@ export class Reference {
    */
   private match(ask: Record<string, string>, datum: Record<string, string>) {
     for (const property in ask) {
-      if (datum[property] !== "*" && !isSlugEqual(datum[property], ask[property])) {
+      if (datum[property] !== "*" && slugify(datum[property]) !== slugify(ask[property])) {
         return false;
       }
     }
