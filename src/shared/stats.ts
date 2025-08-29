@@ -36,6 +36,7 @@ export type EmptySourceIssue = z.infer<typeof EmptySourceIssueSchema>;
 
 export const EmptySheetIssueSchema = z.strictObject({
   transformer: z.string(),
+  group: z.string(),
   source: z.string(),
   sheet: z.string(),
 });

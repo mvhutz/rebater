@@ -1,0 +1,47 @@
+import React from 'react';
+import { useAppSelector } from '../../../store/hooks';
+import { getRunResults } from '../../../store/slices/system';
+import AnalysisAccordion from '../AnalysisAccordion';
+import GridOffRoundedIcon from '@mui/icons-material/GridOffRounded';
+import { Chip, Table } from '@mui/joy';
+
+/** ------------------------------------------------------------------------- */
+
+function EmptyTableCard() {
+  const results = useAppSelector(getRunResults);
+  if (results == null) return;
+
+  const { issues: { empty_sheet } } = results
+  return (
+    <AnalysisAccordion
+      disabled={empty_sheet.length === 0}
+      amount={empty_sheet.length}
+      color="danger"
+      title="Empty Tables Or Sheets"
+      subtitle="These sheets were successfully pulled from source files, but no data was extracted. Check to make sure these sheets should not contain data."
+      icon={<GridOffRoundedIcon />}>
+      <Table size='md' color="neutral" variant="outlined" sx={{ mt: 2, borderRadius: "sm", tableLayout: "auto" }} borderAxis="bothBetween">
+        <thead>
+          <tr>
+            <th>Sheet</th>
+            <th>Source File</th>
+            <th>Group</th>
+            <th>Transformer</th>
+          </tr>
+        </thead>
+        <tbody>
+          {empty_sheet.map((i, index) => <tr key={index}>
+            <td><code>{i.source}</code></td>
+            <td>{i.sheet}</td>
+            <td>{i.group}</td>
+            <td><Chip variant="soft" color="primary">{i.transformer}</Chip></td>
+          </tr>)}
+        </tbody>
+      </Table>
+    </AnalysisAccordion>
+  );
+}
+
+/** ------------------------------------------------------------------------- */
+
+export default React.memo(EmptyTableCard);

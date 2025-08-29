@@ -26,6 +26,7 @@ import moment from 'moment';
 import { z } from 'zod/v4';
 import NoSourcesCard from './cards/NoSourcesCard';
 import EmptySourceCard from './cards/EmptySourceCard';
+import EmptyTableCard from './cards/EmptyTableCard';
 
 /** ------------------------------------------------------------------------- */
 
@@ -289,6 +290,7 @@ function SystemTab() {
           <ErrorCard />
           <NoSourcesCard/>
           <EmptySourceCard/>
+          <EmptyTableCard/>
         </Stack>
       </Stack>
     </Stack>

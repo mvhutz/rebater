@@ -39,7 +39,7 @@ export class ExcelSourceOperator implements SourceOperator {
    * @param filepath The path of the file.
    * @param results The table list to push to.
    */
-  private extractWorkSheet(sheet: XLSX.WorkSheet, filepath: string): Table[] {
+  private extractWorkSheet(sheet: XLSX.WorkSheet, name: string, filepath: string, input: SourceInput): Table[] {
     const unclean = XLSX.utils.sheet_to_json(sheet, {
       raw: true,
       blankrows: false,
@@ -52,7 +52,13 @@ export class ExcelSourceOperator implements SourceOperator {
     const table = Table.join(...rows);
 
     if (table.size() === 0) {
-      console.log("EMPTY SHEET", filepath);
+      input.stats.issues.empty_sheet.push({
+        transformer: input.transformer,
+        group: this.group,
+        source: filepath,
+        sheet: name
+      });
+
       return [];
     }
 
@@ -85,7 +91,7 @@ export class ExcelSourceOperator implements SourceOperator {
       if (props?.Hidden) continue;
       assert.ok(sheet != null, `Sheet '${sheetName}' does not exist on workbook!`);
 
-      results.push(...this.extractWorkSheet(sheet, filepath));
+      results.push(...this.extractWorkSheet(sheet, sheetName, filepath, input));
     }
 
     if (results.length === 0) {
