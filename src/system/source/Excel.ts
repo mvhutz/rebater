@@ -5,6 +5,7 @@ import { SourceInput, SourceOperator } from ".";
 import path from "path";
 import { Row, Table } from "../information/Table";
 import { ExcelSourceData } from "../../shared/transformer/advanced";
+import { slugify } from "../util";
 
 /** ------------------------------------------------------------------------- */
 
@@ -93,7 +94,7 @@ export class ExcelSourceOperator implements SourceOperator {
         e.item.group === this.group
           && input.context.time.is(e.item.quarter)
           && ExcelSourceOperator.VALID_EXTENSIONS.has(path.extname(e.item.name))
-          && path.matchesGlob(e.item.name, this.file));
+          && path.matchesGlob(slugify(e.item.name), slugify(this.file)));
     
     // Extract tables.
     const results = new Array<Table>();

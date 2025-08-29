@@ -31,3 +31,11 @@ export function getPartition<O extends object, K extends keyof O>(objects: O[], 
 
   return buckets;
 }
+
+export function slugify(value: string): string {
+  return value.toLowerCase().trim().replace(/\s/g, '');
+}
+
+export function isSlugEqual(a: string, b: string): boolean {
+  return slugify(a) === slugify(b);
+}
