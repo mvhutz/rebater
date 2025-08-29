@@ -4,7 +4,7 @@ import { pullAllQuarters, pullTransformers, pushSystemSettings, showOutputFile }
 
 /** ------------------------------------------------------------------------- */
 
-export type Tab = "system" | "documentation" | "questions" | "transformers";
+export type Tab = "system" | "documentation" | "questions" | "transformers" | "settings";
 
 interface Message {
   type: "error" | "info";

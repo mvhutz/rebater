@@ -20,8 +20,9 @@ import { SystemStatus } from '../../shared/worker/response';
 import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
 import QuestionsTab from '../tabs/questions/QuestionsTab';
 import Chip from '@mui/joy/Chip';
-import { FlashOnRounded } from '@mui/icons-material';
+import { FlashOnRounded, SettingsRounded } from '@mui/icons-material';
 import TransformersTab from '../tabs/transformers/TransformersTab';
+import SettingsTab from '../tabs/settings/SettingsTab';
 
 /** ------------------------------------------------------------------------- */
 
@@ -98,6 +99,12 @@ function TabPart_() {
         </ListItemDecorator>
         Transformers {transformers.ok && <Chip color="neutral" variant="outlined" size='sm'>{transformers.data.length}</Chip>}
       </Tab>
+      <Tab value="settings" indicatorPlacement="top" sx={TAB_SX_PROPS}>
+        <ListItemDecorator>
+          <SettingsRounded fontSize="small" />
+        </ListItemDecorator>
+        Settings
+      </Tab>
     </TabList>
   );
 }
@@ -116,6 +123,7 @@ function ViewPane() {
       case "documentation":
       case "questions":
       case "transformers":
+      case "settings":
         dispatch(setTab(tab));
         break;
       default:
@@ -126,12 +134,13 @@ function ViewPane() {
 
   return (
     <Stack direction="column" component="main" overflow="auto" height="100vh" flex={1}>
-      <Tabs size="sm" value={tab} onChange={handleTab} sx={{ flex: 1 }}>
+      <Tabs size="sm" value={tab} onChange={handleTab} sx={{ flex: 1, height: 1 }}>
         <TabPart />
         <DocumentationTab />
         <SystemTab />
         <QuestionsTab />
         <TransformersTab />
+        <SettingsTab />
       </Tabs>
     </Stack>
   );

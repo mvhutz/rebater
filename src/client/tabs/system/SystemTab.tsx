@@ -271,8 +271,8 @@ function SystemTab() {
       <TabMenu>
         <Typography level="body-lg" pt={0.5} color="neutral"><i>System:</i> {messageText}</Typography>
       </TabMenu>
-      <Stack padding={2}>
-        <Stack direction="column" gap={2} flexGrow={1} height="75vh" alignItems="center" position="relative">
+      <Stack padding={4}>
+        <Stack direction="column" gap={2} flexGrow={1} alignItems="center" position="relative">
           <Stack flex={1} spacing={6} pt={5}>
             <CircularProgress color="primary" variant="soft" value={progress} determinate={!loading} size="lg" sx={{ '--CircularProgress-size': '200px' }}>
               <InnerText status={status} />

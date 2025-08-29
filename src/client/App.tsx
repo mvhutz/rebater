@@ -1,9 +1,7 @@
 import React from 'react';
 import ViewPane from './view/ViewPane';
 import Stack from '@mui/joy/Stack';
-import Divider from '@mui/joy/Divider';
 import AlertPopup from './modals/AlertPopup';
-import SettingsPane from './sidebar/SettingsPane';
 import NewQuarterModal from './modals/NewQuarterModal';
 
 /** ------------------------------------------------------------------------- */
@@ -16,8 +14,6 @@ function App() {
   return (
     <Stack component="article" direction="row">
       <ViewPane/>
-      <Divider />
-      <SettingsPane />
       <AlertPopup />
       <NewQuarterModal />
     </Stack>
