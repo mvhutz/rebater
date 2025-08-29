@@ -45,7 +45,7 @@ function AlertPopup() {
         </IconButton>
       }
     >
-      <Typography>{message?.text}</Typography>
+      <Typography fontFamily="monospace" textAlign="left">{message?.text}</Typography>
     </Snackbar>
   )
 }
