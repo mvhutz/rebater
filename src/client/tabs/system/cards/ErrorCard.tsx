@@ -2,9 +2,9 @@ import Stack from '@mui/joy/Stack';
 import Typography from '@mui/joy/Typography';
 import ErrorIcon from '@mui/icons-material/Error';
 import React from 'react';
-import { useAppSelector } from '../../store/hooks';
-import { getRunError } from '../../store/slices/system';
-import AnalysisAccordion from './AnalysisAccordion';
+import { useAppSelector } from '../../../store/hooks';
+import { getRunError } from '../../../store/slices/system';
+import AnalysisAccordion from '../AnalysisAccordion';
 
 /** ------------------------------------------------------------------------- */
 

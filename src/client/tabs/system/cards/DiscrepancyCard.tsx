@@ -7,13 +7,13 @@ import BiotechIcon from '@mui/icons-material/Biotech';
 import React from 'react';
 import Chip from '@mui/joy/Chip';
 import Sheet from '@mui/joy/Sheet';
-import { getRunResults } from '../../store/slices/system';
-import { useAppSelector } from '../../store/hooks';
-import AnalysisAccordion from './AnalysisAccordion';
+import { getRunResults } from '../../../store/slices/system';
+import { useAppSelector } from '../../../store/hooks';
+import AnalysisAccordion from '../AnalysisAccordion';
 
 /** ------------------------------------------------------------------------- */
 
-function DiscrepancyTable() {
+function DiscrepancyCard() {
   const results = useAppSelector(getRunResults);
   if (results == null) return;
 
@@ -49,4 +49,4 @@ function DiscrepancyTable() {
 
 /** ------------------------------------------------------------------------- */
 
-export default React.memo(DiscrepancyTable);
+export default React.memo(DiscrepancyCard);

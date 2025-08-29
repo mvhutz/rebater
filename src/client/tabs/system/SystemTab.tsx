@@ -1,9 +1,8 @@
 import React from 'react';
-import SupplierResultsTable from './SupplierResultsTable';
+import PerformanceCard from './cards/PerformanceCard';
 import CircularProgress from '@mui/joy/CircularProgress';
 import Stack from '@mui/joy/Stack';
 import Typography from '@mui/joy/Typography';
-// import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
 import NightsStayRoundedIcon from '@mui/icons-material/NightsStayRounded';
 import DoneRoundedIcon from '@mui/icons-material/DoneRounded';
 import PriorityHighRoundedIcon from '@mui/icons-material/PriorityHighRounded';
@@ -12,8 +11,8 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { type SvgIconOwnProps } from '@mui/material';
 import AccordionGroup from '@mui/joy/AccordionGroup';
 import UpdateRoundedIcon from '@mui/icons-material/UpdateRounded';
-import ErrorCard from './ErrorCard';
-import DiscrepancyTable from './DiscrepancyTable';
+import ErrorCard from './cards/ErrorCard';
+import DiscrepancyCard from './cards/DiscrepancyCard';
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded';
 import TabMenu from '../../view/TabMenu';
 import { getContextFilter, getDisplayTab, pushMessage, toggleContextFilter, toggleNewQuarterModal } from '../../store/slices/ui';
@@ -279,8 +278,8 @@ function SystemTab() {
           <SystemMenu />
         </Stack>
         <AccordionGroup variant="plain" transition="0.2s" size='lg' disableDivider sx={{ gap: 2 }}>
-          <SupplierResultsTable />
-          <DiscrepancyTable />
+          <PerformanceCard />
+          <DiscrepancyCard />
           <ErrorCard />
         </AccordionGroup>
       </Stack>

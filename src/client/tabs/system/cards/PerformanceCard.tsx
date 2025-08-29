@@ -1,18 +1,18 @@
 import Table from '@mui/joy/Table';
 import SpeedIcon from '@mui/icons-material/Speed';
 import React from 'react';
-import { useAppSelector } from '../../store/hooks';
-import { getRunResults } from '../../store/slices/system';
-import AnalysisAccordion from './AnalysisAccordion';
+import { useAppSelector } from '../../../store/hooks';
+import { getRunResults } from '../../../store/slices/system';
+import AnalysisAccordion from '../AnalysisAccordion';
 
 /** ------------------------------------------------------------------------- */
 
-function SupplerResultsTable() {
+function PerformanceCard() {
   const results = useAppSelector(getRunResults);
   if (results == null) return;
 
   return (
-    <AnalysisAccordion title="Discrepancy" color="warning" subtitle="View similarity to expected results." icon={<SpeedIcon />}>
+    <AnalysisAccordion title="Discrepancy" color="success" subtitle="View similarity to expected results." icon={<SpeedIcon />}>
       <Table size='sm' color="neutral" variant="soft" sx={{ mt: 2, borderRadius: "sm", overflow: "hidden" }}>
         <thead>
           <tr>
@@ -33,4 +33,4 @@ function SupplerResultsTable() {
 
 /** ------------------------------------------------------------------------- */
 
-export default React.memo(SupplerResultsTable);
+export default React.memo(PerformanceCard);
