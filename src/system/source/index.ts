@@ -1,12 +1,15 @@
 import { Table } from "../information/Table";
 import { State } from "../../shared/state";
 import { Context } from "../../shared/context";
+import { StatsData } from "../../shared/stats";
 
 /** ------------------------------------------------------------------------- */
 
 export interface SourceInput {
   state: State;
   context: Context;
+  stats: StatsData;
+  transformer: string;
 }
 
 /**

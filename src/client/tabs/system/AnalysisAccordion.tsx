@@ -1,11 +1,6 @@
 import React from 'react';
-import Accordion from '@mui/joy/Accordion';
-import AccordionDetails from '@mui/joy/AccordionDetails';
-import AccordionSummary from '@mui/joy/AccordionSummary';
 import Avatar from '@mui/joy/Avatar';
-import ListItemContent from '@mui/joy/ListItemContent';
-import Typography from '@mui/joy/Typography';
-import { ColorPaletteProp } from '@mui/joy';
+import { Badge, ColorPaletteProp, DialogContent, DialogTitle, IconButton, Modal, ModalClose, ModalDialog, ModalOverflow, Tooltip } from '@mui/joy';
 
 /** ------------------------------------------------------------------------- */
 
@@ -15,22 +10,38 @@ interface AnalysisAccordionProps {
   subtitle: string;
   color: ColorPaletteProp;
   icon: React.ReactNode;
+  amount?: number;
+  disabled?: boolean
 }
 
 function AnalysisAccordion(props: AnalysisAccordionProps) {
-  const { children, title, subtitle, icon, color } = props;
+  const { children, title, subtitle, icon, color, amount, disabled } = props;
+  const [open, setOpen] = React.useState(false);
+
+  const handleToggle = React.useCallback(() => {
+    setOpen(o => !o);
+  }, []);
 
   return (
-    <Accordion variant="soft" color={color} sx={{ borderRadius: 'lg', overflow: "hidden" }}>
-      <AccordionSummary variant="soft" color={color} sx={{ borderRadius: 'lg', overflow: "hidden" }}>
-        <Avatar color={color} variant="outlined">{icon}</Avatar>
-        <ListItemContent>
-          <Typography level="title-lg">{title}</Typography>
-          <Typography level="body-sm">{subtitle}</Typography>
-        </ListItemContent>
-      </AccordionSummary>
-      <AccordionDetails color={color} variant="soft">{children}</AccordionDetails>
-    </Accordion>
+    <>
+      <Badge badgeContent={amount} badgeInset={6} size='sm' color={color}>
+        <Tooltip title={title} color={color}>
+          <IconButton size='lg' color={color} variant='soft' sx={{ p: 1, borderRadius: 1000 }} disabled={disabled} onClick={handleToggle}>
+            <Avatar color={disabled ? "neutral" : color} variant="outlined">{icon}</Avatar>
+          </IconButton>
+        </Tooltip>
+      </Badge>
+      <Modal open={open} onClose={handleToggle}>
+        <ModalOverflow>
+          <ModalDialog maxWidth={600} layout="center">
+            <DialogTitle>{title}</DialogTitle>
+            <DialogContent>{subtitle}</DialogContent>
+            <ModalClose />
+            {children}
+          </ModalDialog>
+        </ModalOverflow>
+      </Modal>
+    </>
   )
 }
 

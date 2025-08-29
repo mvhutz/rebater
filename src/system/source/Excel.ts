@@ -39,7 +39,7 @@ export class ExcelSourceOperator implements SourceOperator {
    * @param filepath The path of the file.
    * @param results The table list to push to.
    */
-  private extractWorkSheet(sheet: XLSX.WorkSheet, filepath: string, results: Table[]) {
+  private extractWorkSheet(sheet: XLSX.WorkSheet, filepath: string): Table[] {
     const unclean = XLSX.utils.sheet_to_json(sheet, {
       raw: true,
       blankrows: false,
@@ -53,10 +53,10 @@ export class ExcelSourceOperator implements SourceOperator {
 
     if (table.size() === 0) {
       console.log("EMPTY SHEET", filepath);
-      return;
+      return [];
     }
 
-    results.push(table);
+    return [table];
   }
 
   /**
@@ -65,7 +65,7 @@ export class ExcelSourceOperator implements SourceOperator {
    * @param filepath The path of the file.
    * @param results The table list to push to.
    */
-  private extractWorkBook(workbook: XLSX.WorkBook, filepath: string, results: Table[]) {
+  private extractWorkBook(workbook: XLSX.WorkBook, filepath: string, input: SourceInput): Table[] {
     const sheetsToTake = new Set<string>();
     if (this.sheets.length == 0) {
       workbook.SheetNames.forEach(m => sheetsToTake.add(m));
@@ -77,14 +77,26 @@ export class ExcelSourceOperator implements SourceOperator {
       }
     }
 
+    const results = [];
+
     for (const sheetName of sheetsToTake) {
       const sheet = workbook.Sheets[sheetName];
       const props = workbook.Workbook?.Sheets?.find(p => p.name === sheetName);
       if (props?.Hidden) continue;
       assert.ok(sheet != null, `Sheet '${sheetName}' does not exist on workbook!`);
 
-      this.extractWorkSheet(sheet, filepath, results);
+      results.push(...this.extractWorkSheet(sheet, filepath));
     }
+
+    if (results.length === 0) {
+      input.stats.issues.empty_source.push({
+        transformer: input.transformer,
+        group: this.group,
+        source: filepath
+      });
+    }
+
+    return results;
   }
 
   run(input: SourceInput): Table[] {
@@ -97,13 +109,14 @@ export class ExcelSourceOperator implements SourceOperator {
           && path.matchesGlob(slugify(e.item.name), slugify(this.file)));
     
     // Extract tables.
-    const results = new Array<Table>();
+    const results = [];
+
     for (const file of files) {
       const { data: source } = file;
       assert.ok(source.ok, `Source file '${file.item.name}' not loaded!`);
 
       const workbook = XLSX.read(source.data, { type: "buffer" });
-      this.extractWorkBook(workbook, file.item.name, results);
+      results.push(...this.extractWorkBook(workbook, file.item.name, input));
     }
 
     return results;

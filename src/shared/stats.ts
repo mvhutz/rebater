@@ -28,6 +28,7 @@ export type NoSourceIssue = z.infer<typeof NoSourceIssueSchema>;
 
 export const EmptySourceIssueSchema = z.strictObject({
   transformer: z.string(),
+  group: z.string(),
   source: z.string(),
 });
 

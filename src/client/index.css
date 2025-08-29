@@ -18,6 +18,10 @@ body {
     counter-reset: h4
 }
 
+.MuiModalOverflow-root {
+    box-sizing: border-box;
+}
+
 .docs h2:before {
     counter-increment: h2;
     content: counter(h2) ". "
@@ -56,36 +60,6 @@ body {
     margin-bottom: 1rem;
     font-size: 0.9rem;
     font-variant: small-caps;
-}
-
-table,
-tr,
-td,
-th {
-    border-collapse: collapse;
-    border-width: thin;
-    border-style: solid;
-}
-
-th:first-of-type {
-  border-top-left-radius: 10px;
-}
-th:last-of-type {
-  border-top-right-radius: 10px;
-}
-tr:last-of-type td:first-of-type {
-  border-bottom-left-radius: 10px;
-}
-tr:last-of-type td:last-of-type {
-  border-bottom-right-radius: 10px;
-}
-
-
-td,
-th {
-    padding: 5px;
-    border: 0;
-    height: unset !important;
 }
 
 li:not(:first-child),

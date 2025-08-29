@@ -9,14 +9,13 @@ import PriorityHighRoundedIcon from '@mui/icons-material/PriorityHighRounded';
 import { getDraftTime, getDraftTransformersSettings, getQuarterList, getSystemProgress, getSystemStatus, getSystemStatusName, getTransformers, isSystemLoading, setDraftSystemTime, setDraftTransformersNames, setDraftTransformersTags, setStatus } from '../../store/slices/system';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { type SvgIconOwnProps } from '@mui/material';
-import AccordionGroup from '@mui/joy/AccordionGroup';
 import UpdateRoundedIcon from '@mui/icons-material/UpdateRounded';
 import ErrorCard from './cards/ErrorCard';
 import DiscrepancyCard from './cards/DiscrepancyCard';
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded';
 import TabMenu from '../../view/TabMenu';
 import { getContextFilter, getDisplayTab, pushMessage, toggleContextFilter, toggleNewQuarterModal } from '../../store/slices/ui';
-import { Badge, Box, Button, Chip, IconButton, Option, Select, Tooltip } from '@mui/joy';
+import { Badge, Box, Button, Chip, Divider, IconButton, Option, Select, Tooltip } from '@mui/joy';
 import FileOpenRoundedIcon from '@mui/icons-material/FileOpenRounded';
 import { killSystem, showOutputFile, startSystem } from '../../store/slices/thunk';
 import BlockRounded from '@mui/icons-material/BlockRounded';
@@ -25,6 +24,8 @@ import { SystemStatus } from '../../../shared/worker/response';
 import { TimeSchema } from '../../../shared/time';
 import moment from 'moment';
 import { z } from 'zod/v4';
+import NoSourcesCard from './cards/NoSourcesCard';
+import EmptySourceCard from './cards/EmptySourceCard';
 
 /** ------------------------------------------------------------------------- */
 
@@ -57,9 +58,13 @@ function DoneMenu() {
   }, [dispatch]);
 
   return (
-    <Stack spacing={1} width={1}>
+    <Stack spacing={1} width={1} direction="row">
       <Button fullWidth size="lg" color="success" onClick={handleOutput} sx={{ borderRadius: 100 }} startDecorator={<FileOpenRoundedIcon />}>View Output</Button>
-      <Button fullWidth size="sm" variant="soft" color="neutral" onClick={handleRedo} sx={{ borderRadius: 100 }} startDecorator={<UpdateRoundedIcon />}>Redo</Button>
+      <Tooltip title="Redo">
+      <IconButton size="lg" variant="soft" color="neutral" onClick={handleRedo} sx={{ borderRadius: 100 }}>
+        <UpdateRoundedIcon />
+      </IconButton>
+      </Tooltip>
     </Stack>
   );
 }
@@ -277,11 +282,14 @@ function SystemTab() {
           </CircularProgress>
           <SystemMenu />
         </Stack>
-        <AccordionGroup variant="plain" transition="0.2s" size='lg' disableDivider sx={{ gap: 2 }}>
+        <Stack direction="row" spacing={2}>
           <PerformanceCard />
           <DiscrepancyCard />
+          <Divider orientation="vertical"/>
           <ErrorCard />
-        </AccordionGroup>
+          <NoSourcesCard/>
+          <EmptySourceCard/>
+        </Stack>
       </Stack>
     </Stack>
   );

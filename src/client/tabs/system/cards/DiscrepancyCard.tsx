@@ -10,6 +10,7 @@ import Sheet from '@mui/joy/Sheet';
 import { getRunResults } from '../../../store/slices/system';
 import { useAppSelector } from '../../../store/hooks';
 import AnalysisAccordion from '../AnalysisAccordion';
+import { AccordionGroup } from '@mui/joy';
 
 /** ------------------------------------------------------------------------- */
 
@@ -18,31 +19,33 @@ function DiscrepancyCard() {
   if (results == null) return;
 
   return (
-    <AnalysisAccordion title="Discrepancy" color="warning" subtitle="View similarity to expected results." icon={<BiotechIcon />}>
-      {results.discrepancy.toSorted((a, b) => b.take.length - a.take.length).map(r => (
-        <Accordion color="warning" variant="soft" key={r.name}>
-          <AccordionSummary color="warning" variant="soft">
-            <ListItemContent>
-              <Typography level="title-sm" fontFamily="monospace">#{r.name}</Typography>
-            </ListItemContent>
-            <>
-              {r.match !== 0 && <Chip color="neutral">={r.match}</Chip>}
-              {r.take.length !== 0 && <Chip color="success">+{r.take.length}</Chip>}
-              {r.drop.length !== 0 && <Chip color="danger">-{r.drop.length}</Chip>}
-            </>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Sheet variant="outlined" sx={{ overflow: "scroll", p: 2, mt: 1, borderRadius: "md" }}>
-              <Typography fontFamily="monospace" color="success" whiteSpace="pre">
-                {r.take.join("\n")}
-              </Typography>
-              <Typography fontFamily="monospace" color="danger" whiteSpace="pre">
-                {r.drop.join("\n")}
-              </Typography>
-            </Sheet>
-          </AccordionDetails>
-        </Accordion>
-      ))}
+    <AnalysisAccordion disabled={results.discrepancy.length === 0} amount={results.discrepancy.length} title="Discrepancy" color="warning" subtitle="View similarity to expected results." icon={<BiotechIcon />}>
+      <AccordionGroup>
+        {results.discrepancy.toSorted((a, b) => b.take.length - a.take.length).map(r => (
+          <Accordion key={r.name}>
+            <AccordionSummary>
+              <ListItemContent>
+                <Typography level="title-sm" fontFamily="monospace">#{r.name}</Typography>
+              </ListItemContent>
+              <>
+                {r.match !== 0 && <Chip color="neutral">={r.match}</Chip>}
+                {r.take.length !== 0 && <Chip color="success">+{r.take.length}</Chip>}
+                {r.drop.length !== 0 && <Chip color="danger">-{r.drop.length}</Chip>}
+              </>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Sheet variant="outlined" sx={{ overflow: "scroll", p: 2, mt: 1, borderRadius: "md" }}>
+                <Typography fontFamily="monospace" color="success" whiteSpace="pre">
+                  {r.take.join("\n")}
+                </Typography>
+                <Typography fontFamily="monospace" color="danger" whiteSpace="pre">
+                  {r.drop.join("\n")}
+                </Typography>
+              </Sheet>
+            </AccordionDetails>
+          </Accordion>
+        ))}
+      </AccordionGroup>
     </AnalysisAccordion>
   );
 }
