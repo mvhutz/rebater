@@ -10,13 +10,16 @@ import { TransformerFile } from '../../../shared/state/stores/TransformerStore';
 /** ------------------------------------------------------------------------- */
 
 export interface SettingsDraft {
-  time: TimeData;
+  directory?: string;
+  testing: { enabled: boolean; compare_all: boolean; };
+}
+
+export interface ContextDraft {
+  time?: TimeData;
   transformers: {
     tags: { include: string[]; };
     names: { include: string[]; };
   };
-  directory?: string;
-  testing: { enabled: boolean; compare_all: boolean; };
 }
 
 /** ------------------------------------------------------------------------- */
@@ -29,6 +32,7 @@ interface SystemState {
   questions: Reply<Question[]>;
   draft: {
     settings: SettingsDraft;
+    context: ContextDraft;
   }
 }
 
@@ -40,12 +44,13 @@ const initialState: SystemState = {
   questions: bad("Not loaded!"),
   draft: {
     settings: {
-      time: { year: 9999, quarter: 1 },
+      testing: { enabled: false, compare_all: false }
+    },
+    context: {
       transformers: {
         tags: { include: [] },
         names: { include: [] }
       },
-      testing: { enabled: false, compare_all: false }
     }
   }
 }
@@ -66,7 +71,7 @@ export const SystemSlice = createSlice({
       state.draft.settings.directory = action.payload;
     },
     setDraftSystemTime: (state, action: PayloadAction<TimeData>) => {
-      state.draft.settings.time = action.payload ?? undefined;
+      state.draft.context.time = action.payload ?? undefined;
     },
     setDraftSystemTesting: (state, action: PayloadAction<boolean>) => {
       state.draft.settings.testing.enabled = action.payload;
@@ -75,10 +80,10 @@ export const SystemSlice = createSlice({
       state.draft.settings.testing.compare_all = action.payload;
     },
     setDraftTransformersNames: (state, action: PayloadAction<Maybe<string[]>>) => {
-      state.draft.settings.transformers.names.include = action.payload ?? [];
+      state.draft.context.transformers.names.include = action.payload ?? [];
     },
     setDraftTransformersTags: (state, action: PayloadAction<Maybe<string[]>>) => {
-      state.draft.settings.transformers.tags.include = action.payload ?? [];
+      state.draft.context.transformers.tags.include = action.payload ?? [];
     },
     deleteQuestion: (state, action: PayloadAction<Question>) => {
       if (!state.questions.ok) return;
@@ -158,10 +163,10 @@ export const {
 export const getSystemStatus = (state: RootState) => state.system.status;
 export const getTrueSettings = (state: RootState) => state.system.settings;
 export const getDraftSettings = (state: RootState) => state.system.draft.settings;
-export const getDraftTime = (state: RootState) => state.system.draft.settings.time;
+export const getDraftTime = (state: RootState) => state.system.draft.context.time;
 export const getDraftTesting = (state: RootState) => state.system.draft.settings.testing;
 export const getDraftCompareAll = (state: RootState) => state.system.draft.settings.testing.compare_all;
-export const getDraftTransformersSettings = (state: RootState) => state.system.draft.settings.transformers;
+export const getDraftTransformersSettings = (state: RootState) => state.system.draft.context.transformers;
 export const getTransformers = (state: RootState) => state.system.transformers;
 export const getSystemQuestions = (state: RootState) => state.system.questions;
 export const getSystemQuestionCount = (state: RootState) => state.system.questions.ok ? state.system.questions.data.length : 0;

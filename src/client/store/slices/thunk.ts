@@ -47,8 +47,23 @@ export const pullQuestions = createAsyncThunk(
 
 export const startSystem = createAsyncThunk(
   'system/start',
-  async () => {
-    return await invoke.runProgram({});
+  async (_, { getState }) => {
+    const { system } = getState() as RootState;
+    const { time } = system.draft.context;
+    if (time == null) return bad("No quarter selected!");
+
+    return await invoke.runProgram({ ...system.draft.context, time });
+  }
+);
+
+export const showOutputFile = createAsyncThunk(
+  'system/showOutput',
+  async (_, { getState }) => {
+    const { system } = getState() as RootState;
+    const { time } = system.draft.context;
+    if (time == null) return bad("No quarter selected!");
+
+    return await invoke.openOutputFile({ ...system.draft.context, time });
   }
 );
 

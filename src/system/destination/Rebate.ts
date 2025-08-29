@@ -31,7 +31,7 @@ export class RebateDestinationOperator implements DestinationOperator {
     // Send to the destination store.
     input.state.destinations.mark({
       item: {
-        quarter: input.settings.time,
+        quarter: input.context.time,
         name: `${this.name}.csv`
       },
       data: good(rebates)

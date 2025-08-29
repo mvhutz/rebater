@@ -7,7 +7,7 @@ import Typography from '@mui/joy/Typography';
 import NightsStayRoundedIcon from '@mui/icons-material/NightsStayRounded';
 import DoneRoundedIcon from '@mui/icons-material/DoneRounded';
 import PriorityHighRoundedIcon from '@mui/icons-material/PriorityHighRounded';
-import { getSystemProgress, getSystemStatus, getSystemStatusName, isSystemActive, isSystemLoading } from '../../store/slices/system';
+import { getDraftTime, getDraftTransformersSettings, getQuarterList, getSystemProgress, getSystemStatus, getSystemStatusName, getTransformers, isSystemLoading, setDraftSystemTime, setDraftTransformersNames, setDraftTransformersTags, setStatus } from '../../store/slices/system';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { type SvgIconOwnProps } from '@mui/material';
 import AccordionGroup from '@mui/joy/AccordionGroup';
@@ -16,13 +16,16 @@ import ErrorCard from './ErrorCard';
 import DiscrepancyTable from './DiscrepancyTable';
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded';
 import TabMenu from '../../view/TabMenu';
-import { getDisplayTab, pushMessage } from '../../store/slices/ui';
-import { Button, IconButton } from '@mui/joy';
+import { getContextFilter, getDisplayTab, pushMessage, toggleContextFilter, toggleNewQuarterModal } from '../../store/slices/ui';
+import { Box, Button, Chip, IconButton, Option, Select, Tooltip } from '@mui/joy';
 import FileOpenRoundedIcon from '@mui/icons-material/FileOpenRounded';
-import { killSystem, pushSystemSettings, startSystem } from '../../store/slices/thunk';
+import { killSystem, showOutputFile, startSystem } from '../../store/slices/thunk';
 import BlockRounded from '@mui/icons-material/BlockRounded';
-import { ClearRounded, PlayArrowRounded } from '@mui/icons-material';
+import { AddRounded, ClearRounded, PlayArrowRounded, TuneRounded } from '@mui/icons-material';
 import { SystemStatus } from '../../../shared/worker/response';
+import { TimeSchema } from '../../../shared/time';
+import moment from 'moment';
+import { z } from 'zod/v4';
 
 /** ------------------------------------------------------------------------- */
 
@@ -43,6 +46,215 @@ function InnerText({ status }: { status: SystemStatus }) {
 
 /** ------------------------------------------------------------------------- */
 
+function DoneMenu() {
+  const dispatch = useAppDispatch();
+
+  const handleOutput = React.useCallback(async () => {
+    await dispatch(showOutputFile());
+  }, [dispatch]);
+
+  const handleRedo = React.useCallback(async () => {
+    dispatch(setStatus({ type: "idle" }));
+  }, [dispatch]);
+
+  return (
+    <Stack spacing={1} width={1}>
+      <Button fullWidth size="lg" color="success" onClick={handleOutput} sx={{ borderRadius: 100 }} startDecorator={<FileOpenRoundedIcon />}>View Output</Button>
+      <Button fullWidth size="sm" variant="soft" color="neutral" onClick={handleRedo} sx={{ borderRadius: 100 }} startDecorator={<UpdateRoundedIcon />}>Redo</Button>
+    </Stack>
+  );
+}
+
+function RunningMenu() {
+  const dispatch = useAppDispatch();
+
+  const handleExit = React.useCallback(async () => {
+    await dispatch(killSystem());
+  }, [dispatch]);
+
+  const handleCancel = React.useCallback(async () => {
+    await invoke.exitProgram({});
+  }, []);
+
+  return (
+    <Stack spacing={1} width={1} direction="row">
+      <IconButton onClick={handleExit} variant="outlined" color="danger" size="lg" sx={{ borderRadius: 100 }}>
+        <ClearRounded />
+      </IconButton>
+      <Button fullWidth size="lg" variant="outlined" color="neutral" onClick={handleCancel} sx={{ borderRadius: 100 }} startDecorator={<BlockRounded />}>
+        Cancel
+      </Button>
+    </Stack>
+  )
+}
+
+function IdleMenu() {
+  const dispatch = useAppDispatch();
+
+  const time = useAppSelector(getDraftTime);
+  const quarters = useAppSelector(getQuarterList);
+  const context_filter = useAppSelector(getContextFilter);
+
+  const handleQuarter = React.useCallback((_: unknown, new_quarter: Maybe<string>) => {
+    if (new_quarter == null) return;
+
+    const new_time = moment(new_quarter, "YYYY-QQ");
+    const time_reply = TimeSchema.safeParse({
+      year: new_time.year(),
+      quarter: new_time.quarter(),
+    });
+
+    if (!time_reply.success) {
+      dispatch(pushMessage({ type: "error", text: z.prettifyError(time_reply.error) }));
+      return;
+    }
+
+    dispatch(setDraftSystemTime(time_reply.data));
+  }, [dispatch]);
+
+  const handleNewQuarter = React.useCallback(() => {
+    dispatch(toggleNewQuarterModal());
+  }, [dispatch]);
+
+  const handleRun = React.useCallback(async () => {
+    await dispatch(startSystem());
+  }, [dispatch]);
+
+  const handleContextFilter = React.useCallback(() => {
+    dispatch(toggleContextFilter());
+  }, [dispatch]);
+
+  const transformers_reply = useAppSelector(getTransformers);
+  const {
+    names: { include: selected_names = [] },
+    tags: { include: selected_tags = [] }
+  } = useAppSelector(getDraftTransformersSettings);
+
+  const handleIncludeNames = React.useCallback((_: unknown, selected: string[]) => {
+    dispatch(setDraftTransformersNames(selected));
+  }, [dispatch]);
+
+  const handleIncludeTags = React.useCallback((_: unknown, selected: string[]) => {
+    dispatch(setDraftTransformersTags(selected));
+  }, [dispatch]);
+
+  const all_tags = React.useMemo(() => {
+    if (!transformers_reply.ok) return [];
+    const { data: transformers } = transformers_reply;
+    const tags = transformers
+      .map(t => t.data)
+      .filter(t => t.ok)
+      .map(t => t.data.type === "advanced" ? t.data.tags : [t.data.group])
+      .flat();
+
+    return new Set(tags);
+  }, [transformers_reply]);
+
+  const current_quarter = time == null ? null : `${time.year}-Q${time.quarter}`;
+
+  return (
+    <Stack spacing={2} width={1} direction="column">
+      <Stack spacing={1} width={1}>
+        <Stack direction="row" spacing={0.5}>
+          <Select
+            value={current_quarter}
+            disabled={quarters.length === 0}
+            sx={{ flex: 1, borderRadius: 18 }}
+            placeholder={"No quarter!"}
+            indicator={null}
+            endDecorator={
+              <Tooltip title="Add New Quarter">
+                <IconButton color="neutral" variant="soft" onClick={handleNewQuarter}>
+                  <AddRounded fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            }
+            onChange={handleQuarter}>
+            {quarters.map(q => (
+              <Option value={`${q.year}-Q${q.quarter}`} key={`${q.year}-Q${q.quarter}`}>{q.year}-Q{q.quarter}</Option>
+            ))}
+          </Select>
+          <Tooltip title="Toggle Filters">
+            <IconButton onClick={handleContextFilter} sx={{ borderRadius: 18 }} variant={context_filter ? "soft" : "outlined"}>
+              <TuneRounded fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Stack>
+        {context_filter && <Stack spacing={1}>
+          <Stack spacing={0.5}>
+            <Select
+              multiple
+              value={selected_names}
+              onChange={handleIncludeNames}
+              disabled={!transformers_reply.ok}
+              sx={{ flex: 1, borderRadius: 18 }}
+              variant="soft"
+              placeholder={<Typography color="neutral">All Transformers</Typography>}
+              renderValue={s => `${s.length} Transformers`}
+            >
+              {transformers_reply.ok &&
+                transformers_reply.data.map(t => t.data.ok && (
+                  <Option value={t.data.data.name} key={t.data.data.name}>{t.data.data.name}</Option>
+                ))
+              }
+            </Select>
+            {selected_names.length > 0 &&
+              <Box sx={{ display: 'flex', gap: '0.125rem' }} flexWrap="wrap">
+                {selected_names.map((selectedOption) => (
+                  <Chip variant="soft" color="primary" size='sm'>
+                    {selectedOption}
+                  </Chip>
+                ))}
+              </Box>
+            }
+          </Stack>
+          <Stack spacing={0.5}>
+            <Select
+              multiple
+              value={selected_tags}
+              onChange={handleIncludeTags}
+              renderValue={s => `${s.length} Tags`}
+              sx={{ flex: 1, borderRadius: 18 }}
+              variant="soft"
+              placeholder={<Typography color="neutral">Any Tags</Typography>}
+            >
+              {[...all_tags].map(t => (
+                <Option value={t} key={t}>{t}</Option>
+              ))}
+            </Select>
+            {selected_tags.length > 0 &&
+              <Box sx={{ display: 'flex', gap: '0.125rem' }} flexWrap="wrap">
+                {selected_tags.map((selectedOption) => (
+                  <Chip variant="soft" color="primary" size='sm'>
+                    {selectedOption}
+                  </Chip>
+                ))}
+              </Box>
+            }
+          </Stack>
+        </Stack>
+        }
+      </Stack>
+      <Button disabled={time == null} fullWidth size="lg" onClick={handleRun} sx={{ borderRadius: 100 }} startDecorator={<PlayArrowRounded />}>Start</Button>
+    </Stack>
+  )
+}
+
+function SystemMenu() {
+  const status = useAppSelector(getSystemStatus);
+
+  switch (status.type) {
+    case 'idle':
+      return <IdleMenu />;
+    case 'done': case 'error':
+      return <DoneMenu />;
+    case 'loading': case 'running':
+      return <RunningMenu />;
+  }
+}
+
+/** ------------------------------------------------------------------------- */
+
 const { invoke } = window.api;
 
 function SystemTab() {
@@ -54,29 +266,6 @@ function SystemTab() {
 
   const results = status.type === "done" ? status.results : null;
 
-  const dispatch = useAppDispatch();
-  const active = useAppSelector(isSystemActive);
-  
-  const handleRun = React.useCallback(async () => {
-    await dispatch(pushSystemSettings());
-    await dispatch(startSystem());
-  }, [dispatch]);
-
-  const handleExit = React.useCallback(async () => {
-    await dispatch(killSystem());
-  }, [dispatch]);
-
-  const handleCancel = React.useCallback(async () => {
-    await invoke.exitProgram({});
-  }, []);
-
-  const handleOutput = React.useCallback(async () => {
-    const reply = await invoke.openOutputFile();
-    if (!reply.ok) {
-      dispatch(pushMessage({ type: "error", text: reply.reason }));
-    }
-  }, [dispatch]);
-
   return (
     <Stack padding={0} display={display}>
       <TabMenu>
@@ -84,23 +273,11 @@ function SystemTab() {
       </TabMenu>
       <Stack padding={2}>
         <Stack direction="column" gap={2} flexGrow={1} height="75vh" alignItems="center" position="relative">
-          <Stack alignItems="center" flex={1} justifyContent="center" spacing={6}>
+          <Stack flex={1} spacing={6} pt={5}>
             <CircularProgress color="primary" variant="soft" value={progress} determinate={!loading} size="lg" sx={{ '--CircularProgress-size': '200px' }}>
               <InnerText status={status} />
             </CircularProgress>
-            { status.type === "done"
-              ? <Stack spacing={1} width={1}>
-                <Button fullWidth size="lg" color="success" onClick={handleOutput} sx={{ borderRadius: 100 }} startDecorator={<FileOpenRoundedIcon/>}>View Output</Button>
-                <Button fullWidth size="sm" variant="soft" color="neutral" onClick={handleRun} sx={{ borderRadius: 100 }} startDecorator={<UpdateRoundedIcon/>}>Redo</Button>
-              </Stack>
-              : active
-                ? (
-                  <Stack spacing={1} width={1} direction="row">
-                    <IconButton onClick={handleExit} variant="outlined" color="danger" size="lg" sx={{ borderRadius: 100 }}><ClearRounded/></IconButton>
-                    <Button fullWidth size="lg" variant="outlined" color="neutral" onClick={handleCancel} sx={{ borderRadius: 100 }} startDecorator={<BlockRounded/>}>Cancel</Button>
-                  </Stack>
-                ) : <Button fullWidth size="lg" onClick={handleRun} sx={{ borderRadius: 100 }} startDecorator={<PlayArrowRounded/>}>Start</Button>
-            }
+            <SystemMenu />
           </Stack>
         </Stack>
         <AccordionGroup variant="plain" transition="0.2s" size='lg' disableDivider sx={{ gap: 2 }}>

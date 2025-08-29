@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { RootState } from '..';
-import { pullAllQuarters, pullTransformers, pushSystemSettings } from './thunk';
+import { pullAllQuarters, pullTransformers, pushSystemSettings, showOutputFile } from './thunk';
 
 /** ------------------------------------------------------------------------- */
 
@@ -18,6 +18,7 @@ interface UIState {
     settings: boolean;
     new_quarter_modal: boolean;
     new_transformer_modal: boolean;
+    context_filter: boolean;
   },
   tab: Tab,
 }
@@ -29,6 +30,7 @@ const initialState: UIState = {
     settings: true,
     new_quarter_modal: false,
     new_transformer_modal: false,
+    context_filter: false,
   },
   tab: "system"
 }
@@ -56,6 +58,9 @@ export const UISlice = createSlice({
     },
     toggleNewTransformerModal(state) {
       state.show.new_transformer_modal = !state.show.new_transformer_modal;
+    },
+    toggleContextFilter(state) {
+      state.show.context_filter = !state.show.context_filter;
     },
     setTab(state, action: PayloadAction<Tab>) {
       state.tab = action.payload;
@@ -85,6 +90,10 @@ export const UISlice = createSlice({
         if (payload.ok) return;
         state.messages.push({ type: "error", text: payload.reason });
       })
+      .addCase(showOutputFile.fulfilled, (state, { payload }) => {
+        if (payload.ok) return;
+        state.messages.push({ type: "error", text: payload.reason });
+      })
   },
 });
 
@@ -92,12 +101,13 @@ export const UISlice = createSlice({
 
 export const {
   popMessage, pushMessage, toggleTabs, toggleSettings, setTab,
-  toggleNewQuarterModal, toggleNewTransformerModal
+  toggleNewQuarterModal, toggleNewTransformerModal, toggleContextFilter
 } = UISlice.actions
 
 export const getLatestMessage = (state: RootState) => state.ui.messages.at(-1);
 export const getVisible = (state: RootState) => state.ui.show;
 export const getTab = (state: RootState) => state.ui.tab;
 export const getNewQuarterModal = (state: RootState) => state.ui.show.new_quarter_modal;
+export const getContextFilter = (state: RootState) => state.ui.show.context_filter;
 export const getNewTransformerModal = (state: RootState) => state.ui.show.new_transformer_modal;
 export const getDisplayTab = (name: Tab) => (state: RootState) => state.ui.tab === name ? "initial" : "none";

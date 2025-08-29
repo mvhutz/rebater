@@ -35,12 +35,12 @@ export class MetaRow implements RowOperator {
   }
 
   static getQuarterLastDay(input: RowInput): string {
-    const { year, quarter } = input.settings.time;
+    const { year, quarter } = input.context.time;
     return moment().year(year).quarter(quarter).endOf("quarter").format("MM/DD/YYYY");
   }
 
   static getQuarterNumber(input: RowInput): string {
-    return input.settings.time.quarter.toString();
+    return input.context.time.quarter.toString();
   }
 
   static getRowSource(input: RowInput) {

@@ -91,7 +91,7 @@ export class ExcelSourceOperator implements SourceOperator {
     const files = input.state.sources.getEntries()
       .filter(e =>
         e.item.group === this.group
-          && input.settings.time.is(e.item.quarter)
+          && input.context.time.is(e.item.quarter)
           && ExcelSourceOperator.VALID_EXTENSIONS.has(path.extname(e.item.name))
           && path.matchesGlob(e.item.name, this.file));
     

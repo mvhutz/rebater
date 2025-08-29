@@ -1,12 +1,12 @@
 import { Table } from "../information/Table";
 import { State } from "../../shared/state";
-import { Settings } from "../../shared/settings";
+import { Context } from "../../shared/context";
 
 /** ------------------------------------------------------------------------- */
 
 export interface SourceInput {
   state: State;
-  settings: Settings;
+  context: Context;
 }
 
 /**

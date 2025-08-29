@@ -5,7 +5,7 @@ import { Transformer } from "./Transformer";
 import { AdvancedTransformerData, DestinationData, SourceData, TableData, TableSchema } from "../../shared/transformer/advanced";
 import { SimpleTransformerData } from "../../shared/transformer/simple";
 import { State } from "../../shared/state";
-import { Settings } from "../../shared/settings";
+import { Context } from "../../shared/context";
 
 /** ------------------------------------------------------------------------- */
 
@@ -204,8 +204,8 @@ export class SimpleTransformer implements Transformer {
      * @param runner The context to run in.
      * @returns Information as to how well the transformer ran.
      */
-  public run(state: State, settings: Settings): TransformerResult {
+  public run(state: State, context: Context): TransformerResult {
     const transformer = this.buildTransformer();
-    return transformer.run(state, settings);
+    return transformer.run(state, context);
   };
 }

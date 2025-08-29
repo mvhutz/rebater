@@ -4,6 +4,7 @@ import Stack from '@mui/joy/Stack';
 import Divider from '@mui/joy/Divider';
 import AlertPopup from './modals/AlertPopup';
 import SettingsPane from './sidebar/SettingsPane';
+import NewQuarterModal from './modals/NewQuarterModal';
 
 /** ------------------------------------------------------------------------- */
 
@@ -18,6 +19,7 @@ function App() {
       <Divider />
       <SettingsPane />
       <AlertPopup />
+      <NewQuarterModal />
     </Stack>
   );
 }

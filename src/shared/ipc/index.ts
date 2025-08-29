@@ -10,6 +10,7 @@ import { openDir } from "./system/openDir";
 import { ignore } from "./system/ignore";
 import { TransformerData } from "../transformer";
 import { TransformerFile } from "../state/stores/TransformerStore";
+import { ContextData } from "../context";
 
 /** ------------------------------------------------------------------------- */
 
@@ -21,7 +22,7 @@ const IPC = createInterprocess({
     chooseDir,
     openDir,
     getSettings: ignore<unknown, SettingsData>,
-    openOutputFile: ignore<undefined, string>,
+    openOutputFile: ignore<ContextData>,
     getAllQuarters,
     createQuarter,
     getTransformers: ignore<undefined, TransformerFile[]>,
@@ -35,7 +36,7 @@ const IPC = createInterprocess({
     ignoreQuestion: ignore<Question>,
 
     // Those that do.
-    runProgram: ignore,
+    runProgram: ignore<ContextData>,
     cancelProgram: ignore,
     ignoreAll: ignore,
     exitProgram: ignore

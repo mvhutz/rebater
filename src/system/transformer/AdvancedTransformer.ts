@@ -41,7 +41,7 @@ import { SelectTable } from "../table/Select";
 import { SetTable } from "../table/Set";
 import { TrimTable } from "../table/Trim";
 import { State } from "../../shared/state";
-import { Settings } from "../../shared/settings";
+import { Context } from "../../shared/context";
 
 /** ------------------------------------------------------------------------- */
 
@@ -167,11 +167,11 @@ export class AdvancedTransformer implements Transformer {
    * @param row The row being extracted.
    * @returns The extracted properties.
    */
-  private runRow(state: State, row: Row, table: Table, settings: Settings) {
+  private runRow(state: State, row: Row, table: Table, context: Context) {
     const result = new Array<string>();
 
     for (const { definition } of this.properties) {
-      const output = RowOperator.runMany(definition, { row, state, table, settings });
+      const output = RowOperator.runMany(definition, { row, state, table, context });
       if (output == null) {
         return null;
       }
@@ -182,32 +182,32 @@ export class AdvancedTransformer implements Transformer {
     return new Row(result, row.source);
   }
 
-  public run(state: State, settings: Settings): TransformerResult {
+  public run(state: State, context: Context): TransformerResult {
     const start = performance.now();
 
     // 1. Pull sources.
-    const source_data = this.sources.map(s => s.run({ state, settings })).flat(1);
+    const source_data = this.sources.map(s => s.run({ state, context })).flat(1);
     if (source_data.length === 0) {
       const end = performance.now();
       return { start, end, name: this.name };
     }
 
     // 2. Pre-process data.
-    const preprocessed_data = source_data.map(table => TableOperator.runMany(this.preprocess, { table, state, settings }));
+    const preprocessed_data = source_data.map(table => TableOperator.runMany(this.preprocess, { table, state, context }));
     const total = Table.stack(...preprocessed_data);
 
     // 3. Extract properties.
-    const processed = total.update(r => this.runRow(state, r, total, settings));
+    const processed = total.update(r => this.runRow(state, r, total, context));
 
     const header = new Row(this.properties.map(p => p.name), "<header>");
     const final = processed.prepend(header);
 
     // 4. Post-process data.
-    const postprocessed_data = TableOperator.runMany(this.postprocess, { table: final, state, settings });
+    const postprocessed_data = TableOperator.runMany(this.postprocess, { table: final, state, context });
 
     // 5. Send to destinations.
     for (const destination of this.destinations) {
-      destination.run({ table: postprocessed_data, state, settings });
+      destination.run({ table: postprocessed_data, state, context });
     }
 
     const end = performance.now();
