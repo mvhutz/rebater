@@ -269,18 +269,16 @@ function SystemTab() {
   const results = status.type === "done" ? status.results : null;
 
   return (
-    <Stack padding={0} display={display}>
+    <Stack padding={0} display={display} overflow="scroll">
       <TabMenu>
         <Typography level="body-lg" pt={0.5} color="neutral"><i>System:</i> {messageText}</Typography>
       </TabMenu>
-      <Stack padding={4}>
-        <Stack direction="column" gap={2} flexGrow={1} alignItems="center" position="relative">
-          <Stack flex={1} spacing={6} pt={5}>
-            <CircularProgress color="primary" variant="soft" value={progress} determinate={!loading} size="lg" sx={{ '--CircularProgress-size': '200px' }}>
-              <InnerText status={status} />
-            </CircularProgress>
-            <SystemMenu />
-          </Stack>
+      <Stack padding={4} spacing={4} alignItems="center">
+        <Stack direction="column" gap={2} spacing={6} pt={5} flexGrow={1} position="relative">
+          <CircularProgress color="primary" variant="soft" value={progress} determinate={!loading} size="lg" sx={{ '--CircularProgress-size': '200px' }}>
+            <InnerText status={status} />
+          </CircularProgress>
+          <SystemMenu />
         </Stack>
         <AccordionGroup variant="plain" transition="0.2s" size='lg' disableDivider sx={{ gap: 2 }}>
           {results && <SupplierResultsTable data={results} />}
