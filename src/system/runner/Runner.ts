@@ -1,6 +1,6 @@
 import { getPartition, getRebateHash } from "../util";
 import EventEmitter from "events";
-import { DiscrepencyResult, Rebate, RunResults, SystemStatus } from "../../shared/worker/response";
+import { Rebate, SystemStatus } from "../../shared/worker/response";
 import z from "zod/v4";
 import { RebateSet } from "./RebateSet";
 import { Transformer } from "../transformer/Transformer";
@@ -8,6 +8,7 @@ import { State } from "../../shared/state";
 import { bad, good } from "../../shared/reply";
 import { Settings } from "../../shared/settings";
 import { Context } from "../../shared/context";
+import { DiscrepencyResult, getEmptyStats } from "../../shared/stats";
 
 /** ------------------------------------------------------------------------- */
 
@@ -43,7 +44,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
    * @param expected The expected results.
    * @returns The differences.
    */
-  private static compareRebates(actual: Rebate[], expected: Rebate[]): Omit<DiscrepencyResult, "name"> {
+  private static compareRebates(supplier: string, actual: Rebate[], expected: Rebate[]): DiscrepencyResult {
     const actual_set = new RebateSet(actual);
     const expected_set = new RebateSet(expected);
 
@@ -51,6 +52,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     expected.forEach(r => actual_set.take(r));
 
     return {
+      name: supplier,
       match: actual.length - actual_set.values().length,
       drop: actual_set.values().map(getRebateHash),
       take: expected_set.values().map(getRebateHash),
@@ -80,8 +82,8 @@ export class Runner extends EventEmitter<RunnerEvents> {
 
       const expected_partition_bucket = expected_partitions.get(member_id) ?? [];
       const actual_partition_bucket = actual_partitions.get(member_id) ?? [];
-      const { drop, take, match } = Runner.compareRebates(actual_partition_bucket, expected_partition_bucket);
-      results.push({ name: member_id, drop, take, match });
+      const result = Runner.compareRebates(member_id, actual_partition_bucket, expected_partition_bucket);
+      results.push(result);
     }
 
     return results;
@@ -134,10 +136,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
    * if needed.
    */
   private async* iterator(): AsyncIterableIterator<SystemStatus> {
-    const results: RunResults = {
-      config: [],
-      discrepency: undefined,
-    }
+    const stats = getEmptyStats();
 
     // Load stores.
     yield { type: "loading", message: "Loading sources..." };
@@ -154,7 +153,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
       const details = transformer.getDetails();
       yield { type: "running", progress: i / transformers.length };
       try {
-        results.config.push(transformer.run(this.state, this.context));
+        transformer.run(this.state, this.context, stats);
       } catch (error) {
         const start = `While running ${details.name}:\n\n`;
         if (error instanceof z.ZodError) {
@@ -173,7 +172,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     // Optionally, create a discrepancy report.
     if (this.settings.data.testing.enabled) {
       yield { type: "loading", message: "Scoring accuracy..." };
-      results.discrepency = await this.compareAllRebates();
+      stats.discrepancy = await this.compareAllRebates();
     }
 
     // Create the output file.
@@ -195,7 +194,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     yield { type: "loading", message: "Saving data..." };
     await this.reconnect();
     
-    yield { type: "done", results: results };
+    yield { type: "done", results: stats };
   }
 
   /**

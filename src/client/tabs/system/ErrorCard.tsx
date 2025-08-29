@@ -7,15 +7,16 @@ import Stack from '@mui/joy/Stack';
 import Typography from '@mui/joy/Typography';
 import ErrorIcon from '@mui/icons-material/Error';
 import React from 'react';
+import { useAppSelector } from '../../store/hooks';
+import { getRunError } from '../../store/slices/system';
 
 /** ------------------------------------------------------------------------- */
 
-interface ErrorCardProps {
-  message?: string;
-}
+function ErrorCard() {
+  const results = useAppSelector(getRunError);
+  if (!results.ok) return;
 
-function ErrorCard(props: ErrorCardProps) {
-  const { message = "We don't seen to have any information on this error." } = props;
+  const { data: message = "We don't seen to have any information on this error." } = results;
   return (
     <Accordion variant="soft" color="danger" sx={{ borderRadius: 'lg', overflow: "hidden" }}>
       <AccordionSummary variant="soft" color="danger" sx={{ borderRadius: 'lg', overflow: "hidden" }}>

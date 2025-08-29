@@ -7,16 +7,14 @@ import Table from '@mui/joy/Table';
 import Typography from '@mui/joy/Typography';
 import SpeedIcon from '@mui/icons-material/Speed';
 import React from 'react';
-import { RunResults } from '../../../shared/worker/response';
+import { useAppSelector } from '../../store/hooks';
+import { getRunResults } from '../../store/slices/system';
 
 /** ------------------------------------------------------------------------- */
 
-interface SupplerResultsTableProps {
-  data: RunResults;
-}
-
-function SupplerResultsTable(props: SupplerResultsTableProps) {
-  const { data } = props;
+function SupplerResultsTable() {
+  const results = useAppSelector(getRunResults);
+  if (results == null) return;
 
   return (
     <Accordion variant="soft" color="success" sx={{ borderRadius: 'lg', overflow: "hidden" }}>
@@ -38,7 +36,7 @@ function SupplerResultsTable(props: SupplerResultsTableProps) {
             </tr>
           </thead>
           <tbody>
-            {data.config.map(r => <tr key={r.name}>
+            {results.performance.map(r => <tr key={r.name}>
               <td>{r.name}</td>
               <td>{Math.round(r.end - r.start)}</td>
             </tr>)}

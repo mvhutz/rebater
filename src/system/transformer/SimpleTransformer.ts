@@ -1,11 +1,11 @@
 import z from "zod/v4";
 import { AdvancedTransformer } from "./AdvancedTransformer";
-import { TransformerResult } from "../../shared/worker/response";
 import { Transformer } from "./Transformer";
 import { AdvancedTransformerData, DestinationData, SourceData, TableData, TableSchema } from "../../shared/transformer/advanced";
 import { SimpleTransformerData } from "../../shared/transformer/simple";
 import { State } from "../../shared/state";
 import { Context } from "../../shared/context";
+import { StatsData } from "../../shared/stats";
 
 /** ------------------------------------------------------------------------- */
 
@@ -204,8 +204,8 @@ export class SimpleTransformer implements Transformer {
      * @param runner The context to run in.
      * @returns Information as to how well the transformer ran.
      */
-  public run(state: State, context: Context): TransformerResult {
+  public run(state: State, context: Context, stats: StatsData) {
     const transformer = this.buildTransformer();
-    return transformer.run(state, context);
+    transformer.run(state, context, stats);
   };
 }

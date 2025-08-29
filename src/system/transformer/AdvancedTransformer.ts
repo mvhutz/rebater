@@ -1,5 +1,4 @@
 import { DestinationOperator } from "../destination";
-import { TransformerResult } from "../../shared/worker/response";
 import { Row, Table } from "../information/Table";
 import { Transformer } from "./Transformer";
 import { AdvancedTransformerData, DestinationData, RowData, SourceData, TableData } from "../../shared/transformer/advanced";
@@ -42,6 +41,7 @@ import { SetTable } from "../table/Set";
 import { TrimTable } from "../table/Trim";
 import { State } from "../../shared/state";
 import { Context } from "../../shared/context";
+import { StatsData } from "../../shared/stats";
 
 /** ------------------------------------------------------------------------- */
 
@@ -182,14 +182,14 @@ export class AdvancedTransformer implements Transformer {
     return new Row(result, row.source);
   }
 
-  public run(state: State, context: Context): TransformerResult {
+  public run(state: State, context: Context, stats: StatsData): void {
     const start = performance.now();
 
     // 1. Pull sources.
     const source_data = this.sources.map(s => s.run({ state, context })).flat(1);
     if (source_data.length === 0) {
       const end = performance.now();
-      return { start, end, name: this.name };
+      stats.performance.push({ start, end, name: this.name });
     }
 
     // 2. Pre-process data.
@@ -211,6 +211,6 @@ export class AdvancedTransformer implements Transformer {
     }
 
     const end = performance.now();
-    return { start, end, name: this.name };
+    stats.performance.push({ start, end, name: this.name });
   }
 }

@@ -266,8 +266,6 @@ function SystemTab() {
   const loading = useAppSelector(isSystemLoading);
   const display = useAppSelector(getDisplayTab("system"));
 
-  const results = status.type === "done" ? status.results : null;
-
   return (
     <Stack padding={0} display={display} overflow="scroll">
       <TabMenu>
@@ -281,9 +279,9 @@ function SystemTab() {
           <SystemMenu />
         </Stack>
         <AccordionGroup variant="plain" transition="0.2s" size='lg' disableDivider sx={{ gap: 2 }}>
-          {results && <SupplierResultsTable data={results} />}
-          {(results?.discrepency != null) && <DiscrepancyTable data={results.discrepency} />}
-          {status.type === "error" && <ErrorCard message={status.message} />}
+          <SupplierResultsTable />
+          <DiscrepancyTable />
+          <ErrorCard />
         </AccordionGroup>
       </Stack>
     </Stack>

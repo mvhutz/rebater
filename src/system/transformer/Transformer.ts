@@ -1,4 +1,3 @@
-import { TransformerResult } from "../../shared/worker/response";
 import { AdvancedTransformerData } from "../../shared/transformer/advanced";
 import { SimpleTransformerData } from "../../shared/transformer/simple";
 import assert from "node:assert";
@@ -7,6 +6,7 @@ import { AdvancedTransformer } from "./AdvancedTransformer";
 import { SimpleTransformer } from "./SimpleTransformer";
 import { State } from "../../shared/state";
 import { Context } from "../../shared/context";
+import { StatsData } from "../../shared/stats";
 
 /** ------------------------------------------------------------------------- */
 
@@ -41,7 +41,7 @@ export abstract class Transformer {
    * @param runner The context to run in.
    * @returns Information as to how well the transformer ran.
    */
-  public abstract run(state: State, context: Context): TransformerResult;
+  public abstract run(state: State, context: Context, stats: StatsData): void;
 
   public abstract getDetails(): { name: string, tags: string[] };
 

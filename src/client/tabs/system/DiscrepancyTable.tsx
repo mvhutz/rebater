@@ -9,16 +9,14 @@ import React from 'react';
 import AccordionGroup from '@mui/joy/AccordionGroup';
 import Chip from '@mui/joy/Chip';
 import Sheet from '@mui/joy/Sheet';
-import { DiscrepencyResult } from '../../../shared/worker/response';
+import { getRunResults } from '../../store/slices/system';
+import { useAppSelector } from '../../store/hooks';
 
 /** ------------------------------------------------------------------------- */
 
-interface DiscrepancyTableProps {
-  data: DiscrepencyResult[];
-}
-
-function DiscrepancyTable(props: DiscrepancyTableProps) {
-  const { data } = props;
+function DiscrepancyTable() {
+  const results = useAppSelector(getRunResults);
+  if (results == null) return;
 
   return (
     <Accordion variant="soft" color="warning" sx={{ borderRadius: 'lg', overflow: "hidden" }}>
@@ -33,7 +31,7 @@ function DiscrepancyTable(props: DiscrepancyTableProps) {
       </AccordionSummary>
       <AccordionDetails color="warning" variant="soft">
         <AccordionGroup size='sm' color="warning" variant="soft">
-          {data.toSorted((a, b) => b.take.length - a.take.length).map(r => (
+          {results.discrepancy.toSorted((a, b) => b.take.length - a.take.length).map(r => (
             <Accordion color="warning" variant="soft" key={r.name}>
               <AccordionSummary color="warning" variant="soft">
                 <ListItemContent>
