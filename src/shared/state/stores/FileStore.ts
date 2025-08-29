@@ -49,17 +49,21 @@ export abstract class FileStore<Data, Item> {
   }
 
   public async pull(item: Item): Promise<Reply<Data>> {
-    const file = this.getFileFromItem(item);
-    if (!file.ok) return file;
+    try {
+      const file = this.getFileFromItem(item);
+      if (!file.ok) return file;
 
-    const entry = this.entries.get(file.data);
-    if (entry == null) return bad(`No entry for ${file.data}`);
+      const entry = this.entries.get(file.data);
+      if (entry == null) return bad(`No entry for ${file.data}`);
     
-    const raw = await readFile(file.data);
-    const data = this.deserialize(raw);
+      const raw = await readFile(file.data);
+      const data = this.deserialize(raw);
 
-    this.entries.set(file.data, { item, data });
-    return data;
+      this.entries.set(file.data, { item, data });
+      return data;
+    } catch (err) {
+      return bad(`${err}`);
+    }
   }
 
   public async pullAll(): Promise<void> {
@@ -80,20 +84,24 @@ export abstract class FileStore<Data, Item> {
   }
 
   private async pushUnsafe(entry: { item: Item, data: Reply<Data> }): Promise<Reply<{ item: Item, data: Reply<Data> }>> {
-    const { item, data } = entry;
-    if (!data.ok) return data;
+    try {
+      const { item, data } = entry;
+      if (!data.ok) return data;
 
-    const file = this.getFileFromItem(item);
-    if (!file.ok) return file;
+      const file = this.getFileFromItem(item);
+      if (!file.ok) return file;
 
-    const serialized = this.serialize(data.data);
-    if (!serialized.ok) return serialized;
+      const serialized = this.serialize(data.data);
+      if (!serialized.ok) return serialized;
 
-    this.entries.set(file.data, entry);
+      this.entries.set(file.data, entry);
 
-    await mkdir(path.dirname(file.data), { recursive: true });
-    await writeFile(file.data, serialized.data);
-    return good(entry);
+      await mkdir(path.dirname(file.data), { recursive: true });
+      await writeFile(file.data, serialized.data);
+      return good(entry);
+    } catch (err) {
+      return bad(`${err}`);
+    }
   }
 
   public async push(entry: { item: Item, data: Reply<Data> }): Promise<Reply<{ item: Item, data: Reply<Data> }>> {
@@ -122,13 +130,17 @@ export abstract class FileStore<Data, Item> {
   }
 
   private async deleteUnsafe(entry: { item: Item, data: Reply<Data> }): Promise<Reply> {
-    const file = this.getFileFromItem(entry.item);
-    if (!file.ok) return file;
+    try {
+      const file = this.getFileFromItem(entry.item);
+      if (!file.ok) return file;
 
-    this.entries.delete(file.data);
+      this.entries.delete(file.data);
 
-    await rm(file.data);
-    return good(undefined);
+      await rm(file.data);
+      return good(undefined);
+    } catch (err) {
+      return bad(`${err}`);
+    }
   }
 
   public async delete(entry: { item: Item, data: Reply<Data> }): Promise<Reply> {
