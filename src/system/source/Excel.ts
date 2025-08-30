@@ -49,7 +49,7 @@ export class ExcelSourceOperator implements SourceOperator {
 
     const parsed = z.array(z.array(z.coerce.string())).parse(unclean);
     const rows = parsed.map(r => new Row(r, filepath));
-    const table = Table.join(rows, { group: this.group, file: name });
+    const table = Table.join(rows, { group: this.group, file: filepath, sheet: name });
 
     if (table.size() === 0) {
       input.stats.issues.empty_sheet.push({
@@ -89,7 +89,7 @@ export class ExcelSourceOperator implements SourceOperator {
       const sheet = workbook.Sheets[sheetName];
       const props = workbook.Workbook?.Sheets?.find(p => p.name === sheetName);
       if (props?.Hidden) continue;
-      assert.ok(sheet != null, `Sheet '${sheetName}' does not exist on workbook!`);
+      assert.ok(sheet != null, `Cannot find sheet '${sheetName}' in workbook!`);
 
       results.push(...this.extractWorkSheet(sheet, sheetName, filepath, input));
     }
@@ -119,7 +119,7 @@ export class ExcelSourceOperator implements SourceOperator {
 
     for (const file of files) {
       const { data: source } = file;
-      assert.ok(source.ok, `Source file '${file.item.name}' not loaded!`);
+      assert.ok(source.ok, `Source file '${file.item.name}' is not loaded! Try refreshing app?`);
 
       const workbook = XLSX.read(source.data, { type: "buffer" });
       results.push(...this.extractWorkBook(workbook, file.item.name, input));

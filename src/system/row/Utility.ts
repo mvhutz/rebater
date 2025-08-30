@@ -32,7 +32,7 @@ export class UtilityRow implements RowOperator {
       group: this.group,
     }, this.take);
     
-    assert.ok(result != null, `Table '${this.table}' has no '${this.match}' for '${input.value}'.`);
+    assert.ok(result != null, `Utility '${this.table}' does not have the '${this.take}' for the '${this.match}' of '${input.value}'.`);
     return result;
   }
 }

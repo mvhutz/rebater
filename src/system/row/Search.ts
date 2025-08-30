@@ -77,7 +77,7 @@ export class SearchRow implements RowOperator {
     }
 
     const hash = JSON.stringify([values, this.take]);
-    assert.ok(!input.state.tracker.has(hash), `You must answer a question to proceed.`);
+    assert.ok(!input.state.tracker.has(hash), 'You must answer a question to proceed.');
 
     let suggestions: { key: string; value: string; group: string; }[] = [];
     if (this.primary) {

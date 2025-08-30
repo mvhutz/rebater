@@ -18,7 +18,7 @@ function EmptyTableCard() {
       amount={empty_sheet.length}
       color="danger"
       title="Blank Source Sheets"
-      subtitle="These sheets were successfully pulled from source files and preprocessed, but no data was extracted. Check if these sheets contain data, and that no data is lost."
+      subtitle="These sheets were successfully pulled from source files and preprocessed, but no data was extracted. If the sheet should contain data, make sure any preprocessing done to the tables is correct."
       icon={<GridOffRoundedIcon />}>
       <Table size='md' color="neutral" variant="outlined" sx={{ mt: 2, borderRadius: "sm", tableLayout: "auto" }} borderAxis="bothBetween">
         <thead>
@@ -31,8 +31,8 @@ function EmptyTableCard() {
         </thead>
         <tbody>
           {empty_sheet.map((i, index) => <tr key={index}>
+            <td><q>{i.sheet}</q></td>
             <td><code>{i.source}</code></td>
-            <td>{i.sheet}</td>
             <td>{i.group}</td>
             <td><Chip variant="soft" color="primary">{i.transformer}</Chip></td>
           </tr>)}

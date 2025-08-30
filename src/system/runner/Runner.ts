@@ -106,7 +106,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
       this.state.tracker.unwatch();
       return good(undefined);
     } catch (err) {
-      return bad(`${err}`);
+      return bad(`Could not prepare runner for execution: ${err}`);
     }
   }
 
@@ -127,7 +127,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
       this.state.tracker.watch();
       return good(undefined);
     } catch (err) {
-      return bad(`${err}`);
+      return bad(`Could not return runner to idle behavior: ${err}`);
     }
   }
 

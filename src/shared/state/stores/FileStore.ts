@@ -44,15 +44,15 @@ export abstract class FileStore<Data, Item> {
       return out;
     } catch (err) {
       await release();
-      return bad(`${err}`);
+      return bad(`Error running operation on '${this.directory}': ${err}`);
     }
   }
 
   public async pull(item: Item): Promise<Reply<Data>> {
-    try {
-      const file = this.getFileFromItem(item);
-      if (!file.ok) return file;
+    const file = this.getFileFromItem(item);
+    if (!file.ok) return file;
 
+    try {
       const entry = this.entries.get(file.data);
       if (entry == null) return bad(`No entry for ${file.data}`);
     
@@ -62,7 +62,7 @@ export abstract class FileStore<Data, Item> {
       this.entries.set(file.data, { item, data });
       return data;
     } catch (err) {
-      return bad(`${err}`);
+      return bad(`Could not pull data from file '${file.data}': ${err}`);
     }
   }
 
@@ -84,12 +84,13 @@ export abstract class FileStore<Data, Item> {
   }
 
   private async pushUnsafe(entry: { item: Item, data: Reply<Data> }): Promise<Reply<{ item: Item, data: Reply<Data> }>> {
-    try {
-      const { item, data } = entry;
-      if (!data.ok) return data;
+    const { item, data } = entry;
+    if (!data.ok) return data;
 
-      const file = this.getFileFromItem(item);
-      if (!file.ok) return file;
+    const file = this.getFileFromItem(item);
+    if (!file.ok) return file;
+
+    try {
 
       const serialized = this.serialize(data.data);
       if (!serialized.ok) return serialized;
@@ -100,7 +101,7 @@ export abstract class FileStore<Data, Item> {
       await writeFile(file.data, serialized.data);
       return good(entry);
     } catch (err) {
-      return bad(`${err}`);
+      return bad(`Could not update file ${file.data}: ${err}`);
     }
   }
 
@@ -130,16 +131,16 @@ export abstract class FileStore<Data, Item> {
   }
 
   private async deleteUnsafe(entry: { item: Item, data: Reply<Data> }): Promise<Reply> {
-    try {
-      const file = this.getFileFromItem(entry.item);
-      if (!file.ok) return file;
+    const file = this.getFileFromItem(entry.item);
+    if (!file.ok) return file;
 
+    try {
       this.entries.delete(file.data);
 
       await rm(file.data);
       return good(undefined);
     } catch (err) {
-      return bad(`${err}`);
+      return bad(`Could not delete file '${file.data}': ${err}`);
     }
   }
 

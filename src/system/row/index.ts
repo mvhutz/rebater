@@ -31,7 +31,11 @@ export abstract class RowOperator {
     try {
       return good(RowOperator.runManyUnsafe(rows, _input));
     } catch (err) {
-      return bad(`${err}`);
+      if (err instanceof Error) {
+        return bad(err.message);
+      } else {
+        return bad(`${err}`);
+      }
     }
   }
 

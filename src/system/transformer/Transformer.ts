@@ -67,14 +67,14 @@ export abstract class Transformer {
     
     // No duplicates.
     for (const transformer of transformers) {
-      assert.ok(!by_name.has(transformer.name), `Duplicate transformers named '${transformer.name}'!`);
+      assert.ok(!by_name.has(transformer.name), `There are two transformers named '${transformer.name}'! Change the name of one.`);
       by_name.set(transformer.name, transformer);
     }
 
     // Is closed.
     for (const [, transformer] of by_name) {
       for (const requirement of transformer.getDeps()) {
-        assert.ok(by_name.has(requirement), `Transformer '${transformer.name}' requires '${requirement}', which it cannot find!`);
+        assert.ok(by_name.has(requirement), `Transformer '${transformer.name}' requires transformer '${requirement}' to run, which it cannot find!`);
       }
     }
 

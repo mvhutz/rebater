@@ -75,7 +75,7 @@ export class ReferenceRow implements RowOperator {
     }
 
     const question = this.getQuestionFormat(input.value);
-    assert.ok(!input.state.tracker.has(question), `You must answer a question to proceed.`);
+    assert.ok(!input.state.tracker.has(question), 'You must answer a question to proceed.');
 
     const suggestions = reference.suggest(this.match, input.value, this.take);
     input.state.tracker.markAsk({

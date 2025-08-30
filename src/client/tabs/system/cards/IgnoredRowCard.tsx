@@ -21,18 +21,18 @@ function IgnoredRowCard() {
       title="Ignored Rows"
       subtitle="During execution, these rows where omitted from the output data. If these rows do contain data, you may have to omdify the transformers."
       icon={<NotificationsPausedRoundedIcon />}>
-      <Table size='md' color="neutral" variant="outlined" sx={{ mt: 2, borderRadius: "sm", tableLayout: "auto" }} borderAxis="bothBetween">
+      <Table size='md' color="neutral" variant="outlined" sx={{ mt: 2, borderRadius: "sm" }} borderAxis="bothBetween">
         <thead>
           <tr>
             <th>Transformer</th>
             <th>Error</th>
+            <th>Source</th>
           </tr>
         </thead>
         <tbody>
           {ignored_row.map((i, index) => <tr key={index}>
             <td><Chip variant="soft" color="primary">{i.transformer}</Chip></td>
-            <td><code>{i.reason}</code></td>
-            <td><code>{i.row}</code></td>
+            <td>{i.reason}</td>
             <td><code>{i.source}</code></td>
           </tr>)}
         </tbody>

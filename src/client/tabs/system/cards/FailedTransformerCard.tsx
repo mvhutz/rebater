@@ -31,7 +31,7 @@ function FailedTransformerCard() {
         <tbody>
           {failed_transformer.map((i, index) => <tr key={index}>
             <td><Chip variant="soft" color="primary">{i.transformer}</Chip></td>
-            <td><code>{i.reason}</code></td>
+            <td>{i.reason}</td>
           </tr>)}
         </tbody>
       </Table>

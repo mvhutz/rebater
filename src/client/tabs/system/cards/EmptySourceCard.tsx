@@ -18,7 +18,7 @@ function EmptySourceCard() {
       amount={empty_source.length}
       color="danger"
       title="Sources With No Data"
-      subtitle="These files where chosen to be extracted by a transformer, but no data was extracted."
+      subtitle="These source files where chosen to be extracted by a transformer, but no data was found. Make sure the transformer is pulling all sheets it should."
       icon={<ImageNotSupportedRoundedIcon />}>
       <Table size='md' color="neutral" variant="outlined" sx={{ mt: 2, borderRadius: "sm", tableLayout: "auto" }} borderAxis="bothBetween">
         <thead>

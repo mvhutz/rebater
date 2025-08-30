@@ -38,7 +38,7 @@ export class SumRow implements RowOperator {
     let sum = 0;
     for (const _row of input.table.split()) {
       const value = parseFloat(_row.get(this.column) ?? "");
-      assert.ok(!isNaN(value), `Value ${_row.get(this.column)} is not a number!`);
+      assert.ok(!isNaN(value), `Cannot add value '${_row.get(this.column)}' to sum; it is not a number!`);
 
       sum += value;
     }

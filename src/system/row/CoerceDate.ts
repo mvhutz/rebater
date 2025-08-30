@@ -61,7 +61,7 @@ export class CoerceDateRow implements RowOperator {
       date.year(input.context.time.year);
     }
 
-    assert.ok(date.isValid(), `Date ${value} could not be parsed.`);
+    assert.ok(date.isValid(), `Date '${value}' is in an unknown format.`);
     return date.format(this.format);
   }
 }
