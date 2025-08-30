@@ -20,7 +20,7 @@ export class TrackerPointer extends FilePointer<Map<string, Question>> {
     try {
       json = JSON.parse(data);
     } catch (err) {
-      return bad(`Could not parse tracker JSON: ${err}`);
+      return bad(`There is an issue with the questions configuration: ${err}`);
     }
 
     const parsed = TrackerSchema.safeParse(json);
@@ -38,7 +38,7 @@ export class TrackerPointer extends FilePointer<Map<string, Question>> {
   }
 
   async resolve(hash: string) {
-    await this.update(async tracker => {
+    return await this.update(async tracker => {
       if (!tracker.ok) return tracker;
 
       const new_questions = new Map(tracker.data.entries());

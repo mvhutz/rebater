@@ -23,7 +23,7 @@ export class UtilityRow implements RowOperator {
     this.group = input.group;
   }
 
-  run(input: RowInput): Maybe<string> {
+  run(input: RowInput): string {
     const reference = input.state.references.getTable(this.table);
     const view = reference.view(this.match);
 
@@ -32,7 +32,7 @@ export class UtilityRow implements RowOperator {
       group: this.group,
     }, this.take);
     
-    assert.ok(result != null, `Table '${this.table}' has no '${this.match}' for '${input.value}'.`);
+    assert.ok(result != null, `Utility '${this.table}' does not have the '${this.take}' for the '${this.match}' of '${input.value}'.`);
     return result;
   }
 }

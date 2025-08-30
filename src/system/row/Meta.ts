@@ -26,7 +26,7 @@ export class MetaRow implements RowOperator {
     this.value = input.value;
   }
 
-  run(input: RowInput): Maybe<string> {
+  run(input: RowInput): string {
     switch (this.value) {
       case "quarter.lastday": return MetaRow.getQuarterLastDay(input);
       case "quarter.number": return MetaRow.getQuarterNumber(input);

@@ -27,7 +27,18 @@ export class FilterTable implements TableOperator {
   run(input: TableInput): Table {
     return input.table.filter(row => {
       const value = RowOperator.runMany(this.criteria, { row, ...input });
-      return value === "true";
+      if (!value.ok) {
+        input.stats.issues.ignored_row.push({
+          transformer: input.transformer,
+          row: row.split(),
+          source: row.source,
+          reason: value.reason
+        });
+        
+        return false;
+      }
+
+      return value.data === "true";
     });
   }
 }

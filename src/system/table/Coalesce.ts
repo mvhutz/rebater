@@ -62,7 +62,7 @@ export class CoalesceTable implements TableOperator {
       for (const row of table.split()) {
         const sum = sums.get(index) ?? 0;
         const current = parseInt(row.get(index) ?? "null");
-        assert.ok(!isNaN(current), `Value "${current}" is not a number!`);
+        assert.ok(!isNaN(current), `Cannot coalesce value '${current}'; it is not a number!`);
 
         sums.set(index, current + sum);
       }
@@ -88,6 +88,6 @@ export class CoalesceTable implements TableOperator {
       .map(t => this.combineRows(t))
       .filter(r => r != null);
   
-    return Table.join(...coalesced);
+    return Table.join(coalesced, input.table.info);
   }
 }

@@ -1,5 +1,4 @@
 import { DestinationOperator } from "../destination";
-import { TransformerResult } from "../../shared/worker/response";
 import { Row, Table } from "../information/Table";
 import { Transformer } from "./Transformer";
 import { AdvancedTransformerData, DestinationData, RowData, SourceData, TableData } from "../../shared/transformer/advanced";
@@ -42,6 +41,7 @@ import { SetTable } from "../table/Set";
 import { TrimTable } from "../table/Trim";
 import { State } from "../../shared/state";
 import { Context } from "../../shared/context";
+import { StatsData } from "../../shared/stats";
 
 /** ------------------------------------------------------------------------- */
 
@@ -152,7 +152,7 @@ export class AdvancedTransformer implements Transformer {
     this.destinations = data.destination.map(AdvancedTransformer.parseDestination);
     this.requirements = data.requirements;
   }
-  
+
   public getDeps(): string[] {
     return this.requirements;
   }
@@ -167,43 +167,65 @@ export class AdvancedTransformer implements Transformer {
    * @param row The row being extracted.
    * @returns The extracted properties.
    */
-  private runRow(state: State, row: Row, table: Table, context: Context) {
+  private runRow(state: State, row: Row, table: Table, context: Context, stats: StatsData) {
     const result = new Array<string>();
 
     for (const { definition } of this.properties) {
       const output = RowOperator.runMany(definition, { row, state, table, context });
-      if (output == null) {
+      if (!output.ok) {
+        stats.issues.ignored_row.push({
+          transformer: this.name,
+          row: row.split(),
+          source: row.source,
+          reason: output.reason
+        });
+
         return null;
       }
 
-      result.push(output);
+      result.push(output.data);
     }
 
     return new Row(result, row.source);
   }
 
-  public run(state: State, context: Context): TransformerResult {
+  public run(state: State, context: Context, stats: StatsData): void {
     const start = performance.now();
 
     // 1. Pull sources.
-    const source_data = this.sources.map(s => s.run({ state, context })).flat(1);
+    const source_data = this.sources.map(s => s.run({ state, context, stats, transformer: this.name })).flat(1);
     if (source_data.length === 0) {
       const end = performance.now();
-      return { start, end, name: this.name };
+      stats.performance.push({ start, end, name: this.name });
+      stats.issues.no_source.push({ transformer: this.name });
+      return;
     }
 
     // 2. Pre-process data.
-    const preprocessed_data = source_data.map(table => TableOperator.runMany(this.preprocess, { table, state, context }));
-    const total = Table.stack(...preprocessed_data);
+    const preprocessed_data = source_data.map(table => TableOperator.runMany(this.preprocess, { table, state, context, stats, transformer: this.name }));
+    const preprocessed_data_filtered = preprocessed_data.filter(table => {
+      if (table.size() !== 0) return true;
+
+      stats.issues.empty_sheet.push({
+        transformer: this.name,
+        group: table.info?.group ?? "Unknown",
+        source: table.info?.file ?? "Unknown",
+        sheet: table.info?.sheet ?? "Unknown"
+      });
+
+      return false;
+    })
+    
+    const total = Table.stack(preprocessed_data_filtered, null);
 
     // 3. Extract properties.
-    const processed = total.update(r => this.runRow(state, r, total, context));
+    const processed = total.update(r => this.runRow(state, r, total, context, stats));
 
     const header = new Row(this.properties.map(p => p.name), "<header>");
     const final = processed.prepend(header);
 
     // 4. Post-process data.
-    const postprocessed_data = TableOperator.runMany(this.postprocess, { table: final, state, context });
+    const postprocessed_data = TableOperator.runMany(this.postprocess, { table: final, state, context, stats, transformer: this.name });
 
     // 5. Send to destinations.
     for (const destination of this.destinations) {
@@ -211,6 +233,6 @@ export class AdvancedTransformer implements Transformer {
     }
 
     const end = performance.now();
-    return { start, end, name: this.name };
+    stats.performance.push({ start, end, name: this.name });
   }
 }

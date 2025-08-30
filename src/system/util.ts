@@ -1,3 +1,4 @@
+import memoizee from "memoizee";
 import { Rebate } from "../shared/worker/response";
 
 /** ------------------------------------------------------------------------- */
@@ -31,3 +32,8 @@ export function getPartition<O extends object, K extends keyof O>(objects: O[], 
 
   return buckets;
 }
+export function _slugify(value: string): string {
+  return value.toLowerCase().trim().replace(/\s/g, '');
+}
+
+export const slugify = memoizee(_slugify);

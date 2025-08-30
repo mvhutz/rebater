@@ -38,7 +38,7 @@ export abstract class FilePointer<Data> {
       return out;
     } catch (err) {
       await release();
-      return bad(`${err}`);
+      return bad(`Error running operation on '${this.file}': ${err}`);
     }
   }
 

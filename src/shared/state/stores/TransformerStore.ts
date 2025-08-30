@@ -32,7 +32,7 @@ export class TransformerStore extends FileStore<TransformerData, TransformerMeta
     try {
       json = JSON.parse(data.toString());
     } catch (error) {
-      return bad(`Thrown for transformer: ${error}`);
+      return bad(`Transformer configuration incorrect: ${error}`);
     }
     
     const parsed = TransformerSchema.safeParse(json);

@@ -19,9 +19,9 @@ export class ColumnRow implements RowOperator {
     this.index = input.index;
   }
 
-  run(input: RowInput): Maybe<string> {
+  run(input: RowInput): string {
     const value = input.row.get(this.index);
-    assert.ok(value != null, `Cannot pull column ${this.index + 1} from row.`);
+    assert.ok(value != null, `There is no data in column '${this.index + 1}'.`);
 
     return value;
   }

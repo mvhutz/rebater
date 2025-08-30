@@ -59,7 +59,7 @@ function InputModal({ question }: { question: Question }) {
     const answer = data.get("answer")?.toString();
     if (answer == null) return;
 
-    await invoke.answerQuestion({
+    const answered = await invoke.answerQuestion({
       hash,
       answer: {
         ...known_copy,
@@ -67,6 +67,10 @@ function InputModal({ question }: { question: Question }) {
       },
       reference: question.table
     });
+    if (!answered.ok) {
+      dispatch(pushMessage({ type: "error", text: answered.reason }));
+      return;
+    }
 
     currentTarget.reset();
 

@@ -1,3 +1,4 @@
+import assert from "assert";
 import { RowInput, RowOperator } from ".";
 import { AddRowData } from "../../shared/transformer/advanced";
 import { AdvancedTransformer } from "../transformer/AdvancedTransformer";
@@ -20,8 +21,11 @@ export class AddRowOperator implements RowOperator {
     this.other = input.with.map(AdvancedTransformer.parseRow);
   }
 
-  run(input: RowInput): Maybe<string> {
-    const other_value = RowOperator.runMany(this.other, input);
+  run(input: RowInput): string {
+    const other_value = RowOperator.runManyUnsafe(this.other, input);
+    const result = Number(input.value) + Number(other_value);
+    assert.ok(!isNaN(result), `Sum of '${other_value}' and '${input.value}' is not a number!`);
+
     return (Number(input.value) + Number(other_value)).toString();
   }
 }

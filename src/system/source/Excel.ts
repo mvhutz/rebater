@@ -5,6 +5,7 @@ import { SourceInput, SourceOperator } from ".";
 import path from "path";
 import { Row, Table } from "../information/Table";
 import { ExcelSourceData } from "../../shared/transformer/advanced";
+import { slugify } from "../util";
 
 /** ------------------------------------------------------------------------- */
 
@@ -38,7 +39,7 @@ export class ExcelSourceOperator implements SourceOperator {
    * @param filepath The path of the file.
    * @param results The table list to push to.
    */
-  private extractWorkSheet(sheet: XLSX.WorkSheet, filepath: string, results: Table[]) {
+  private extractWorkSheet(sheet: XLSX.WorkSheet, name: string, filepath: string, input: SourceInput): Table[] {
     const unclean = XLSX.utils.sheet_to_json(sheet, {
       raw: true,
       blankrows: false,
@@ -48,14 +49,20 @@ export class ExcelSourceOperator implements SourceOperator {
 
     const parsed = z.array(z.array(z.coerce.string())).parse(unclean);
     const rows = parsed.map(r => new Row(r, filepath));
-    const table = Table.join(...rows);
+    const table = Table.join(rows, { group: this.group, file: filepath, sheet: name });
 
     if (table.size() === 0) {
-      console.log("EMPTY SHEET", filepath);
-      return;
+      input.stats.issues.empty_sheet.push({
+        transformer: input.transformer,
+        group: this.group,
+        source: filepath,
+        sheet: name
+      });
+
+      return [];
     }
 
-    results.push(table);
+    return [table];
   }
 
   /**
@@ -64,7 +71,7 @@ export class ExcelSourceOperator implements SourceOperator {
    * @param filepath The path of the file.
    * @param results The table list to push to.
    */
-  private extractWorkBook(workbook: XLSX.WorkBook, filepath: string, results: Table[]) {
+  private extractWorkBook(workbook: XLSX.WorkBook, filepath: string, input: SourceInput): Table[] {
     const sheetsToTake = new Set<string>();
     if (this.sheets.length == 0) {
       workbook.SheetNames.forEach(m => sheetsToTake.add(m));
@@ -76,14 +83,26 @@ export class ExcelSourceOperator implements SourceOperator {
       }
     }
 
+    const results = [];
+
     for (const sheetName of sheetsToTake) {
       const sheet = workbook.Sheets[sheetName];
       const props = workbook.Workbook?.Sheets?.find(p => p.name === sheetName);
       if (props?.Hidden) continue;
-      assert.ok(sheet != null, `Sheet '${sheetName}' does not exist on workbook!`);
+      assert.ok(sheet != null, `Cannot find sheet '${sheetName}' in workbook!`);
 
-      this.extractWorkSheet(sheet, filepath, results);
+      results.push(...this.extractWorkSheet(sheet, sheetName, filepath, input));
     }
+
+    if (results.length === 0) {
+      input.stats.issues.empty_source.push({
+        transformer: input.transformer,
+        group: this.group,
+        source: filepath
+      });
+    }
+
+    return results;
   }
 
   run(input: SourceInput): Table[] {
@@ -93,16 +112,17 @@ export class ExcelSourceOperator implements SourceOperator {
         e.item.group === this.group
           && input.context.time.is(e.item.quarter)
           && ExcelSourceOperator.VALID_EXTENSIONS.has(path.extname(e.item.name))
-          && path.matchesGlob(e.item.name, this.file));
+          && path.matchesGlob(slugify(e.item.name), slugify(this.file)));
     
     // Extract tables.
-    const results = new Array<Table>();
+    const results = [];
+
     for (const file of files) {
       const { data: source } = file;
-      assert.ok(source.ok, `Source file '${file.item.name}' not loaded!`);
+      assert.ok(source.ok, `Source file '${file.item.name}' is not loaded! Try refreshing app?`);
 
       const workbook = XLSX.read(source.data, { type: "buffer" });
-      this.extractWorkBook(workbook, file.item.name, results);
+      results.push(...this.extractWorkBook(workbook, file.item.name, input));
     }
 
     return results;

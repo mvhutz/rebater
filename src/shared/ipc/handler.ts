@@ -115,16 +115,18 @@ export class IPCHandler {
    * The user wants to answer a question.
    * @param answer Their answer.
    */
-  async handleAnswerQuestion(answer: Answer) {
+  async handleAnswerQuestion(answer: Answer): Promise<Reply> {
     const state_reply = this.repository.getState();
     if (!state_reply.ok) return state_reply;
     const { data: state } = state_reply;
 
-    await state.tracker.resolve(answer.hash);
+    const resolved = await state.tracker.resolve(answer.hash);
+    if (!resolved.ok) return resolved;
 
     const table = state.references.getTable(answer.reference);
     const modified = table.insert(answer.answer);
-    await state.references.updateTable(answer.reference, modified);
+    const pushed = await state.references.updateTable(answer.reference, modified);
+    if (!pushed.ok) return pushed;
     
     return good(undefined);
   }

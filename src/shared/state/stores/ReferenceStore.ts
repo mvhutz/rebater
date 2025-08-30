@@ -4,6 +4,7 @@ import Fuse from 'fuse.js';
 import { bad, good, Reply } from "../../reply";
 import { FileStore } from "./FileStore";
 import path from "path";
+import { slugify } from "../../../system/util";
 
 
 /** ------------------------------------------------------------------------- */
@@ -23,9 +24,9 @@ export class ReferenceView {
     this.key = key;
 
     for (const object of reference) {
-      const set = this.data.get(object[key]);
+      const set = this.data.get(slugify(object[key]));
       if (set == null) {
-        this.data.set(object[key], new Set([object]));
+        this.data.set(slugify(object[key]), new Set([object]));
       } else {
         set.add(object);
       }
@@ -41,7 +42,7 @@ export class ReferenceView {
    */
   private match(ask: Record<string, string>, datum: Record<string, string>) {
     for (const property in ask) {
-      if (datum[property] !== "*" && datum[property] !== ask[property]) {
+      if (datum[property] !== "*" && slugify(datum[property]) !== slugify(ask[property])) {
         return false;
       }
     }
@@ -56,7 +57,7 @@ export class ReferenceView {
    * @returns The unknown property's value.
    */
   public ask(known: Record<string, string>, unknown: string): Maybe<string> {
-    const bucket = this.data.get(known[this.key]);
+    const bucket = this.data.get(slugify(known[this.key]));
     if (bucket == null) return null;
 
     for (const datum of bucket) {
@@ -95,7 +96,7 @@ export class Reference {
    */
   private match(ask: Record<string, string>, datum: Record<string, string>) {
     for (const property in ask) {
-      if (datum[property] !== "*" && datum[property] !== ask[property]) {
+      if (datum[property] !== "*" && slugify(datum[property]) !== slugify(ask[property])) {
         return false;
       }
     }
@@ -211,14 +212,12 @@ export class ReferenceStore extends FileStore<Reference, ReferenceMeta> {
   public async updateTable(name: string, reference: Reference) {
     for (const [, entry] of this.entries) {
       if (entry.item.name !== name) continue;
-      await this.push({ item: entry.item, data: good(reference) });
-      return;
+      return await this.push({ item: entry.item, data: good(reference) });
     }
 
-    await this.push({
+    return await this.push({
       item: { path: `${name}.csv`, name: name },
       data: good(reference)
     });
-    return;
   }
 }

@@ -170,6 +170,9 @@ export const getDraftTransformersSettings = (state: RootState) => state.system.d
 export const getTransformers = (state: RootState) => state.system.transformers;
 export const getSystemQuestions = (state: RootState) => state.system.questions;
 export const getSystemQuestionCount = (state: RootState) => state.system.questions.ok ? state.system.questions.data.length : 0;
+export const getRunResults = (state: RootState) => state.system.status.type === "done" ? state.system.status.results : null;
+export const getRunError = (state: RootState) => state.system.status.type === "error" ? good(state.system.status.message) : bad("Not error!");
+
 
 export const isSystemLoading = (state: RootState) => {
   return state.system.status.type === "loading";

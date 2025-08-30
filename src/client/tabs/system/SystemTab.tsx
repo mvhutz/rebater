@@ -1,23 +1,21 @@
 import React from 'react';
-import SupplierResultsTable from './SupplierResultsTable';
+import PerformanceCard from './cards/PerformanceCard';
 import CircularProgress from '@mui/joy/CircularProgress';
 import Stack from '@mui/joy/Stack';
 import Typography from '@mui/joy/Typography';
-// import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
 import NightsStayRoundedIcon from '@mui/icons-material/NightsStayRounded';
 import DoneRoundedIcon from '@mui/icons-material/DoneRounded';
 import PriorityHighRoundedIcon from '@mui/icons-material/PriorityHighRounded';
 import { getDraftTime, getDraftTransformersSettings, getQuarterList, getSystemProgress, getSystemStatus, getSystemStatusName, getTransformers, isSystemLoading, setDraftSystemTime, setDraftTransformersNames, setDraftTransformersTags, setStatus } from '../../store/slices/system';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { type SvgIconOwnProps } from '@mui/material';
-import AccordionGroup from '@mui/joy/AccordionGroup';
 import UpdateRoundedIcon from '@mui/icons-material/UpdateRounded';
-import ErrorCard from './ErrorCard';
-import DiscrepancyTable from './DiscrepancyTable';
+import ErrorCard from './cards/ErrorCard';
+import DiscrepancyCard from './cards/DiscrepancyCard';
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded';
 import TabMenu from '../../view/TabMenu';
 import { getContextFilter, getDisplayTab, pushMessage, toggleContextFilter, toggleNewQuarterModal } from '../../store/slices/ui';
-import { Box, Button, Chip, IconButton, Option, Select, Tooltip } from '@mui/joy';
+import { Badge, Box, Button, Chip, Divider, IconButton, Option, Select, Tooltip } from '@mui/joy';
 import FileOpenRoundedIcon from '@mui/icons-material/FileOpenRounded';
 import { killSystem, showOutputFile, startSystem } from '../../store/slices/thunk';
 import BlockRounded from '@mui/icons-material/BlockRounded';
@@ -26,6 +24,11 @@ import { SystemStatus } from '../../../shared/worker/response';
 import { TimeSchema } from '../../../shared/time';
 import moment from 'moment';
 import { z } from 'zod/v4';
+import NoSourcesCard from './cards/NoSourcesCard';
+import EmptySourceCard from './cards/EmptySourceCard';
+import EmptyTableCard from './cards/EmptyTableCard';
+import FailedTransformerCard from './cards/FailedTransformerCard';
+import IgnoredRowCard from './cards/IgnoredRowCard';
 
 /** ------------------------------------------------------------------------- */
 
@@ -38,7 +41,6 @@ function InnerText({ status }: { status: SystemStatus }) {
     case "done": return <DoneRoundedIcon sx={INNER_TEXT_ICON_SX} />;
     case "idle": return <NightsStayRoundedIcon sx={INNER_TEXT_ICON_SX} />;
     case "loading": return <HourglassEmptyRoundedIcon sx={INNER_TEXT_ICON_SX} />;
-    // case "asking": return <QuestionMarkRoundedIcon sx={INNER_TEXT_ICON_SX} />;
     case "running": return `${(Math.round(100 * status.progress))}%`;
     case "error": return <PriorityHighRoundedIcon sx={INNER_TEXT_ICON_SX} />;
   }
@@ -58,9 +60,13 @@ function DoneMenu() {
   }, [dispatch]);
 
   return (
-    <Stack spacing={1} width={1}>
+    <Stack spacing={1} width={1} direction="row">
       <Button fullWidth size="lg" color="success" onClick={handleOutput} sx={{ borderRadius: 100 }} startDecorator={<FileOpenRoundedIcon />}>View Output</Button>
-      <Button fullWidth size="sm" variant="soft" color="neutral" onClick={handleRedo} sx={{ borderRadius: 100 }} startDecorator={<UpdateRoundedIcon />}>Redo</Button>
+      <Tooltip title="Redo">
+      <IconButton size="lg" variant="soft" color="neutral" onClick={handleRedo} sx={{ borderRadius: 100 }}>
+        <UpdateRoundedIcon />
+      </IconButton>
+      </Tooltip>
     </Stack>
   );
 }
@@ -175,9 +181,11 @@ function IdleMenu() {
             ))}
           </Select>
           <Tooltip title="Toggle Filters">
-            <IconButton onClick={handleContextFilter} sx={{ borderRadius: 18 }} variant={context_filter ? "soft" : "outlined"}>
-              <TuneRounded fontSize="small" />
-            </IconButton>
+            <Badge invisible={selected_names.length === 0 && selected_tags.length === 0} badgeInset="14%">
+              <IconButton onClick={handleContextFilter} sx={{ borderRadius: 18 }} variant={context_filter ? "soft" : "outlined"}>
+                <TuneRounded fontSize="small" />
+              </IconButton>
+            </Badge>
           </Tooltip>
         </Stack>
         {context_filter && <Stack spacing={1}>
@@ -264,27 +272,29 @@ function SystemTab() {
   const loading = useAppSelector(isSystemLoading);
   const display = useAppSelector(getDisplayTab("system"));
 
-  const results = status.type === "done" ? status.results : null;
-
   return (
-    <Stack padding={0} display={display}>
+    <Stack padding={0} display={display} overflow="scroll">
       <TabMenu>
         <Typography level="body-lg" pt={0.5} color="neutral"><i>System:</i> {messageText}</Typography>
       </TabMenu>
-      <Stack padding={4}>
-        <Stack direction="column" gap={2} flexGrow={1} alignItems="center" position="relative">
-          <Stack flex={1} spacing={6} pt={5}>
-            <CircularProgress color="primary" variant="soft" value={progress} determinate={!loading} size="lg" sx={{ '--CircularProgress-size': '200px' }}>
-              <InnerText status={status} />
-            </CircularProgress>
-            <SystemMenu />
-          </Stack>
+      <Stack padding={4} spacing={4} alignItems="center">
+        <Stack direction="column" gap={2} spacing={6} pt={5} flexGrow={1} position="relative">
+          <CircularProgress color="primary" variant="soft" value={progress} determinate={!loading} size="lg" sx={{ '--CircularProgress-size': '200px' }}>
+            <InnerText status={status} />
+          </CircularProgress>
+          <SystemMenu />
         </Stack>
-        <AccordionGroup variant="plain" transition="0.2s" size='lg' disableDivider sx={{ gap: 2 }}>
-          {results && <SupplierResultsTable data={results} />}
-          {(results?.discrepency != null) && <DiscrepancyTable data={results.discrepency} />}
-          {status.type === "error" && <ErrorCard message={status.message} />}
-        </AccordionGroup>
+        <Stack direction="row" spacing={2}>
+          <PerformanceCard />
+          <DiscrepancyCard />
+          <Divider orientation="vertical"/>
+          <ErrorCard />
+          <NoSourcesCard/>
+          <EmptySourceCard/>
+          <EmptyTableCard/>
+          <FailedTransformerCard/>
+          <IgnoredRowCard/>
+        </Stack>
       </Stack>
     </Stack>
   );

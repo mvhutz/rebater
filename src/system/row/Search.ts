@@ -1,3 +1,4 @@
+import assert from "assert";
 import { RowInput, RowOperator } from ".";
 import { SearchRowData } from "../../shared/transformer/advanced";
 
@@ -61,16 +62,13 @@ export class SearchRow implements RowOperator {
     this.primary = primary[0];
   }
 
-  run(input: RowInput): Maybe<string> {
+  run(input: RowInput): string {
     const search = input.state.references.getTable(this.table);
     const view = this.primary == null ? search : search.view(this.primary);
 
     const values: Record<string, string> = {};
     for (const [property, rows] of Object.entries(this.matches)) {
-      const value = RowOperator.runMany(rows, input);
-      if (value == null) return null;
-
-      values[property] = value;
+      values[property] = RowOperator.runManyUnsafe(rows, input);
     }
 
     const result = view.ask(values, this.take);
@@ -79,7 +77,7 @@ export class SearchRow implements RowOperator {
     }
 
     const hash = JSON.stringify([values, this.take]);
-    if (input.state.tracker.has(hash)) return null;
+    assert.ok(!input.state.tracker.has(hash), 'You must answer a question to proceed.');
 
     let suggestions: { key: string; value: string; group: string; }[] = [];
     if (this.primary) {
@@ -97,6 +95,6 @@ export class SearchRow implements RowOperator {
       )),
     });
 
-    return null;
+    throw Error("You must answer a question to proceed.");
   }
 }

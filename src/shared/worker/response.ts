@@ -1,4 +1,5 @@
 import { z } from 'zod/v4';
+import { StatsSchema } from '../stats';
 
 /** ------------------------------------------------------------------------- */
 
@@ -45,48 +46,6 @@ export const RebateSchema = z.strictObject({
  */
 export type Rebate = z.infer<typeof RebateSchema>;
 
-
-const TransformerResultSchema = z.object({
-  start: z.number(),
-  end: z.number(),
-  name: z.string()
-});
-
-/**
- * The statistics of a transformer, when run.
- * @property {} start The time when the transformer started.
- * @property {} end The time when the transformer finished.
- * @property {} name The identifier of the transformers.
- */
-export type TransformerResult = z.infer<typeof TransformerResultSchema>;
-
-
-const DiscrepencyResultSchema = z.object({
-  name: z.string(),
-  match: z.number(),
-  take: z.array(z.string()),
-  drop: z.array(z.string())
-});
-
-/**
- * The differences between the expected (truth) results for a supplier, and the actual (rebates) results.
- * @property {} name The identifier of the supplier.
- * @property {} match The number of records that match.
- * @property {} take All rows in the expected results, which do not appear on the actual results.
- * @property {} drop All rows in the actual results, which do not appear on the expected results.
- */
-export type DiscrepencyResult = z.infer<typeof DiscrepencyResultSchema>;
-
-const RunResultsSchema = z.object({
-  config: z.array(TransformerResultSchema),
-  discrepency: z.array(DiscrepencyResultSchema).optional()
-});
-
-/**
- * The results of running the program.
- */
-export type RunResults = z.infer<typeof RunResultsSchema>;
-
 /** ------------------------------------------------------------------------- */
 
 const IdleSystemStatusSchema = z.object({
@@ -95,7 +54,7 @@ const IdleSystemStatusSchema = z.object({
 
 const DoneSystemStatusSchema = z.object({
   type: z.literal("done"),
-  results: RunResultsSchema
+  results: StatsSchema
 });
 
 const ErrorSystemStatusSchema = z.object({

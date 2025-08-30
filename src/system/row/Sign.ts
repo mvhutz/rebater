@@ -1,3 +1,4 @@
+import assert from "assert";
 import { RowInput, RowOperator } from ".";
 
 /** ------------------------------------------------------------------------- */
@@ -6,7 +7,10 @@ import { RowInput, RowOperator } from ".";
  * Get the sign of the current value.
  */
 export class SignumRow implements RowOperator {
-  run(input: RowInput): Maybe<string> {
-    return Math.sign(parseFloat(input.value)).toString();
+  run(input: RowInput): string {
+    const num = parseFloat(input.value);
+    assert.ok(!isNaN(num), `Value '${input.value}' is not a number!`);
+
+    return Math.sign(num).toString();
   }
 }

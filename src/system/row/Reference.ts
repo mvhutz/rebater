@@ -1,3 +1,4 @@
+import assert from "assert";
 import { RowInput, RowOperator } from ".";
 import { ReferenceRowData } from "../../shared/transformer/advanced";
 
@@ -60,7 +61,7 @@ export class ReferenceRow implements RowOperator {
     return `For *${this.group}*, what is the **\`${this.take}\`** of this **\`${this.table}\`**?\n\n *\`${value}\`*`;
   }
 
-  run(input: RowInput): Maybe<string> {
+  run(input: RowInput): string {
     const reference = input.state.references.getTable(this.table);
     const view = reference.view(this.match);
 
@@ -74,7 +75,7 @@ export class ReferenceRow implements RowOperator {
     }
 
     const question = this.getQuestionFormat(input.value);
-    if (input.state.tracker.has(question)) return null;
+    assert.ok(!input.state.tracker.has(question), 'You must answer a question to proceed.');
 
     const suggestions = reference.suggest(this.match, input.value, this.take);
     input.state.tracker.markAsk({
@@ -91,6 +92,6 @@ export class ReferenceRow implements RowOperator {
       suggestions: suggestions.slice(0, 3).map(s => this.getSuggestionFormat(s)),
     });
 
-    return null;
+    throw Error("You must answer a question to proceed.");
   }
 }
