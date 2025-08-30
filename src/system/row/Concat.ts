@@ -26,8 +26,8 @@ export class ConcatRow implements RowOperator {
     this.separator = input.separator;
   }
 
-  run(input: RowInput): Maybe<string> {
-    const other_value = RowOperator.runMany(this.other, input);
+  run(input: RowInput): string {
+    const other_value = RowOperator.runManyUnsafe(this.other, input);
     return input.value + this.separator + other_value;
   }
 }

@@ -27,6 +27,8 @@ import { z } from 'zod/v4';
 import NoSourcesCard from './cards/NoSourcesCard';
 import EmptySourceCard from './cards/EmptySourceCard';
 import EmptyTableCard from './cards/EmptyTableCard';
+import FailedTransformerCard from './cards/FailedTransformerCard';
+import IgnoredRowCard from './cards/IgnoredRowCard';
 
 /** ------------------------------------------------------------------------- */
 
@@ -39,7 +41,6 @@ function InnerText({ status }: { status: SystemStatus }) {
     case "done": return <DoneRoundedIcon sx={INNER_TEXT_ICON_SX} />;
     case "idle": return <NightsStayRoundedIcon sx={INNER_TEXT_ICON_SX} />;
     case "loading": return <HourglassEmptyRoundedIcon sx={INNER_TEXT_ICON_SX} />;
-    // case "asking": return <QuestionMarkRoundedIcon sx={INNER_TEXT_ICON_SX} />;
     case "running": return `${(Math.round(100 * status.progress))}%`;
     case "error": return <PriorityHighRoundedIcon sx={INNER_TEXT_ICON_SX} />;
   }
@@ -291,6 +292,8 @@ function SystemTab() {
           <NoSourcesCard/>
           <EmptySourceCard/>
           <EmptyTableCard/>
+          <FailedTransformerCard/>
+          <IgnoredRowCard/>
         </Stack>
       </Stack>
     </Stack>

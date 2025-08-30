@@ -51,7 +51,7 @@ export class HeaderTable implements TableOperator {
         .map(n => rotated.split().find(c => c.get(0) === n))
         .filter(c => c != null);
 
-      return Table.join(...columns).transpose();
+      return Table.join(columns, input.table.info).transpose();
     }
   }
 }

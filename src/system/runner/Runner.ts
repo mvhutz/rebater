@@ -150,22 +150,22 @@ export class Runner extends EventEmitter<RunnerEvents> {
 
     // Run the transformers.
     for (const [i, transformer] of transformers.entries()) {
-      const details = transformer.getDetails();
       yield { type: "running", progress: i / transformers.length };
+      
       try {
         transformer.run(this.state, this.context, stats);
       } catch (error) {
-        const start = `While running ${details.name}:\n\n`;
+        let reason: string;
+
         if (error instanceof z.ZodError) {
-          yield { type: "error", message: `${start}${z.prettifyError(error)}` };
+          reason = z.prettifyError(error);
         } else if (error instanceof Error) {
-          yield { type: "error", message: `${start}${error.message}` };
+          reason = error.message;
         } else {
-          yield { type: "error", message: `${start}${error}` };
+          reason = `${error}`;
         }
 
-        await this.reconnect();
-        return;
+        stats.issues.failed_transformer.push({ transformer: transformer.name, reason });
       }
     }
 

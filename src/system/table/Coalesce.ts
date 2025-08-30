@@ -88,6 +88,6 @@ export class CoalesceTable implements TableOperator {
       .map(t => this.combineRows(t))
       .filter(r => r != null);
   
-    return Table.join(...coalesced);
+    return Table.join(coalesced, input.table.info);
   }
 }

@@ -18,7 +18,7 @@ export class CoerceNumberRow implements RowOperator {
     this.otherwise = input.otherwise;
   }
 
-  run(input: RowInput): Maybe<string> {
+  run(input: RowInput): string {
     const float = parseFloat(input.value);
 
     if (isNaN(float) && this.otherwise != null) {

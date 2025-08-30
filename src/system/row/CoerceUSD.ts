@@ -1,3 +1,4 @@
+import assert from "assert";
 import { RowInput, RowOperator } from ".";
 import { CoerceUSDRowData } from "../../shared/transformer/advanced";
 
@@ -18,8 +19,9 @@ export class CoerceUSDRow implements RowOperator {
     this.round = input.round;
   }
 
-  run(input: RowInput): Maybe<string> {
+  run(input: RowInput): string {
     let value = Number(input.value);
+    assert.ok(!isNaN(value), `Value '${input.value}' is not a number!`);
 
     switch (this.round) {
       case "down": value = Math.floor(value * 100) / 100; break;

@@ -22,8 +22,8 @@ export class EqualsRow implements RowOperator {
     this.other = input.with.map(AdvancedTransformer.parseRow);
   }
 
-  run(input: RowInput): Maybe<string> {
-    const other_value = RowOperator.runMany(this.other, input);
+  run(input: RowInput): string {
+    const other_value = RowOperator.runManyUnsafe(this.other, input);
     return (input.value === other_value).toString();
   }
 }

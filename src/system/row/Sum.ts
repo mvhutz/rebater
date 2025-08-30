@@ -23,7 +23,7 @@ export class SumRow implements RowOperator {
     this.column = input.column;
   }
 
-  run(input: RowInput): Maybe<string> {
+  run(input: RowInput): string {
     // Get table sums.
     let cached_table = this.cache.get(input.table);
     if (cached_table == null) {

@@ -2,39 +2,38 @@ import React from 'react';
 import { useAppSelector } from '../../../store/hooks';
 import { getRunResults } from '../../../store/slices/system';
 import AnalysisAccordion from '../AnalysisAccordion';
-import GridOffRoundedIcon from '@mui/icons-material/GridOffRounded';
+import NotificationsPausedRoundedIcon from '@mui/icons-material/NotificationsPausedRounded';
 import { Chip, Table } from '@mui/joy';
 
 /** ------------------------------------------------------------------------- */
 
-function EmptyTableCard() {
+function IgnoredRowCard() {
   const results = useAppSelector(getRunResults);
   if (results == null) return;
 
-  const { issues: { empty_sheet } } = results
+  const { issues: { ignored_row } } = results
+
   return (
     <AnalysisAccordion
-      disabled={empty_sheet.length === 0}
-      amount={empty_sheet.length}
+      disabled={ignored_row.length === 0}
+      amount={ignored_row.length}
       color="danger"
-      title="Blank Source Sheets"
-      subtitle="These sheets were successfully pulled from source files and preprocessed, but no data was extracted. Check if these sheets contain data, and that no data is lost."
-      icon={<GridOffRoundedIcon />}>
+      title="Ignored Rows"
+      subtitle="During execution, these rows where omitted from the output data. If these rows do contain data, you may have to omdify the transformers."
+      icon={<NotificationsPausedRoundedIcon />}>
       <Table size='md' color="neutral" variant="outlined" sx={{ mt: 2, borderRadius: "sm", tableLayout: "auto" }} borderAxis="bothBetween">
         <thead>
           <tr>
-            <th>Sheet</th>
-            <th>Source File</th>
-            <th>Group</th>
             <th>Transformer</th>
+            <th>Error</th>
           </tr>
         </thead>
         <tbody>
-          {empty_sheet.map((i, index) => <tr key={index}>
-            <td><code>{i.source}</code></td>
-            <td>{i.sheet}</td>
-            <td>{i.group}</td>
+          {ignored_row.map((i, index) => <tr key={index}>
             <td><Chip variant="soft" color="primary">{i.transformer}</Chip></td>
+            <td><code>{i.reason}</code></td>
+            <td><code>{i.row}</code></td>
+            <td><code>{i.source}</code></td>
           </tr>)}
         </tbody>
       </Table>
@@ -44,4 +43,4 @@ function EmptyTableCard() {
 
 /** ------------------------------------------------------------------------- */
 
-export default React.memo(EmptyTableCard);
+export default React.memo(IgnoredRowCard);

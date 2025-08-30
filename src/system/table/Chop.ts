@@ -49,7 +49,7 @@ export class ChopTable implements TableOperator {
       if (this.otherwise === "take") {
         return input.table;
       } else {
-        return Table.join();
+        return Table.join([], input.table.info);
       }
     }
 

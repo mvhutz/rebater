@@ -45,7 +45,7 @@ export type EmptySheetIssue = z.infer<typeof EmptySheetIssueSchema>;
 
 export const IgnoredRowIssueSchema = z.strictObject({
   transformer: z.string(),
-  row: z.array(z.string()),
+  row: z.array(z.string()).readonly(),
   source: z.string(),
   reason: z.string(),
 });

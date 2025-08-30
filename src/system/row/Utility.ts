@@ -23,7 +23,7 @@ export class UtilityRow implements RowOperator {
     this.group = input.group;
   }
 
-  run(input: RowInput): Maybe<string> {
+  run(input: RowInput): string {
     const reference = input.state.references.getTable(this.table);
     const view = reference.view(this.match);
 

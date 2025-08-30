@@ -1,6 +1,7 @@
 import { Row, Table } from "../information/Table";
 import { State } from "../../shared/state";
 import { Context } from "../../shared/context";
+import { bad, good, Reply } from "../../shared/reply";
 
 /** ------------------------------------------------------------------------- */
 
@@ -24,17 +25,21 @@ export abstract class RowOperator {
    * @param row The row as context.
    * @param runner The running context.
    */
-  abstract run(input: RowInput): Maybe<string>;
+  abstract run(input: RowInput): string;
 
-  static runMany(rows: RowOperator[], _input: Omit<RowInput, "value">): Maybe<string> {
+  static runMany(rows: RowOperator[], _input: Omit<RowInput, "value">): Reply<string> {
+    try {
+      return good(RowOperator.runManyUnsafe(rows, _input));
+    } catch (err) {
+      return bad(`${err}`);
+    }
+  }
+
+  static runManyUnsafe(rows: RowOperator[], _input: Omit<RowInput, "value">): string {
     const input = { ..._input, value: "" };
 
     for (const operation of rows) {
       const result = operation.run(input);
-      if (result == null) {
-        // console.log("NULL", JSON.stringify(input.row));
-        return result;
-      }
       input.value = result;
     }
 

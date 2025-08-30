@@ -26,7 +26,7 @@ function AnalysisAccordion(props: AnalysisAccordionProps) {
     <>
       <Badge badgeContent={amount} badgeInset={6} size='sm' color={color}>
         <Tooltip title={title} color={color}>
-          <IconButton size='lg' color={color} variant='soft' sx={{ p: 1, borderRadius: 1000 }} disabled={disabled} onClick={handleToggle}>
+          <IconButton size='lg' color={color} variant={disabled ? "solid" : 'soft'} sx={{ p: 1, borderRadius: 1000 }} disabled={disabled} onClick={handleToggle}>
             <Avatar color={disabled ? "neutral" : color} variant="outlined">{icon}</Avatar>
           </IconButton>
         </Tooltip>

@@ -42,7 +42,7 @@ export class ReplaceRow implements RowOperator {
     this.put_meta = input.put_meta && new MetaRow({ type: "meta", value: input.put_meta });
   }
 
-  run(input: RowInput): Maybe<string> {
+  run(input: RowInput): string {
     let result = input.value;
 
     let truePut = this.put;

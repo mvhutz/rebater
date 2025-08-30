@@ -49,7 +49,7 @@ export class ExcelSourceOperator implements SourceOperator {
 
     const parsed = z.array(z.array(z.coerce.string())).parse(unclean);
     const rows = parsed.map(r => new Row(r, filepath));
-    const table = Table.join(...rows);
+    const table = Table.join(rows, { group: this.group, file: name });
 
     if (table.size() === 0) {
       input.stats.issues.empty_sheet.push({

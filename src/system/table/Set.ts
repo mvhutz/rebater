@@ -31,9 +31,19 @@ export class SetTable implements TableOperator {
   run(input: TableInput): Table {
     return input.table.update(row => {
       const value = RowOperator.runMany(this.to, { row, ...input });
-      if (value == null) return null;
+      if (!value.ok) {
+        input.stats.issues.ignored_row.push({
+          transformer: input.transformer,
+          row: row.split(),
+          source: row.source,
+          reason: value.reason
+        });
+        
+        return null;
+      }
 
-      return row.set(this.column, value);
+      if (value.data == null) return null;
+      return row.set(this.column, value.data);
     });
   }
 }

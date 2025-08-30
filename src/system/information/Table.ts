@@ -44,11 +44,19 @@ export class Row {
   }
 }
 
+export interface TableInfo {
+  group: string;
+  file: string;
+  sheet?: string;
+}
+
 export class Table {
   private readonly data: Row[];
+  public readonly info: TableInfo | null;
 
-  private constructor(data: Row[]) {
+  private constructor(data: Row[], info: TableInfo | null) {
     this.data = data;
+    this.info = info;
   }
 
   public size(): number {
@@ -64,11 +72,11 @@ export class Table {
   }
 
   public update(fn: (value: Row, index: number) => Maybe<Row>): Table {
-    return new Table(this.data.map(fn).filter(r => r != null));
+    return new Table(this.data.map(fn).filter(r => r != null), this.info);
   }
 
   public async updateAsync(fn: (value: Row, index: number) => Promise<Maybe<Row>>): Promise<Table> {
-    return new Table((await Promise.all(this.data.map(fn))).filter(r => r != null));
+    return new Table((await Promise.all(this.data.map(fn))).filter(r => r != null), this.info);
   }
 
   public split(): readonly Row[] {
@@ -76,21 +84,21 @@ export class Table {
   }
 
   public slice(from?: number, to?: number): Table {
-    return new Table(this.data.slice(from, to));
+    return new Table(this.data.slice(from, to), this.info);
   }
 
-  public static join(...rows: Row[]) {
-    return new Table(rows);
+  public static join(rows: Row[], info: TableInfo | null) {
+    return new Table(rows, info);
   }
 
-  public static stack(...rows: Table[]) {
+  public static stack(rows: Table[], info: TableInfo | null) {
     const result = [];
 
     for (const row of rows) {
       result.push(...row.data);
     }
 
-    return new Table(result);
+    return new Table(result, info);
   }
 
   public divide(fn: (row: Row) => string): Map<string, Table> {
@@ -100,7 +108,7 @@ export class Table {
       const list = matched.get(hash);
 
       if (list == null) {
-        matched.set(hash, Table.join(row));
+        matched.set(hash, Table.join([row], this.info));
       } else {
         list.push(row);
       }
@@ -110,15 +118,15 @@ export class Table {
   }
 
   public push(...rows: Row[]) {
-    return new Table([...this.data, ...rows]);
+    return new Table([...this.data, ...rows], this.info);
   }
 
   public prepend(...rows: Row[]) {
-    return new Table([...rows, ...this.data]);
+    return new Table([...rows, ...this.data], this.info);
   }
 
   public filter(fn: (row: Row) => boolean): Table {
-    return new Table(this.data.filter(fn));
+    return new Table(this.data.filter(fn), this.info);
   }
 
   public async filterAsync(fn: (row: Row) => Promise<boolean>): Promise<Table> {
@@ -131,7 +139,7 @@ export class Table {
       }
     }
 
-    return new Table(valid);
+    return new Table(valid, this.info);
   }
 
   public transpose(): Table {
@@ -153,6 +161,6 @@ export class Table {
       trans.push(new Row(data, "<dynamic>"));
     }
     
-    return new Table(trans);
+    return new Table(trans, this.info);
   }
 }

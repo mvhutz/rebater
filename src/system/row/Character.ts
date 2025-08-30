@@ -26,7 +26,7 @@ export class CharacterRow implements RowOperator {
     this.action = input.action;
   }
 
-  run(input: RowInput): Maybe<string> {
+  run(input: RowInput): string {
     const characters = input.value.split("");
     return characters
       .filter(c => this.select.includes(c) === (this.action === "keep"))

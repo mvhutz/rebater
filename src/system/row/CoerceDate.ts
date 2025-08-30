@@ -42,7 +42,7 @@ export class CoerceDateRow implements RowOperator {
     this.format = input.format;
   }
 
-  run(input: RowInput): Maybe<string> {
+  run(input: RowInput): string {
     let { value } = input;
     const attemptInt = Number(value);
     let date: Moment;
