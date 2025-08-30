@@ -1,6 +1,6 @@
 import React from 'react';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { getNewTransformerModal, pushMessage, toggleNewTransformerModal } from '../../store/slices/ui';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { getNewTransformerModal, pushMessage, toggleNewTransformerModal } from '../../../store/slices/ui';
 import Button from '@mui/joy/Button';
 import DialogContent from '@mui/joy/DialogContent';
 import DialogTitle from '@mui/joy/DialogTitle';
@@ -11,10 +11,10 @@ import Modal from '@mui/joy/Modal';
 import ModalDialog from '@mui/joy/ModalDialog';
 import Stack from '@mui/joy/Stack';
 import { DialogActions, FormHelperText, Radio, RadioGroup } from '@mui/joy';
-import { pullTransformers } from '../../store/slices/thunk';
-import { AdvancedTransformerData } from '../../../shared/transformer/advanced';
-import { SimpleTransformerData } from '../../../shared/transformer/simple';
-import { TransformerFile } from '../../../shared/state/stores/TransformerStore';
+import { pullTransformers } from '../../../store/slices/thunk';
+import { AdvancedTransformerData } from '../../../../shared/transformer/advanced';
+import { SimpleTransformerData } from '../../../../shared/transformer/simple';
+import { TransformerFile } from '../../../../shared/state/stores/TransformerStore';
 
 /** ------------------------------------------------------------------------- */
 

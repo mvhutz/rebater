@@ -5,17 +5,17 @@ import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import RestoreRoundedIcon from '@mui/icons-material/RestoreRounded';
 import { Button, IconButton, FormControl, FormLabel, AccordionSummary, AccordionGroup, Accordion, AccordionDetails, FormHelperText, Input, Switch, Textarea, Card, Option, Select } from '@mui/joy';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
-import { useAppDispatch } from '../../store/hooks';
-import { pullTransformers } from '../../store/slices/thunk';
+import { useAppDispatch } from '../../../store/hooks';
+import { pullTransformers } from '../../../store/slices/thunk';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
 import SummarizeRoundedIcon from '@mui/icons-material/SummarizeRounded';
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
-import MultiSelect from '../MultiSelect';
-import ColumnInput from '../ColumnInput';
+import MultiSelect from '../../MultiSelect';
+import ColumnInput from '../../ColumnInput';
 import { produce } from 'immer';
-import { TransformerFile } from '../../../shared/state/stores/TransformerStore';
-import { good, GoodReply } from '../../../shared/reply';
-import { SimpleTransformerData } from '../../../shared/transformer/simple';
+import { TransformerFile } from '../../../../shared/state/stores/TransformerStore';
+import { good, GoodReply } from '../../../../shared/reply';
+import { SimpleTransformerData } from '../../../../shared/transformer/simple';
 
 /** ------------------------------------------------------------------------- */
 

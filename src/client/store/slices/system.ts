@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { type RootState } from '..'
 import { type SettingsData } from '../../../shared/settings';
 import { killSystem, pullAllQuarters, pullQuestions, pullSystemSettings, pullTransformers, startSystem } from './thunk';
@@ -157,7 +157,7 @@ export const SystemSlice = createSlice({
 export const {
   setStatus, setTrueSettings, setDraftSystemDirectory, setDraftSystemTime, setDraftSystemTesting,
   setDraftTransformersNames, setDraftTransformersTags, deleteQuestion,
-  setDraftSystemTestAll,clearQuestions
+  setDraftSystemTestAll, clearQuestions
 } = SystemSlice.actions
 
 export const getSystemStatus = (state: RootState) => state.system.status;
@@ -205,3 +205,28 @@ export const getSystemProgress = (state: RootState): number => {
 export const getQuarterList = (state: RootState): TimeData[] => {
   return state.system.quarters
 }
+
+export const getTransformerGroups = createSelector([getTransformers], (transformers_reply) => {
+  const result: Record<string, TransformerFile[]> = {};
+  if (!transformers_reply.ok) return transformers_reply;
+
+  for (const transformer of transformers_reply.data) {
+    if (!transformer.data.ok) {
+      result["Malformed"] ??= [];
+      result["Malformed"].push(transformer);
+      continue;
+    }
+    
+    switch (transformer.data.data.type) {
+      case "advanced":
+        result["Advanced"] ??= [];
+        result["Advanced"].push(transformer);
+        break;
+      case "simple":
+        result[transformer.data.data.group] ??= [];
+        result[transformer.data.data.group].push(transformer);
+    }
+  }
+
+  return good(result);
+});

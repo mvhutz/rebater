@@ -5,12 +5,12 @@ import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import RestoreRoundedIcon from '@mui/icons-material/RestoreRounded';
 import { Textarea, Button, IconButton } from '@mui/joy';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
-import { useAppDispatch } from '../../store/hooks';
-import { pullTransformers } from '../../store/slices/thunk';
-import { TransformerFile } from '../../../shared/state/stores/TransformerStore';
-import { AdvancedTransformerData, AdvancedTransformerSchema } from '../../../shared/transformer/advanced';
-import { bad, good, GoodReply } from '../../../shared/reply';
-import MalformedError from './MalformedError';
+import { useAppDispatch } from '../../../store/hooks';
+import { pullTransformers } from '../../../store/slices/thunk';
+import { TransformerFile } from '../../../../shared/state/stores/TransformerStore';
+import { AdvancedTransformerData, AdvancedTransformerSchema } from '../../../../shared/transformer/advanced';
+import { bad, good, GoodReply } from '../../../../shared/reply';
+import MalformedError from '../MalformedError';
 import z from 'zod/v4';
 
 /** ------------------------------------------------------------------------- */

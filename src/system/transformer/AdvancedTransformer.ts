@@ -175,7 +175,7 @@ export class AdvancedTransformer implements Transformer {
       if (!output.ok) {
         stats.issues.ignored_row.push({
           transformer: this.name,
-          row: row.split(),
+          row: row.split() as string[],
           source: row.source,
           reason: output.reason
         });
