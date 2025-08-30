@@ -1,9 +1,7 @@
 import React from 'react';
 import Stack from '@mui/joy/Stack';
 import Typography from '@mui/joy/Typography';
-import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
-import RestoreRoundedIcon from '@mui/icons-material/RestoreRounded';
-import { Button, IconButton, FormControl, FormLabel, AccordionSummary, AccordionGroup, Accordion, AccordionDetails, FormHelperText, Input, Switch, Textarea, Card, Option, Select } from '@mui/joy';
+import { Button, IconButton, FormControl, FormLabel, AccordionSummary, AccordionGroup, Accordion, AccordionDetails, FormHelperText, Input, Switch, Textarea, Card, Option, Select, Divider, Sheet } from '@mui/joy';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import { useAppDispatch } from '../../../store/hooks';
 import { pullTransformers } from '../../../store/slices/thunk';
@@ -14,7 +12,7 @@ import MultiSelect from '../../MultiSelect';
 import ColumnInput from '../../ColumnInput';
 import { produce } from 'immer';
 import { TransformerFile } from '../../../../shared/state/stores/TransformerStore';
-import { good, GoodReply } from '../../../../shared/reply';
+import { good } from '../../../../shared/reply';
 import { SimpleTransformerData } from '../../../../shared/transformer/simple';
 
 /** ------------------------------------------------------------------------- */
@@ -139,7 +137,7 @@ function TransactionDateOptions(props: OptionsProps) {
       <Stack spacing={2} flex={1}>
         <FormControl>
           <FormLabel>Column</FormLabel>
-          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...'/>
+          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...' />
         </FormControl>
         <FormControl>
           <FormLabel>Date Format?</FormLabel>
@@ -169,7 +167,7 @@ function InvoiceDateOptions(props: OptionsProps) {
       <Stack spacing={2} flex={1}>
         <FormControl>
           <FormLabel>Column</FormLabel>
-          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...'/>
+          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...' />
         </FormControl>
         <FormControl>
           <FormLabel>Date Format?</FormLabel>
@@ -216,7 +214,7 @@ function MemberIdOptions(props: OptionsProps) {
       <Stack spacing={2} flex={1}>
         <FormControl>
           <FormLabel>Column</FormLabel>
-          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...'/>
+          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...' />
         </FormControl>
       </Stack>
     </Card>
@@ -237,7 +235,7 @@ function InvoiceIdOptions(props: OptionsProps) {
       <Stack spacing={2} flex={1}>
         <FormControl>
           <FormLabel>Column</FormLabel>
-          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...'/>
+          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...' />
         </FormControl>
       </Stack>
     </Card>
@@ -258,7 +256,7 @@ function PurchaseAmountOptions(props: OptionsProps) {
       <Stack spacing={2} flex={1}>
         <FormControl>
           <FormLabel>Column</FormLabel>
-          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...'/>
+          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...' />
         </FormControl>
       </Stack>
     </Card>
@@ -285,7 +283,7 @@ function RebateAmountOptions(props: OptionsProps) {
       <Stack spacing={2} flex={1}>
         <FormControl>
           <FormLabel>Column</FormLabel>
-          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...'/>
+          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...' />
         </FormControl>
         <FormControl>
           <FormLabel>Multiplier?</FormLabel>
@@ -331,10 +329,10 @@ function DistributorIdOptions(props: OptionsProps) {
             <Option value="column">Column</Option>
           </Select>
         </FormControl>
-        { fields.type === "column"? (
+        {fields.type === "column" ? (
           <FormControl>
             <FormLabel>Column</FormLabel>
-            <ColumnInput data={fields.column} setData={handleColumn} placeholder='Enter Column Id...'/>
+            <ColumnInput data={fields.column} setData={handleColumn} placeholder='Enter Column Id...' />
           </FormControl>
         ) : (
           <FormControl>
@@ -360,14 +358,14 @@ function RebateDataOptions(props: OptionsProps) {
       </AccordionSummary>
       <AccordionDetails>
         <Stack spacing={2} mt={2}>
-          <TransactionDateOptions data={data} setData={setData}/>
-          <SupplierIdOptions data={data} setData={setData}/>
-          <MemberIdOptions data={data} setData={setData}/>
-          <DistributorIdOptions data={data} setData={setData}/>
-          <PurchaseAmountOptions data={data} setData={setData}/>
-          <RebateAmountOptions data={data} setData={setData}/>
-          <InvoiceIdOptions data={data} setData={setData}/>
-          <InvoiceDateOptions data={data} setData={setData}/>
+          <TransactionDateOptions data={data} setData={setData} />
+          <SupplierIdOptions data={data} setData={setData} />
+          <MemberIdOptions data={data} setData={setData} />
+          <DistributorIdOptions data={data} setData={setData} />
+          <PurchaseAmountOptions data={data} setData={setData} />
+          <RebateAmountOptions data={data} setData={setData} />
+          <InvoiceIdOptions data={data} setData={setData} />
+          <InvoiceDateOptions data={data} setData={setData} />
         </Stack>
       </AccordionDetails>
     </Accordion>
@@ -380,21 +378,21 @@ const { invoke } = window.api;
 
 interface SimpleTransformerEditProps {
   item: TransformerFile["item"];
-  data: GoodReply<SimpleTransformerData>
+  data: SimpleTransformerData;
 }
 
-function AdvancedTransformerEdit(props: SimpleTransformerEditProps) {
+function SimpleEditor(props: SimpleTransformerEditProps) {
   const { item, data: info } = props;
-  const [data, setData] = React.useState<SimpleTransformerData>(info.data);
+  const [data, setData] = React.useState<SimpleTransformerData>(info);
   const dispatch = useAppDispatch();
 
   React.useEffect(() => {
-    setData(info.data);
-  }, [info.data]);
+    setData(info);
+  }, [info]);
 
   const handleRevert = React.useCallback(() => {
-    setData(info.data);
-  }, [info.data]);
+    setData(info);
+  }, [info]);
 
   const handleSave = React.useCallback(async () => {
     await invoke.updateTransformer({ item, data: good(data) });
@@ -402,31 +400,36 @@ function AdvancedTransformerEdit(props: SimpleTransformerEditProps) {
   }, [item, data, dispatch]);
 
   const handleDelete = React.useCallback(async () => {
-    await invoke.deleteTransformer({ item, data: info });
+    await invoke.deleteTransformer({ item, data: good(info) });
     await dispatch(pullTransformers());
   }, [dispatch, info, item]);
 
   return (
-    <Stack padding={2} width={1} boxSizing="border-box" spacing={2} position="relative">
-      <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Typography level="h3">Configuration</Typography>
+    <Stack direction="column" flex={1}>
+      <Stack flex={1} position="relative">
+        <Sheet sx={{ overflow: "auto", flex: "1 1 0px" }}>
+          <AccordionGroup disableDivider size="lg">
+            <SourceOptions data={data} setData={setData} />
+            <RebateDataOptions data={data} setData={setData} />
+            <TuneOptions data={data} setData={setData} />
+          </AccordionGroup>
+        </Sheet>
+      </Stack>
+      <Divider />
+      <Stack direction="row" justifyContent="space-between" alignItems="center" p={1}>
+        <Typography level="title-sm">Configuration</Typography>
         <Stack direction="row" spacing={1}>
-          <Button variant="outlined" color="neutral" startDecorator={<SaveRoundedIcon />} onClick={handleSave}>Save</Button>
-          <Button variant="outlined" color="neutral" startDecorator={<RestoreRoundedIcon />} onClick={handleRevert}>Revert</Button>
-          <IconButton variant='outlined' color="danger" onClick={handleDelete}>
+          <Button size="sm" variant="soft" color="neutral" onClick={handleSave}>Save</Button>
+          <Button size="sm" variant="soft" color="neutral" onClick={handleRevert}>Revert</Button>
+          <IconButton size="sm" variant='soft' color="danger" onClick={handleDelete}>
             <DeleteRoundedIcon />
           </IconButton>
         </Stack>
       </Stack>
-      <AccordionGroup disableDivider size="lg">
-        <SourceOptions data={data} setData={setData} />
-        <RebateDataOptions data={data} setData={setData} />
-        <TuneOptions data={data} setData={setData} />
-      </AccordionGroup>
     </Stack>
   );
 }
 
 /** ------------------------------------------------------------------------- */
 
-export default React.memo(AdvancedTransformerEdit);
+export default React.memo(SimpleEditor);

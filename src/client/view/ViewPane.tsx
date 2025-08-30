@@ -1,6 +1,5 @@
 import React from 'react';
 import CircularProgress from '@mui/joy/CircularProgress';
-import Stack from '@mui/joy/Stack';
 import NightsStayRoundedIcon from '@mui/icons-material/NightsStayRounded';
 import DoneRoundedIcon from '@mui/icons-material/DoneRounded';
 import PriorityHighRoundedIcon from '@mui/icons-material/PriorityHighRounded';
@@ -133,16 +132,14 @@ function ViewPane() {
   }, [dispatch]);
 
   return (
-    <Stack direction="column" component="main" overflow="auto" height="100vh" flex={1}>
-      <Tabs size="sm" value={tab} onChange={handleTab} sx={{ flex: 1, height: 1 }}>
-        <TabPart />
-        <DocumentationTab />
-        <SystemTab />
-        <QuestionsTab />
-        <TransformersTab />
-        <SettingsTab />
-      </Tabs>
-    </Stack>
+    <Tabs size="sm" value={tab} onChange={handleTab} sx={{ flex: 1 }}>
+      <TabPart />
+      <DocumentationTab />
+      <SystemTab />
+      <QuestionsTab />
+      <TransformersTab />
+      <SettingsTab />
+    </Tabs>
   );
 }
 

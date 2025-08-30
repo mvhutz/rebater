@@ -12,7 +12,7 @@ function App() {
   });
 
   return (
-    <Stack component="article" direction="row">
+    <Stack component="article" flex={1} justifyContent="stretch" alignItems="stretch">
       <ViewPane/>
       <AlertPopup />
       <NewQuarterModal />

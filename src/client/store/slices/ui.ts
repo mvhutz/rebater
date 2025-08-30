@@ -120,5 +120,5 @@ export const getTab = (state: RootState) => state.ui.tab;
 export const getNewQuarterModal = (state: RootState) => state.ui.show.new_quarter_modal;
 export const getContextFilter = (state: RootState) => state.ui.show.context_filter;
 export const getNewTransformerModal = (state: RootState) => state.ui.show.new_transformer_modal;
-export const getDisplayTab = (name: Tab) => (state: RootState) => state.ui.tab === name ? "initial" : "none";
+export const getDisplayTab = (name: Tab) => (state: RootState) => state.ui.tab === name ? undefined : "none";
 export const getCurrentTransformer = (state: RootState) => state.ui.transformers_page.current;
