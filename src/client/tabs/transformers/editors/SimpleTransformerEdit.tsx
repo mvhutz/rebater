@@ -1,8 +1,7 @@
 import React from 'react';
 import Stack from '@mui/joy/Stack';
 import Typography from '@mui/joy/Typography';
-import { Button, IconButton, FormControl, FormLabel, AccordionSummary, AccordionGroup, Accordion, AccordionDetails, FormHelperText, Input, Switch, Textarea, Card, Option, Select, Divider, Sheet } from '@mui/joy';
-import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
+import { FormControl, FormLabel, AccordionSummary, AccordionGroup, Accordion, AccordionDetails, FormHelperText, Input, Switch, Textarea, Card, Option, Select, Divider, Sheet } from '@mui/joy';
 import { useAppDispatch } from '../../../store/hooks';
 import { pullTransformers } from '../../../store/slices/thunk';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
@@ -11,11 +10,10 @@ import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import MultiSelect from '../../MultiSelect';
 import ColumnInput from '../../ColumnInput';
 import { produce } from 'immer';
-import FlashOnRoundedIcon from '@mui/icons-material/FlashOnRounded';
 import { TransformerFile } from '../../../../shared/state/stores/TransformerStore';
 import { good } from '../../../../shared/reply';
 import { SimpleTransformerData } from '../../../../shared/transformer/simple';
-import { Tooltip } from '@mui/material';
+import EditorBar from './EditorBar';
 
 /** ------------------------------------------------------------------------- */
 
@@ -46,7 +44,7 @@ function SourceOptions(props: OptionsProps) {
         <Stack spacing={3} mt={2}>
           <FormControl sx={{ flex: 1 }}>
             <FormLabel>File Name</FormLabel>
-            <Input placeholder="Input file name..." value={data.source.file} onChange={handleFilename} />
+            <Input variant='soft' placeholder="Input file name..." value={data.source.file} onChange={handleFilename} />
             <FormHelperText>Supports&nbsp;<code>glob</code>&nbsp;expressions.</FormHelperText>
           </FormControl>
           <FormControl sx={{ flex: 1 }}>
@@ -106,12 +104,12 @@ function TuneOptions(props: OptionsProps) {
           </FormControl>
           <FormControl>
             <FormLabel>Additional Pre-processiong</FormLabel>
-            <Textarea minRows={2} value={data.options.additional_preprocessing ?? ""} onChange={handlePreprocessing} sx={{ fontFamily: "monospace" }} size='sm' />
+            <Textarea variant='soft' minRows={2} value={data.options.additional_preprocessing ?? ""} onChange={handlePreprocessing} sx={{ fontFamily: "monospace" }} size='sm' />
             <FormHelperText>Add additional operations before the rebate data is extracted. Input is JSON.</FormHelperText>
           </FormControl>
           <FormControl>
             <FormLabel>Additional Post-processiong</FormLabel>
-            <Textarea minRows={2} value={data.options.additional_postprocessing ?? ""} onChange={handlePostprocessing} sx={{ fontFamily: "monospace" }} size='sm' />
+            <Textarea variant='soft' minRows={2} value={data.options.additional_postprocessing ?? ""} onChange={handlePostprocessing} sx={{ fontFamily: "monospace" }} size='sm' />
             <FormHelperText>Add additional operations after the rebate data is extracted. Input is JSON.</FormHelperText>
           </FormControl>
         </Stack>
@@ -408,28 +406,7 @@ function SimpleEditor(props: SimpleTransformerEditProps) {
 
   return (
     <Stack direction="column" flex={1}>
-      <Stack direction="row" alignItems="center" p={1}>
-        <Stack direction="row" justifyContent="stretch" spacing={1} flex={0} flexShrink={1}>
-          <Tooltip title="Source Group">
-            <Typography level="body-sm" variant="soft" color="primary" sx={{ whiteSpace: "pre", fontFamily: "monospace", borderRadius: 100, px: 2, py: 0.5 }}>
-              {data.group}
-            </Typography>
-          </Tooltip>
-          <Typography>/</Typography>
-          <Tooltip title="Transformer Name">
-            <Typography level="body-sm" variant="solid" color="primary" sx={{ fontWeight: "bold", whiteSpace: "pre", fontFamily: "monospace", borderRadius: 100, px: 2, py: 0.5 }} startDecorator={<FlashOnRoundedIcon fontSize='small' />}>
-              {data.name}
-            </Typography>
-          </Tooltip>
-        </Stack>
-        <Stack direction="row" spacing={1} flex={1} justifyContent="end">
-          <Button size="sm" variant="soft" color="neutral" onClick={handleSave}>Save</Button>
-          <Button size="sm" variant="soft" color="neutral" onClick={handleRevert}>Revert</Button>
-          <IconButton size="sm" variant='soft' color="danger" onClick={handleDelete}>
-            <DeleteRoundedIcon />
-          </IconButton>
-        </Stack>
-      </Stack>
+      <EditorBar group={data.group} name={data.name} onSave={handleSave} onRevert={handleRevert} onDelete={handleDelete} />
       <Divider />
       <Stack flex={1} position="relative">
         <Sheet sx={{ overflow: "auto", flex: "1 1 0px" }}>

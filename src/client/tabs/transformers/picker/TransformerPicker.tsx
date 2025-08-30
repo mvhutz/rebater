@@ -3,7 +3,7 @@ import Typography from '@mui/joy/Typography';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { getCurrentTransformer, setCurrentTransformer, toggleNewTransformerModal } from '../../../store/slices/ui';
 import { getTransformerGroups } from '../../../store/slices/system';
-import { Button, IconButton, List, ListItem, ListItemButton, ListItemContent, ListSubheader, Sheet, Stack, Tooltip } from '@mui/joy';
+import { Accordion, AccordionDetails, AccordionGroup, AccordionSummary, Button, IconButton, List, ListItem, ListItemButton, ListItemContent, Sheet, Stack, Tooltip } from '@mui/joy';
 import { ErrorOutlineRounded, RestoreRounded } from '@mui/icons-material';
 import { TransformerFile } from '../../../../shared/state/stores/TransformerStore';
 
@@ -39,26 +39,30 @@ function TransformerPicker() {
     const { data: groups } = transformers_group_reply;
 
     inner = (
-      <List sx={{ '--List-nestedInsetStart': '2rem' }}>
+      <AccordionGroup size='sm' disableDivider>
         {Object.entries(groups).map(([group, files]) => <React.Fragment key={group}>
-          <ListItem nested>
-            <ListSubheader sticky>{group} ({files.length})</ListSubheader>
-            <List size='sm'>
+          <Accordion>
+            <AccordionSummary>
+              <Typography sx={{ fontVariant: "all-petite-caps" }} level="title-sm">{group} ({files.length})</Typography>
+              </AccordionSummary>
+            <AccordionDetails>
               {files.map(file => (
-                <ListItem>
-                  <Tooltip title={getTransformerName(file)} placement="right">
-                    <ListItemButton selected={current_transformer === file.item.name} key={file.item.name} onClick={() => dispatch(setCurrentTransformer(file.item.name))}>
-                      <ListItemContent>
-                        <Typography noWrap fontFamily="monospace" fontSize="small">{getTransformerName(file)}</Typography>
-                      </ListItemContent>
-                    </ListItemButton>
-                  </Tooltip>
-                </ListItem>
+                <List sx={{ '--ListItem-paddingLeft': '2rem' }}>
+                  <ListItem>
+                    <Tooltip title={getTransformerName(file)} placement="right">
+                      <ListItemButton selected={current_transformer === file.item.name} key={file.item.name} onClick={() => dispatch(setCurrentTransformer(file.item.name))}>
+                        <ListItemContent>
+                          <Typography noWrap fontFamily="monospace" fontSize="small">{getTransformerName(file)}</Typography>
+                        </ListItemContent>
+                      </ListItemButton>
+                    </Tooltip>
+                  </ListItem>
+                </List>
               ))}
-            </List>
-          </ListItem>
+            </AccordionDetails>
+          </Accordion>
         </React.Fragment>)}
-      </List>
+      </AccordionGroup>
     )
   }
 
@@ -71,7 +75,7 @@ function TransformerPicker() {
       </Stack>
       <Sheet variant="soft">
         <Stack direction="row" padding={1} spacing={1}>
-          <Button size="sm" fullWidth color='primary' variant='solid' onClick={handleNewTransformer}>
+          <Button size="sm" fullWidth color="neutral" variant='outlined' onClick={handleNewTransformer}>
             New Transformer
           </Button>
           <Tooltip title="Refresh Transformers">

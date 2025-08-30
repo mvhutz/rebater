@@ -1,16 +1,14 @@
 import React from 'react';
 import Stack from '@mui/joy/Stack';
-import Typography from '@mui/joy/Typography';
-import { Textarea, Button, IconButton, Divider, Sheet, Tooltip } from '@mui/joy';
-import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
+import { Textarea, Divider, Sheet } from '@mui/joy';
 import { useAppDispatch } from '../../../store/hooks';
 import { pullTransformers } from '../../../store/slices/thunk';
 import { TransformerFile } from '../../../../shared/state/stores/TransformerStore';
 import { AdvancedTransformerData, AdvancedTransformerSchema } from '../../../../shared/transformer/advanced';
-import FlashOnRoundedIcon from '@mui/icons-material/FlashOnRounded';
 import { bad, good } from '../../../../shared/reply';
 import MalformedError from '../MalformedError';
 import z from 'zod/v4';
+import EditorBar from './EditorBar';
 
 /** ------------------------------------------------------------------------- */
 
@@ -60,28 +58,7 @@ function AdvancedEditor(props: AdvancedTransformerEditProps) {
 
   return (
     <Stack direction="column" flex={1} alignItems="stretch">
-      <Stack direction="row" alignItems="center" p={1}>
-        <Stack direction="row" justifyContent="stretch" spacing={1} flex={0} flexShrink={1}>
-          <Tooltip title="Source Group">
-            <Typography level="body-sm" variant="soft" color="primary" sx={{ fontFamily: "monospace", borderRadius: 100, px: 2, py: 0.5 }}>
-              Advanced
-            </Typography>
-          </Tooltip>
-          <Typography>/</Typography>
-          <Tooltip title="Transformer Name">
-            <Typography level="body-sm" variant="solid" color="primary" sx={{ fontWeight: "bold", whiteSpace: "pre", fontFamily: "monospace", borderRadius: 100, px: 2, py: 0.5 }} startDecorator={<FlashOnRoundedIcon fontSize='small' />}>
-              {data.name}
-            </Typography>
-          </Tooltip>
-        </Stack>
-        <Stack direction="row" spacing={1} flex={1} justifyContent="end">
-          <Button size="sm" disabled={!transformer_ready} variant="soft" color="neutral" onClick={handleSave}>Save</Button>
-          <Button size="sm" variant="soft" color="neutral" onClick={handleRevert}>Revert</Button>
-          <IconButton size="sm" variant='soft' color="danger" onClick={handleDelete}>
-            <DeleteRoundedIcon />
-          </IconButton>
-        </Stack>
-      </Stack>
+      <EditorBar group="Advanced" name={data.name} disable_save={!transformer_ready} onSave={handleSave} onRevert={handleRevert} onDelete={handleDelete} />
       <Divider />
       <Stack flex={1} position="relative">
         <Sheet sx={{ overflow: "auto", flex: "1 1 0px" }}>
