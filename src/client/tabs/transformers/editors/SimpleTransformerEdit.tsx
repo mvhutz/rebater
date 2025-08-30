@@ -11,9 +11,11 @@ import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import MultiSelect from '../../MultiSelect';
 import ColumnInput from '../../ColumnInput';
 import { produce } from 'immer';
+import FlashOnRoundedIcon from '@mui/icons-material/FlashOnRounded';
 import { TransformerFile } from '../../../../shared/state/stores/TransformerStore';
 import { good } from '../../../../shared/reply';
 import { SimpleTransformerData } from '../../../../shared/transformer/simple';
+import { Tooltip } from '@mui/material';
 
 /** ------------------------------------------------------------------------- */
 
@@ -406,6 +408,29 @@ function SimpleEditor(props: SimpleTransformerEditProps) {
 
   return (
     <Stack direction="column" flex={1}>
+      <Stack direction="row" alignItems="center" p={1}>
+        <Stack direction="row" justifyContent="stretch" spacing={1} flex={0} flexShrink={1}>
+          <Tooltip title="Source Group">
+            <Typography level="body-sm" variant="soft" color="primary" sx={{ whiteSpace: "pre", fontFamily: "monospace", borderRadius: 100, px: 2, py: 0.5 }}>
+              {data.group}
+            </Typography>
+          </Tooltip>
+          <Typography>/</Typography>
+          <Tooltip title="Transformer Name">
+            <Typography level="body-sm" variant="solid" color="primary" sx={{ fontWeight: "bold", whiteSpace: "pre", fontFamily: "monospace", borderRadius: 100, px: 2, py: 0.5 }} startDecorator={<FlashOnRoundedIcon fontSize='small' />}>
+              {data.name}
+            </Typography>
+          </Tooltip>
+        </Stack>
+        <Stack direction="row" spacing={1} flex={1} justifyContent="end">
+          <Button size="sm" variant="soft" color="neutral" onClick={handleSave}>Save</Button>
+          <Button size="sm" variant="soft" color="neutral" onClick={handleRevert}>Revert</Button>
+          <IconButton size="sm" variant='soft' color="danger" onClick={handleDelete}>
+            <DeleteRoundedIcon />
+          </IconButton>
+        </Stack>
+      </Stack>
+      <Divider />
       <Stack flex={1} position="relative">
         <Sheet sx={{ overflow: "auto", flex: "1 1 0px" }}>
           <AccordionGroup disableDivider size="lg">
@@ -414,17 +439,6 @@ function SimpleEditor(props: SimpleTransformerEditProps) {
             <TuneOptions data={data} setData={setData} />
           </AccordionGroup>
         </Sheet>
-      </Stack>
-      <Divider />
-      <Stack direction="row" justifyContent="space-between" alignItems="center" p={1}>
-        <Typography level="title-sm">Configuration</Typography>
-        <Stack direction="row" spacing={1}>
-          <Button size="sm" variant="soft" color="neutral" onClick={handleSave}>Save</Button>
-          <Button size="sm" variant="soft" color="neutral" onClick={handleRevert}>Revert</Button>
-          <IconButton size="sm" variant='soft' color="danger" onClick={handleDelete}>
-            <DeleteRoundedIcon />
-          </IconButton>
-        </Stack>
       </Stack>
     </Stack>
   );

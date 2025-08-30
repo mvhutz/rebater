@@ -1,18 +1,16 @@
 import React from 'react';
 import Stack from '@mui/joy/Stack';
 import Typography from '@mui/joy/Typography';
-import { Textarea, Button, IconButton, Divider, Sheet, Input, Autocomplete, Tooltip } from '@mui/joy';
+import { Textarea, Button, IconButton, Divider, Sheet, Tooltip } from '@mui/joy';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { useAppDispatch } from '../../../store/hooks';
 import { pullTransformers } from '../../../store/slices/thunk';
 import { TransformerFile } from '../../../../shared/state/stores/TransformerStore';
 import { AdvancedTransformerData, AdvancedTransformerSchema } from '../../../../shared/transformer/advanced';
 import FlashOnRoundedIcon from '@mui/icons-material/FlashOnRounded';
 import { bad, good } from '../../../../shared/reply';
 import MalformedError from '../MalformedError';
-import FolderIcon from '@mui/icons-material/Folder';
 import z from 'zod/v4';
-import { getTransformerGroups } from '../../../store/slices/system';
 
 /** ------------------------------------------------------------------------- */
 
@@ -26,10 +24,7 @@ interface AdvancedTransformerEditProps {
 function AdvancedEditor(props: AdvancedTransformerEditProps) {
   const { item, data } = props;
   const [draft, setDraft] = React.useState(JSON.stringify(data, null, 2));
-  const groups_reply = useAppSelector(getTransformerGroups);
   const dispatch = useAppDispatch();
-
-  const groups = groups_reply.ok ? Object.keys(groups_reply.data) : [];
 
   const { success: transformer_ready, data: draft_transformer, error: draft_error } = React.useMemo(() => {
     try {
