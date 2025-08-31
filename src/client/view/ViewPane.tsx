@@ -82,7 +82,7 @@ function TabPart_() {
         <ListItemDecorator>
           <QuestionMarkRoundedIcon fontSize="small" />
         </ListItemDecorator>
-        Questions {questions_count > 0 && <Chip color="primary" variant="solid" size='sm'>{questions_count}</Chip>}
+        Questionnaire {questions_count > 0 && <Chip color="primary" variant="solid" size='sm'>{questions_count}</Chip>}
       </Tab>
       <Tab value="transformers" indicatorPlacement="top" sx={TAB_SX_PROPS}>
         <ListItemDecorator>
