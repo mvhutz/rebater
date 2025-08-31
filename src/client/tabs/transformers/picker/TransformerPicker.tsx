@@ -1,11 +1,12 @@
 import React from 'react';
 import Typography from '@mui/joy/Typography';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { getCurrentTransformer, setCurrentTransformer, toggleNewTransformerModal } from '../../../store/slices/ui';
-import { getTransformerGroups } from '../../../store/slices/system';
+import { toggleNewTransformerModal } from '../../../store/slices/ui';
+import { getCurrentTransformerId, getTransformerGroups } from '../../../store/slices/system';
 import { Accordion, AccordionDetails, AccordionGroup, AccordionSummary, Button, IconButton, List, ListItem, ListItemButton, ListItemContent, Sheet, Stack, Tooltip } from '@mui/joy';
 import { ErrorOutlineRounded, RestoreRounded } from '@mui/icons-material';
 import { TransformerFile } from '../../../../shared/state/stores/TransformerStore';
+import { viewExistingTransformer } from '../../../store/slices/thunk';
 
 /** ------------------------------------------------------------------------- */
 
@@ -19,11 +20,15 @@ function getTransformerName(file: TransformerFile) {
 
 function TransformerPicker() {
   const transformers_group_reply = useAppSelector(getTransformerGroups);
-  const current_transformer = useAppSelector(getCurrentTransformer);
+  const transformer_id = useAppSelector(getCurrentTransformerId);
   const dispatch = useAppDispatch();
 
   const handleNewTransformer = React.useCallback(() => {
     dispatch(toggleNewTransformerModal());
+  }, [dispatch]);
+
+  const handleExistingTransformer = React.useCallback((file: TransformerFile) => {
+    dispatch(viewExistingTransformer(file.item.name));
   }, [dispatch]);
 
   let inner;
@@ -50,7 +55,7 @@ function TransformerPicker() {
                 <List sx={{ '--ListItem-paddingLeft': '2rem' }}>
                   <ListItem>
                     <Tooltip title={getTransformerName(file)} placement="right">
-                      <ListItemButton selected={current_transformer === file.item.name} key={file.item.name} onClick={() => dispatch(setCurrentTransformer(file.item.name))}>
+                      <ListItemButton selected={transformer_id === file.item.name} key={file.item.name} onClick={() => handleExistingTransformer(file)}>
                         <ListItemContent>
                           <Typography noWrap fontFamily="monospace" fontSize="small">{getTransformerName(file)}</Typography>
                         </ListItemContent>

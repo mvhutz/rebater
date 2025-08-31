@@ -4,46 +4,85 @@ import Typography from '@mui/joy/Typography';
 import { Button, IconButton, Tooltip } from '@mui/joy';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
+import { CreateTransformerPageInfo, UpdateTransformerPageInfo } from '../../../store/slices/drafts';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { deleteTransformerDraft, discardTransformerDraft, saveTransformerDraft } from '../../../store/slices/thunk';
+import { getTransformerDraftAsData, getTransformerPageInfo } from '../../../store/slices/system';
+
+/** ------------------------------------------------------------------------- */
+
+function OptionsBar() {
+  const page = useAppSelector(getTransformerPageInfo);
+  const dispatch = useAppDispatch();
+  const draft = useAppSelector(getTransformerDraftAsData);
+
+  const handleRevert = React.useCallback(async () => {
+    await dispatch(discardTransformerDraft());
+  }, [dispatch]);
+
+  const handleSave = React.useCallback(async () => {
+    await dispatch(saveTransformerDraft());
+  }, [dispatch]);
+
+  const handleDelete = React.useCallback(async () => {
+    await dispatch(deleteTransformerDraft());
+  }, [dispatch]);
+
+  return (
+    <Stack direction="row" spacing={1} flex={1} justifyContent="end">
+      {page.type === "update" &&
+        <Button size="sm" disabled={!draft.ok} variant="soft" color="neutral" onClick={handleSave}>Save</Button>
+      }
+      {page.type === "create" &&
+        <Button size="sm" disabled={!draft.ok} variant="solid" color="primary" onClick={handleSave}>Create</Button>
+      }
+      {page.type === "update" &&
+        <Button size="sm" variant="soft" color="neutral" onClick={handleRevert}>Revert</Button>
+      }
+      {page.type === "create" &&
+        <Button size="sm" variant="plain" color="neutral" onClick={handleRevert}>Discard</Button>
+      }
+      {page.type === "update" &&
+        <Tooltip title="Discard Transformer">
+          <IconButton size="sm" variant='plain' color="neutral" onClick={handleDelete}>
+            <DeleteRoundedIcon />
+          </IconButton>
+        </Tooltip>
+      }
+    </Stack>
+  );
+}
 
 /** ------------------------------------------------------------------------- */
 
 interface EditorBarProps {
-  group: string;
-  name: string;
-  disable_save?: boolean;
-  onSave: () => void;
-  onRevert: () => void;
-  onDelete: () => void;
+  info: UpdateTransformerPageInfo | CreateTransformerPageInfo;
 }
 
 function EditorBar(props: EditorBarProps) {
-  const { group, name, disable_save, onSave, onRevert, onDelete } = props;
+  const { info: { draft } } = props;
+  const data = useAppSelector(getTransformerDraftAsData);
+
+  const name = data.ok ? data.data.name : "??";
+  const group = draft.type === "simple" ? draft.group : "Advanced";
 
   return (
     <Stack direction="row" alignItems="center" p={1}>
-        <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.25} flex={0} flexShrink={1}>
-          <Tooltip title="Source Group">
-            <Typography level="body-sm" variant="soft" color="primary" sx={{ fontWeight: "bold", px: 1, fontFamily: "monospace" }}>
-              {group}
-            </Typography>
-          </Tooltip>
-          <ChevronRightRoundedIcon fontSize='small'/>
-          <Tooltip title="Transformer Name">
-            <Typography level="body-sm" variant="soft" color="primary" sx={{ fontWeight: "bold", px: 1, whiteSpace: "pre", fontFamily: "monospace" }}>
-              {name}
-            </Typography>
-          </Tooltip>
-        </Stack>
-        <Stack direction="row" spacing={1} flex={1} justifyContent="end">
-          <Button size="sm" disabled={disable_save} variant="soft" color="neutral" onClick={onSave}>Save</Button>
-          <Button size="sm" variant="soft" color="neutral" onClick={onRevert}>Revert</Button>
-          <Tooltip title="Discard Transformer">
-            <IconButton size="sm" variant='plain' color="neutral" onClick={onDelete}>
-              <DeleteRoundedIcon />
-            </IconButton>
-          </Tooltip>
-        </Stack>
+      <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.25} flex={0} flexShrink={1}>
+        <Tooltip title="Source Group">
+          <Typography whiteSpace="pre" level="body-sm" variant="soft" color="primary" sx={{ fontWeight: "bold", px: 1, fontFamily: "monospace" }}>
+            {group}
+          </Typography>
+        </Tooltip>
+        <ChevronRightRoundedIcon fontSize='small' />
+        <Tooltip title="Transformer Name">
+          <Typography whiteSpace="pre" level="body-sm" variant="soft" color="primary" sx={{ fontWeight: "bold", px: 1, whiteSpace: "pre", fontFamily: "monospace" }}>
+            {name}
+          </Typography>
+        </Tooltip>
       </Stack>
+      <OptionsBar/>
+    </Stack>
   )
 }
 

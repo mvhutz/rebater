@@ -6,7 +6,7 @@ import { TransformerData, TransformerSchema } from "../../transformer";
 
 /** ------------------------------------------------------------------------- */
 
-interface TransformerMeta { name: string };
+export interface TransformerMeta { name: string };
 
 export interface TransformerFile {
   item: TransformerMeta;

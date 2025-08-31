@@ -1,42 +1,37 @@
 import React from 'react';
 import Stack from '@mui/joy/Stack';
 import Typography from '@mui/joy/Typography';
-import { FormControl, FormLabel, AccordionSummary, AccordionGroup, Accordion, AccordionDetails, FormHelperText, Input, Switch, Textarea, Card, Option, Select, Divider, Sheet } from '@mui/joy';
-import { useAppDispatch } from '../../../store/hooks';
-import { pullTransformers } from '../../../store/slices/thunk';
-import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
-import SummarizeRoundedIcon from '@mui/icons-material/SummarizeRounded';
-import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
+import { FormControl, FormLabel, AccordionSummary, AccordionGroup, Accordion, AccordionDetails, FormHelperText, Input, Switch, Textarea, Card, Option, Select, Sheet } from '@mui/joy';
 import MultiSelect from '../../MultiSelect';
 import ColumnInput from '../../ColumnInput';
-import { produce } from 'immer';
-import { TransformerFile } from '../../../../shared/state/stores/TransformerStore';
-import { good } from '../../../../shared/reply';
+import { Draft, produce } from 'immer';
 import { SimpleTransformerData } from '../../../../shared/transformer/simple';
-import EditorBar from './EditorBar';
+import { SimpleTransformerDraft } from '../../../store/slices/drafts';
+import { useAppDispatch } from '../../../store/hooks';
+import { updateTransformerDraft } from '../../../store/slices/system';
 
 /** ------------------------------------------------------------------------- */
 
 interface OptionsProps {
   data: SimpleTransformerData;
-  setData: React.Dispatch<React.SetStateAction<SimpleTransformerData>>;
+  setData: (fn: (state: Draft<SimpleTransformerDraft>) => void) => void;
 }
 
 function SourceOptions(props: OptionsProps) {
   const { data, setData } = props;
   const handleSheets = React.useCallback((v: string[]) => {
-    setData(d => ({ ...d, source: { ...d.source, sheets: v } }));
+    setData(d => { d.source.sheets = v; });
   }, [setData]);
 
   const handleFilename = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
     const value = e.target.value === "" ? undefined : e.target.value;
-    setData(d => ({ ...d, source: { ...d.source, file: value } }));
+    setData(d => { d.source.file = value; });
   }, [setData]);
 
   return (
     <Accordion>
       <AccordionSummary>
-        <Typography level="h4" startDecorator={<DocumentScannerIcon />}>
+        <Typography>
           Sources
         </Typography>
       </AccordionSummary>
@@ -62,27 +57,27 @@ function TuneOptions(props: OptionsProps) {
   const { data, setData } = props;
 
   const handleCanadian = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
-    setData(d => ({ ...d, options: { ...d.options, canadian_rebate: e.target.checked } }));
+    setData(d => { d.options.canadian_rebate = e.target.checked; });
   }, [setData]);
 
   const handleNull = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
-    setData(d => ({ ...d, options: { ...d.options, remove_null_rebates: e.target.checked } }));
+    setData(d => { d.options.remove_null_rebates = e.target.checked; });
   }, [setData]);
 
   const handlePreprocessing = React.useCallback<React.ChangeEventHandler<HTMLTextAreaElement>>(e => {
     const value = e.target.value === "" ? undefined : e.target.value;
-    setData(d => ({ ...d, options: { ...d.options, additional_preprocessing: value } }));
+    setData(d => { d.options.additional_preprocessing = value; });
   }, [setData]);
 
   const handlePostprocessing = React.useCallback<React.ChangeEventHandler<HTMLTextAreaElement>>(e => {
     const value = e.target.value === "" ? undefined : e.target.value;
-    setData(d => ({ ...d, options: { ...d.options, additional_postprocessing: value } }));
+    setData(d => { d.options.additional_postprocessing = value; });
   }, [setData]);
 
   return (
     <Accordion>
       <AccordionSummary>
-        <Typography level="h4" startDecorator={<TuneRoundedIcon />}>
+        <Typography>
           Options
         </Typography>
       </AccordionSummary>
@@ -123,12 +118,12 @@ function TransactionDateOptions(props: OptionsProps) {
   const { column, parse } = data.properties.transactionDate;
 
   const handleColumn = React.useCallback((c?: number) => {
-    setData(produce(d => { d.properties.transactionDate.column = c; }));
+    setData(d => { d.properties.transactionDate.column = c; });
   }, [setData]);
 
   const handleParse = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
     const value = e.target.value === "" ? undefined : e.target.value;
-    setData(produce(d => { d.properties.transactionDate.parse = value; }));
+    setData(d => { d.properties.transactionDate.parse = value; });
   }, [setData]);
 
   return (
@@ -153,12 +148,12 @@ function InvoiceDateOptions(props: OptionsProps) {
   const { column, parse } = data.properties.invoiceDate;
 
   const handleColumn = React.useCallback((c?: number) => {
-    setData(produce(d => { d.properties.invoiceDate.column = c; }));
+    setData(d => { d.properties.invoiceDate.column = c; });
   }, [setData]);
 
   const handleParse = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
     const value = e.target.value === "" ? undefined : e.target.value;
-    setData(produce(d => { d.properties.invoiceDate.parse = value; }));
+    setData(d => { d.properties.invoiceDate.parse = value; });
   }, [setData]);
 
   return (
@@ -184,7 +179,7 @@ function SupplierIdOptions(props: OptionsProps) {
 
   const handleParse = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
     const value = e.target.value === "" ? undefined : e.target.value;
-    setData(produce(d => { d.properties.supplierId.value = value; }));
+    setData(d => { d.properties.supplierId.value = value; });
   }, [setData]);
 
   return (
@@ -205,7 +200,7 @@ function MemberIdOptions(props: OptionsProps) {
   const { column } = data.properties.memberId;
 
   const handleColumn = React.useCallback((c?: number) => {
-    setData(produce(d => { d.properties.memberId.column = c; }));
+    setData(d => { d.properties.memberId.column = c; });
   }, [setData]);
 
   return (
@@ -226,7 +221,7 @@ function InvoiceIdOptions(props: OptionsProps) {
   const { column } = data.properties.invoiceId;
 
   const handleColumn = React.useCallback((c?: number) => {
-    setData(produce(d => { d.properties.invoiceId.column = c; }));
+    setData(d => { d.properties.invoiceId.column = c; });
   }, [setData]);
 
   return (
@@ -247,7 +242,7 @@ function PurchaseAmountOptions(props: OptionsProps) {
   const { column } = data.properties.purchaseAmount;
 
   const handleColumn = React.useCallback((c?: number) => {
-    setData(produce(d => { d.properties.purchaseAmount.column = c; }));
+    setData(d => { d.properties.purchaseAmount.column = c; });
   }, [setData]);
 
   return (
@@ -268,13 +263,13 @@ function RebateAmountOptions(props: OptionsProps) {
   const { column, multiplier } = data.properties.rebateAmount;
 
   const handleColumn = React.useCallback((c?: number) => {
-    setData(produce(d => { d.properties.rebateAmount.column = c; }));
+    setData(d => { d.properties.rebateAmount.column = c; });
   }, [setData]);
 
   const handleMultipler = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
     const value = e.target.value === "" ? undefined : parseFloat(e.target.value);
     const num = isNaN(value ?? NaN) ? undefined : value;
-    setData(produce(d => { d.properties.rebateAmount.multiplier = num; }));
+    setData(d => { d.properties.rebateAmount.multiplier = num; });
   }, [setData]);
 
   return (
@@ -300,22 +295,22 @@ function DistributorIdOptions(props: OptionsProps) {
 
   const handleType = React.useCallback((_: unknown, c: "value" | "column" | null) => {
     if (c == null) return;
-    setData(produce(d => { d.properties.distributorName = { type: c }; }));
+    setData(d => { d.properties.distributorName = { type: c }; });
   }, [setData]);
 
   const handleValue = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
     const value = e.target.value === "" ? undefined : e.target.value;
-    setData(produce(d => {
+    setData(d => {
       if (d.properties.distributorName.type !== "value") return;
       d.properties.distributorName = { type: "value", value };
-    }));
+    });
   }, [setData]);
 
   const handleColumn = React.useCallback((column?: number) => {
-    setData(produce(d => {
+    setData(d => {
       if (d.properties.distributorName.type !== "column") return;
       d.properties.distributorName = { type: "column", column };
-    }));
+    });
   }, [setData]);
 
   return (
@@ -352,7 +347,7 @@ function RebateDataOptions(props: OptionsProps) {
   return (
     <Accordion>
       <AccordionSummary>
-        <Typography level="h4" startDecorator={<SummarizeRoundedIcon />}>
+        <Typography>
           Rebate Data
         </Typography>
       </AccordionSummary>
@@ -374,49 +369,27 @@ function RebateDataOptions(props: OptionsProps) {
 
 /** ------------------------------------------------------------------------- */
 
-const { invoke } = window.api;
-
 interface SimpleTransformerEditProps {
-  item: TransformerFile["item"];
-  data: SimpleTransformerData;
+  data: SimpleTransformerDraft;
 }
 
 function SimpleEditor(props: SimpleTransformerEditProps) {
-  const { item, data: info } = props;
-  const [data, setData] = React.useState<SimpleTransformerData>(info);
+  const { data } = props;
   const dispatch = useAppDispatch();
 
-  React.useEffect(() => {
-    setData(info);
-  }, [info]);
-
-  const handleRevert = React.useCallback(() => {
-    setData(info);
-  }, [info]);
-
-  const handleSave = React.useCallback(async () => {
-    await invoke.updateTransformer({ item, data: good(data) });
-    await dispatch(pullTransformers());
-  }, [item, data, dispatch]);
-
-  const handleDelete = React.useCallback(async () => {
-    await invoke.deleteTransformer({ item, data: good(info) });
-    await dispatch(pullTransformers());
-  }, [dispatch, info, item]);
+  const setData = React.useCallback((fn: (state: Draft<SimpleTransformerDraft>) => void) => {
+    dispatch(updateTransformerDraft(produce(fn)(data)));
+  }, [data, dispatch]);
 
   return (
-    <Stack direction="column" flex={1}>
-      <EditorBar group={data.group} name={data.name} onSave={handleSave} onRevert={handleRevert} onDelete={handleDelete} />
-      <Divider />
-      <Stack flex={1} position="relative">
-        <Sheet sx={{ overflow: "auto", flex: "1 1 0px" }}>
-          <AccordionGroup disableDivider size="lg">
-            <SourceOptions data={data} setData={setData} />
-            <RebateDataOptions data={data} setData={setData} />
-            <TuneOptions data={data} setData={setData} />
-          </AccordionGroup>
-        </Sheet>
-      </Stack>
+    <Stack flex={1} position="relative">
+      <Sheet sx={{ overflow: "auto", flex: "1 1 0px" }}>
+        <AccordionGroup disableDivider size="lg">
+          <SourceOptions data={data} setData={setData} />
+          <RebateDataOptions data={data} setData={setData} />
+          <TuneOptions data={data} setData={setData} />
+        </AccordionGroup>
+      </Sheet>
     </Stack>
   );
 }

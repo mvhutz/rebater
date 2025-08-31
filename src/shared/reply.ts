@@ -80,3 +80,20 @@ export class Replier<T> {
     return this.reply;
   }
 }
+
+export interface Resource<T> {
+  loading: boolean;
+  response: Reply<T>;
+}
+
+export function loading<T>(reply: Reply<T>): Resource<T> {
+  return { loading: true, response: reply };
+}
+
+export function present<T>(reply: Reply<T>): Resource<T> {
+  return { loading: false, response: reply };
+}
+
+export function unloaded<T>(): Resource<T> {
+  return { loading: false, response: bad("Not loaded!") };
+}

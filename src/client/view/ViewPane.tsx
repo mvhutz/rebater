@@ -4,7 +4,6 @@ import NightsStayRoundedIcon from '@mui/icons-material/NightsStayRounded';
 import DoneRoundedIcon from '@mui/icons-material/DoneRounded';
 import PriorityHighRoundedIcon from '@mui/icons-material/PriorityHighRounded';
 import { getSystemQuestionCount, getSystemStatus, getTransformers } from '../store/slices/system';
-import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded';
 import ListItemDecorator from '@mui/joy/ListItemDecorator';
@@ -14,7 +13,6 @@ import Tabs from '@mui/joy/Tabs';
 import { SxProps } from '@mui/joy/styles/types';
 import { getTab, getVisible, pushMessage, setTab } from '../store/slices/ui';
 import SystemTab from '../tabs/system/SystemTab';
-import DocumentationTab from '../tabs/documentation/DocumentationTab';
 import { SystemStatus } from '../../shared/worker/response';
 import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
 import QuestionsTab from '../tabs/questions/QuestionsTab';
@@ -78,13 +76,7 @@ function TabPart_() {
         <ListItemDecorator>
           <SystemIcon status={status} />
         </ListItemDecorator>
-        System
-      </Tab>
-      <Tab value="documentation" indicatorPlacement="top" sx={TAB_SX_PROPS}>
-        <ListItemDecorator>
-          <BookmarkRoundedIcon />
-        </ListItemDecorator>
-        Documentation
+        Execution
       </Tab>
       <Tab value="questions" indicatorPlacement="top" sx={TAB_SX_PROPS}>
         <ListItemDecorator>
@@ -134,7 +126,6 @@ function ViewPane() {
   return (
     <Tabs size="sm" value={tab} onChange={handleTab} sx={{ flex: 1 }}>
       <TabPart />
-      <DocumentationTab />
       <SystemTab />
       <QuestionsTab />
       <TransformersTab />

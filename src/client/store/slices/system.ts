@@ -6,21 +6,10 @@ import { TimeData } from '../../../shared/time';
 import { Question, SystemStatus } from '../../../shared/worker/response';
 import { bad, good, Reply } from '../../../shared/reply';
 import { TransformerFile } from '../../../shared/state/stores/TransformerStore';
-
-/** ------------------------------------------------------------------------- */
-
-export interface SettingsDraft {
-  directory?: string;
-  testing: { enabled: boolean; compare_all: boolean; };
-}
-
-export interface ContextDraft {
-  time?: TimeData;
-  transformers: {
-    tags: { include: string[]; };
-    names: { include: string[]; };
-  };
-}
+import { ContextDraft, SettingsDraft, TransformerDraft, TransformerPageInfo } from './drafts';
+import { TransformerData } from '../../../shared/transformer';
+import { AdvancedTransformerSchema } from '../../../shared/transformer/advanced';
+import { z } from 'zod/v4';
 
 /** ------------------------------------------------------------------------- */
 
@@ -33,7 +22,8 @@ interface SystemState {
   draft: {
     settings: SettingsDraft;
     context: ContextDraft;
-  }
+  },
+  transformer_page: TransformerPageInfo
 }
 
 const initialState: SystemState = {
@@ -51,8 +41,9 @@ const initialState: SystemState = {
         tags: { include: [] },
         names: { include: [] }
       },
-    }
-  }
+    },
+  },
+  transformer_page: { type: "empty" },
 }
 
 /** ------------------------------------------------------------------------- */
@@ -61,6 +52,20 @@ export const SystemSlice = createSlice({
   name: 'system',
   initialState,
   reducers: {
+    setTransformerPage: (state, action: PayloadAction<TransformerPageInfo>) => {
+      state.transformer_page = action.payload;
+    },
+    updateTransformerDraft: (state, action: PayloadAction<TransformerDraft>) => {
+      if (state.transformer_page.type === "empty") return;
+      state.transformer_page.draft = action.payload;
+    },
+    clearTransformerPage: (state) => {
+      state.transformer_page = { type: "empty" };
+    },
+    addTransformerFile: (state, action: PayloadAction<TransformerFile>) => {
+      if (!state.transformers.ok) return;
+      state.transformers.data.push(action.payload);
+    },
     setStatus: (state, action: PayloadAction<SystemStatus>) => {
       state.status = action.payload;
     },
@@ -157,7 +162,8 @@ export const SystemSlice = createSlice({
 export const {
   setStatus, setTrueSettings, setDraftSystemDirectory, setDraftSystemTime, setDraftSystemTesting,
   setDraftTransformersNames, setDraftTransformersTags, deleteQuestion,
-  setDraftSystemTestAll, clearQuestions
+  setDraftSystemTestAll, clearQuestions, clearTransformerPage, setTransformerPage,
+  addTransformerFile, updateTransformerDraft
 } = SystemSlice.actions
 
 export const getSystemStatus = (state: RootState) => state.system.status;
@@ -171,8 +177,8 @@ export const getTransformers = (state: RootState) => state.system.transformers;
 export const getSystemQuestions = (state: RootState) => state.system.questions;
 export const getSystemQuestionCount = (state: RootState) => state.system.questions.ok ? state.system.questions.data.length : 0;
 export const getRunResults = (state: RootState) => state.system.status.type === "done" ? state.system.status.results : null;
-export const getRunError = (state: RootState) => state.system.status.type === "error" ? good(state.system.status.message) : bad("Not error!");
-
+export const getRunError = (state: RootState) => state.system.status.type === "error" ? state.system.status.message : null;
+export const getValidTransformerFiles = (state: RootState) => state.system.transformers.ok ? state.system.transformers.data : [];
 
 export const isSystemLoading = (state: RootState) => {
   return state.system.status.type === "loading";
@@ -230,3 +236,42 @@ export const getTransformerGroups = createSelector([getTransformers], (transform
 
   return good(result);
 });
+
+export const getTransformerPageInfo = (state: RootState) => state.system.transformer_page;
+
+export const getValidTransformers = createSelector([getValidTransformerFiles], files => {
+  return files.map(f => f.data).filter(d => d.ok).map(d => d.data);
+})
+
+export const getTransformerNames = createSelector([getValidTransformers], (transformers) => {
+  return transformers.map(t => t.name);
+})
+
+export const getCurrentTransformerId = (state: RootState) => state.system.transformer_page.type === "update"
+  ? state.system.transformer_page.meta.name
+  : null;
+
+export const getTransformerDraftAsData = (state: RootState): Reply<TransformerData> => {
+  const page = getTransformerPageInfo(state);
+  if (page.type === "empty") {
+    return bad("No transformer draft found!");
+  }
+
+  const { draft } = page;
+
+  if (draft.type === "simple") {
+    return good(draft);
+  } else {
+    try {
+      const json = JSON.parse(draft.text);
+      const parse_reply = AdvancedTransformerSchema.safeParse(json);
+      if (parse_reply.success) {
+        return good(parse_reply.data);
+      } else {
+        return bad(z.prettifyError(parse_reply.error));
+      }
+    } catch(err) {
+      return bad(`${err}`);
+    }
+  }
+}

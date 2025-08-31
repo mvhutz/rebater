@@ -9,6 +9,7 @@ import React from 'react';
 import Switch from '@mui/joy/Switch';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { getDraftSettings, getDraftTesting, setDraftSystemDirectory, setDraftSystemTestAll, setDraftSystemTesting } from '../../store/slices/system';
+import { Tooltip } from '@mui/joy';
 
 /** ------------------------------------------------------------------------- */
 
@@ -31,9 +32,11 @@ function BasicTargetSettings() {
     <FormControl>
       <FormLabel>Data Directory</FormLabel>
       <Stack direction="row" spacing={1}>
-        <Input variant="outlined" sx={{ pr: 0.5 }}  value={directory ?? "No folder selected..."} fullWidth endDecorator={<Stack spacing={0.5} direction="row">
-          <IconButton onClick={handleDirectory}><FolderSpecialRounded fontSize="small" /></IconButton>
-        </Stack>} />
+          <Input variant="outlined" sx={{ pr: 0.5 }}  value={directory ?? "No folder selected..."} fullWidth endDecorator={<Stack spacing={0.5} direction="row">
+            <Tooltip title="Select New Directory">
+              <IconButton onClick={handleDirectory}><FolderSpecialRounded fontSize="small" /></IconButton>
+            </Tooltip>
+          </Stack>} />
       </Stack>
       <FormHelperText>Data will be taken from this directory.</FormHelperText>
     </FormControl>

@@ -6,7 +6,7 @@ import AdvancedSettings from './AdvancedSettings';
 import { SaveRounded } from '@mui/icons-material';
 import { pullAllQuarters, pullQuestions, pullSystemSettings, pullTransformers, pushSystemSettings } from '../../store/slices/thunk';
 import { getDisplayTab, getVisible } from '../../store/slices/ui';
-import { IconButton, Typography } from '@mui/joy';
+import { IconButton, Tooltip, Typography } from '@mui/joy';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import TabMenu from '../../view/TabMenu';
 
@@ -43,9 +43,11 @@ function SettingsTab() {
         <AdvancedSettings />
         <Stack direction="row" spacing={1} justifyContent="center" width={1}>
           <Button sx={{ borderRadius: 36, maxWidth: "400px", flex: 1 }} onClick={handleSave} size='lg' startDecorator={<SaveRounded />}>Save</Button>
-          <IconButton sx={{ borderRadius: 36 }} onClick={handleRefresh} variant="outlined" size="lg">
-            <RefreshRoundedIcon />
-          </IconButton>
+          <Tooltip title="Undo Changes">
+            <IconButton sx={{ borderRadius: 36 }} onClick={handleRefresh} variant="outlined" size="lg">
+              <RefreshRoundedIcon />
+            </IconButton>
+          </Tooltip>
         </Stack>
       </Stack>
     </Stack>

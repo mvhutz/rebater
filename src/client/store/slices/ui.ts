@@ -20,9 +20,6 @@ interface UIState {
     new_transformer_modal: boolean;
     context_filter: boolean;
   },
-  transformers_page: {
-    current: Maybe<string>
-  }
   tab: Tab,
 }
 
@@ -34,9 +31,6 @@ const initialState: UIState = {
     new_quarter_modal: false,
     new_transformer_modal: false,
     context_filter: false,
-  },
-  transformers_page: {
-    current: null
   },
   tab: "system"
 }
@@ -50,11 +44,11 @@ export const UISlice = createSlice({
     popMessage(state) {
       state.messages.pop();
     },
-    setCurrentTransformer(state, action: PayloadAction<Maybe<string>>) {
-      state.transformers_page.current = action.payload;
-    },
     pushMessage(state, action: PayloadAction<Message>) {
       state.messages.push(action.payload);
+    },
+    pushError(state, action: PayloadAction<string>) {
+      state.messages.push({ type: "error", text: action.payload });
     },
     toggleTabs(state) {
       state.show.tabs = !state.show.tabs;
@@ -110,8 +104,7 @@ export const UISlice = createSlice({
 
 export const {
   popMessage, pushMessage, toggleTabs, toggleSettings, setTab,
-  toggleNewQuarterModal, toggleNewTransformerModal, toggleContextFilter,
-  setCurrentTransformer
+  toggleNewQuarterModal, toggleNewTransformerModal, toggleContextFilter, pushError
 } = UISlice.actions
 
 export const getLatestMessage = (state: RootState) => state.ui.messages.at(-1);
@@ -121,4 +114,3 @@ export const getNewQuarterModal = (state: RootState) => state.ui.show.new_quarte
 export const getContextFilter = (state: RootState) => state.ui.show.context_filter;
 export const getNewTransformerModal = (state: RootState) => state.ui.show.new_transformer_modal;
 export const getDisplayTab = (name: Tab) => (state: RootState) => state.ui.tab === name ? undefined : "none";
-export const getCurrentTransformer = (state: RootState) => state.ui.transformers_page.current;
