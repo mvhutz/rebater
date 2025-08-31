@@ -1,24 +1,25 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import Stack from '@mui/joy/Stack';
 import Typography from '@mui/joy/Typography';
 import { FormControl, FormLabel, AccordionSummary, AccordionGroup, Accordion, AccordionDetails, FormHelperText, Input, Switch, Textarea, Card, Option, Select, Sheet } from '@mui/joy';
 import MultiSelect from '../../MultiSelect';
 import ColumnInput from '../../ColumnInput';
 import { Draft, produce } from 'immer';
-import { SimpleTransformerData } from '../../../../shared/transformer/simple';
 import { SimpleTransformerDraft } from '../../../store/slices/drafts';
 import { useAppDispatch } from '../../../store/hooks';
 import { updateTransformerDraft } from '../../../store/slices/system';
 
 /** ------------------------------------------------------------------------- */
 
-interface OptionsProps {
-  data: SimpleTransformerData;
-  setData: (fn: (state: Draft<SimpleTransformerDraft>) => void) => void;
-}
+const SimpleContext = React.createContext<[
+  SimpleTransformerDraft,
+  (fn: (state: Draft<SimpleTransformerDraft>) => void) => void
+]>([null as unknown as SimpleTransformerDraft, fn => { void fn; }])
 
-function SourceOptions(props: OptionsProps) {
-  const { data, setData } = props;
+/** ------------------------------------------------------------------------- */
+
+function SourceOptions() {
+  const [data, setData] = useContext(SimpleContext);
   const handleSheets = React.useCallback((v: string[]) => {
     setData(d => { d.source.sheets = v; });
   }, [setData]);
@@ -53,8 +54,8 @@ function SourceOptions(props: OptionsProps) {
   );
 }
 
-function TuneOptions(props: OptionsProps) {
-  const { data, setData } = props;
+function TuneOptions() {
+  const [data, setData] = useContext(SimpleContext);
 
   const handleCanadian = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
     setData(d => { d.options.canadian_rebate = e.target.checked; });
@@ -113,8 +114,8 @@ function TuneOptions(props: OptionsProps) {
   );
 }
 
-function TransactionDateOptions(props: OptionsProps) {
-  const { data, setData } = props;
+function TransactionDateOptions() {
+  const [data, setData] = useContext(SimpleContext);
   const { column, parse } = data.properties.transactionDate;
 
   const handleColumn = React.useCallback((c?: number) => {
@@ -143,8 +144,8 @@ function TransactionDateOptions(props: OptionsProps) {
   );
 }
 
-function InvoiceDateOptions(props: OptionsProps) {
-  const { data, setData } = props;
+function InvoiceDateOptions() {
+  const [data, setData] = useContext(SimpleContext);
   const { column, parse } = data.properties.invoiceDate;
 
   const handleColumn = React.useCallback((c?: number) => {
@@ -173,8 +174,8 @@ function InvoiceDateOptions(props: OptionsProps) {
   );
 }
 
-function SupplierIdOptions(props: OptionsProps) {
-  const { data, setData } = props;
+function SupplierIdOptions() {
+  const [data, setData] = useContext(SimpleContext);
   const { value } = data.properties.supplierId;
 
   const handleParse = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
@@ -195,8 +196,8 @@ function SupplierIdOptions(props: OptionsProps) {
   );
 }
 
-function MemberIdOptions(props: OptionsProps) {
-  const { data, setData } = props;
+function MemberIdOptions() {
+  const [data, setData] = useContext(SimpleContext);
   const { column } = data.properties.memberId;
 
   const handleColumn = React.useCallback((c?: number) => {
@@ -216,8 +217,8 @@ function MemberIdOptions(props: OptionsProps) {
   );
 }
 
-function InvoiceIdOptions(props: OptionsProps) {
-  const { data, setData } = props;
+function InvoiceIdOptions() {
+  const [data, setData] = useContext(SimpleContext);
   const { column } = data.properties.invoiceId;
 
   const handleColumn = React.useCallback((c?: number) => {
@@ -237,8 +238,8 @@ function InvoiceIdOptions(props: OptionsProps) {
   );
 }
 
-function PurchaseAmountOptions(props: OptionsProps) {
-  const { data, setData } = props;
+function PurchaseAmountOptions() {
+  const [data, setData] = useContext(SimpleContext);
   const { column } = data.properties.purchaseAmount;
 
   const handleColumn = React.useCallback((c?: number) => {
@@ -258,8 +259,8 @@ function PurchaseAmountOptions(props: OptionsProps) {
   );
 }
 
-function RebateAmountOptions(props: OptionsProps) {
-  const { data, setData } = props;
+function RebateAmountOptions() {
+  const [data, setData] = useContext(SimpleContext);
   const { column, multiplier } = data.properties.rebateAmount;
 
   const handleColumn = React.useCallback((c?: number) => {
@@ -289,8 +290,8 @@ function RebateAmountOptions(props: OptionsProps) {
   );
 }
 
-function DistributorIdOptions(props: OptionsProps) {
-  const { data, setData } = props;
+function DistributorIdOptions() {
+  const [data, setData] = useContext(SimpleContext);
   const fields = data.properties.distributorName;
 
   const handleType = React.useCallback((_: unknown, c: "value" | "column" | null) => {
@@ -341,9 +342,7 @@ function DistributorIdOptions(props: OptionsProps) {
   );
 }
 
-function RebateDataOptions(props: OptionsProps) {
-  const { data, setData } = props;
-
+function RebateDataOptions() {
   return (
     <Accordion>
       <AccordionSummary>
@@ -353,14 +352,14 @@ function RebateDataOptions(props: OptionsProps) {
       </AccordionSummary>
       <AccordionDetails>
         <Stack spacing={2} mt={2}>
-          <TransactionDateOptions data={data} setData={setData} />
-          <SupplierIdOptions data={data} setData={setData} />
-          <MemberIdOptions data={data} setData={setData} />
-          <DistributorIdOptions data={data} setData={setData} />
-          <PurchaseAmountOptions data={data} setData={setData} />
-          <RebateAmountOptions data={data} setData={setData} />
-          <InvoiceIdOptions data={data} setData={setData} />
-          <InvoiceDateOptions data={data} setData={setData} />
+          <TransactionDateOptions />
+          <SupplierIdOptions />
+          <MemberIdOptions />
+          <DistributorIdOptions />
+          <PurchaseAmountOptions />
+          <RebateAmountOptions />
+          <InvoiceIdOptions />
+          <InvoiceDateOptions />
         </Stack>
       </AccordionDetails>
     </Accordion>
@@ -382,15 +381,17 @@ function SimpleEditor(props: SimpleTransformerEditProps) {
   }, [data, dispatch]);
 
   return (
-    <Stack flex={1} position="relative">
-      <Sheet sx={{ overflow: "auto", flex: "1 1 0px" }}>
-        <AccordionGroup disableDivider size="lg">
-          <SourceOptions data={data} setData={setData} />
-          <RebateDataOptions data={data} setData={setData} />
-          <TuneOptions data={data} setData={setData} />
-        </AccordionGroup>
-      </Sheet>
-    </Stack>
+    <SimpleContext.Provider value={[data, setData]}>
+      <Stack flex={1} position="relative">
+        <Sheet sx={{ overflow: "auto", flex: "1 1 0px" }}>
+          <AccordionGroup disableDivider size="lg">
+            <SourceOptions />
+            <RebateDataOptions />
+            <TuneOptions />
+          </AccordionGroup>
+        </Sheet>
+      </Stack>
+    </SimpleContext.Provider>
   );
 }
 
