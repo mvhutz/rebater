@@ -9,10 +9,9 @@ import ReportRoundedIcon from '@mui/icons-material/ReportRounded';
 /** ------------------------------------------------------------------------- */
 
 function ErrorCard() {
-  const results = useAppSelector(getRunError);
-  if (!results.ok) return;
+  const message = useAppSelector(getRunError);
+  if (message == null) return;
 
-  const { data: message = "We don't seen to have any information on this error." } = results;
   return (
     <AnalysisAccordion color="danger" title="Error" subtitle="See inside for more details." icon={<ReportRoundedIcon />}>
       <Stack overflow="scroll" pt={1}>

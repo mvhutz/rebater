@@ -1,44 +1,38 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import Stack from '@mui/joy/Stack';
 import Typography from '@mui/joy/Typography';
-import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
-import RestoreRoundedIcon from '@mui/icons-material/RestoreRounded';
-import { Button, IconButton, FormControl, FormLabel, AccordionSummary, AccordionGroup, Accordion, AccordionDetails, FormHelperText, Input, Switch, Textarea, Card, Option, Select } from '@mui/joy';
-import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
-import { useAppDispatch } from '../../store/hooks';
-import { pullTransformers } from '../../store/slices/thunk';
-import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
-import SummarizeRoundedIcon from '@mui/icons-material/SummarizeRounded';
-import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
-import MultiSelect from '../MultiSelect';
-import ColumnInput from '../ColumnInput';
-import { produce } from 'immer';
-import { TransformerFile } from '../../../shared/state/stores/TransformerStore';
-import { good, GoodReply } from '../../../shared/reply';
-import { SimpleTransformerData } from '../../../shared/transformer/simple';
+import { FormControl, FormLabel, AccordionSummary, AccordionGroup, Accordion, AccordionDetails, FormHelperText, Input, Switch, Textarea, Card, Option, Select, Sheet } from '@mui/joy';
+import MultiSelect from '../../MultiSelect';
+import ColumnInput from '../../ColumnInput';
+import { Draft, produce } from 'immer';
+import { SimpleTransformerDraft } from '../../../store/slices/drafts';
+import { useAppDispatch } from '../../../store/hooks';
+import { updateTransformerDraft } from '../../../store/slices/system';
 
 /** ------------------------------------------------------------------------- */
 
-interface OptionsProps {
-  data: SimpleTransformerData;
-  setData: React.Dispatch<React.SetStateAction<SimpleTransformerData>>;
-}
+const SimpleContext = React.createContext<[
+  SimpleTransformerDraft,
+  (fn: (state: Draft<SimpleTransformerDraft>) => void) => void
+]>([null as unknown as SimpleTransformerDraft, fn => { void fn; }])
 
-function SourceOptions(props: OptionsProps) {
-  const { data, setData } = props;
+/** ------------------------------------------------------------------------- */
+
+function SourceOptions() {
+  const [data, setData] = useContext(SimpleContext);
   const handleSheets = React.useCallback((v: string[]) => {
-    setData(d => ({ ...d, source: { ...d.source, sheets: v } }));
+    setData(d => { d.source.sheets = v; });
   }, [setData]);
 
   const handleFilename = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
     const value = e.target.value === "" ? undefined : e.target.value;
-    setData(d => ({ ...d, source: { ...d.source, file: value } }));
+    setData(d => { d.source.file = value; });
   }, [setData]);
 
   return (
     <Accordion>
       <AccordionSummary>
-        <Typography level="h4" startDecorator={<DocumentScannerIcon />}>
+        <Typography>
           Sources
         </Typography>
       </AccordionSummary>
@@ -46,7 +40,7 @@ function SourceOptions(props: OptionsProps) {
         <Stack spacing={3} mt={2}>
           <FormControl sx={{ flex: 1 }}>
             <FormLabel>File Name</FormLabel>
-            <Input placeholder="Input file name..." value={data.source.file} onChange={handleFilename} />
+            <Input variant='soft' placeholder="Input file name..." value={data.source.file} onChange={handleFilename} />
             <FormHelperText>Supports&nbsp;<code>glob</code>&nbsp;expressions.</FormHelperText>
           </FormControl>
           <FormControl sx={{ flex: 1 }}>
@@ -60,31 +54,31 @@ function SourceOptions(props: OptionsProps) {
   );
 }
 
-function TuneOptions(props: OptionsProps) {
-  const { data, setData } = props;
+function TuneOptions() {
+  const [data, setData] = useContext(SimpleContext);
 
   const handleCanadian = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
-    setData(d => ({ ...d, options: { ...d.options, canadian_rebate: e.target.checked } }));
+    setData(d => { d.options.canadian_rebate = e.target.checked; });
   }, [setData]);
 
   const handleNull = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
-    setData(d => ({ ...d, options: { ...d.options, remove_null_rebates: e.target.checked } }));
+    setData(d => { d.options.remove_null_rebates = e.target.checked; });
   }, [setData]);
 
   const handlePreprocessing = React.useCallback<React.ChangeEventHandler<HTMLTextAreaElement>>(e => {
     const value = e.target.value === "" ? undefined : e.target.value;
-    setData(d => ({ ...d, options: { ...d.options, additional_preprocessing: value } }));
+    setData(d => { d.options.additional_preprocessing = value; });
   }, [setData]);
 
   const handlePostprocessing = React.useCallback<React.ChangeEventHandler<HTMLTextAreaElement>>(e => {
     const value = e.target.value === "" ? undefined : e.target.value;
-    setData(d => ({ ...d, options: { ...d.options, additional_postprocessing: value } }));
+    setData(d => { d.options.additional_postprocessing = value; });
   }, [setData]);
 
   return (
     <Accordion>
       <AccordionSummary>
-        <Typography level="h4" startDecorator={<TuneRoundedIcon />}>
+        <Typography>
           Options
         </Typography>
       </AccordionSummary>
@@ -106,12 +100,12 @@ function TuneOptions(props: OptionsProps) {
           </FormControl>
           <FormControl>
             <FormLabel>Additional Pre-processiong</FormLabel>
-            <Textarea minRows={2} value={data.options.additional_preprocessing ?? ""} onChange={handlePreprocessing} sx={{ fontFamily: "monospace" }} size='sm' />
+            <Textarea variant='soft' minRows={2} value={data.options.additional_preprocessing ?? ""} onChange={handlePreprocessing} sx={{ fontFamily: "monospace" }} size='sm' />
             <FormHelperText>Add additional operations before the rebate data is extracted. Input is JSON.</FormHelperText>
           </FormControl>
           <FormControl>
             <FormLabel>Additional Post-processiong</FormLabel>
-            <Textarea minRows={2} value={data.options.additional_postprocessing ?? ""} onChange={handlePostprocessing} sx={{ fontFamily: "monospace" }} size='sm' />
+            <Textarea variant='soft' minRows={2} value={data.options.additional_postprocessing ?? ""} onChange={handlePostprocessing} sx={{ fontFamily: "monospace" }} size='sm' />
             <FormHelperText>Add additional operations after the rebate data is extracted. Input is JSON.</FormHelperText>
           </FormControl>
         </Stack>
@@ -120,17 +114,17 @@ function TuneOptions(props: OptionsProps) {
   );
 }
 
-function TransactionDateOptions(props: OptionsProps) {
-  const { data, setData } = props;
+function TransactionDateOptions() {
+  const [data, setData] = useContext(SimpleContext);
   const { column, parse } = data.properties.transactionDate;
 
   const handleColumn = React.useCallback((c?: number) => {
-    setData(produce(d => { d.properties.transactionDate.column = c; }));
+    setData(d => { d.properties.transactionDate.column = c; });
   }, [setData]);
 
   const handleParse = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
     const value = e.target.value === "" ? undefined : e.target.value;
-    setData(produce(d => { d.properties.transactionDate.parse = value; }));
+    setData(d => { d.properties.transactionDate.parse = value; });
   }, [setData]);
 
   return (
@@ -139,7 +133,7 @@ function TransactionDateOptions(props: OptionsProps) {
       <Stack spacing={2} flex={1}>
         <FormControl>
           <FormLabel>Column</FormLabel>
-          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...'/>
+          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...' />
         </FormControl>
         <FormControl>
           <FormLabel>Date Format?</FormLabel>
@@ -150,17 +144,17 @@ function TransactionDateOptions(props: OptionsProps) {
   );
 }
 
-function InvoiceDateOptions(props: OptionsProps) {
-  const { data, setData } = props;
+function InvoiceDateOptions() {
+  const [data, setData] = useContext(SimpleContext);
   const { column, parse } = data.properties.invoiceDate;
 
   const handleColumn = React.useCallback((c?: number) => {
-    setData(produce(d => { d.properties.invoiceDate.column = c; }));
+    setData(d => { d.properties.invoiceDate.column = c; });
   }, [setData]);
 
   const handleParse = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
     const value = e.target.value === "" ? undefined : e.target.value;
-    setData(produce(d => { d.properties.invoiceDate.parse = value; }));
+    setData(d => { d.properties.invoiceDate.parse = value; });
   }, [setData]);
 
   return (
@@ -169,7 +163,7 @@ function InvoiceDateOptions(props: OptionsProps) {
       <Stack spacing={2} flex={1}>
         <FormControl>
           <FormLabel>Column</FormLabel>
-          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...'/>
+          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...' />
         </FormControl>
         <FormControl>
           <FormLabel>Date Format?</FormLabel>
@@ -180,13 +174,13 @@ function InvoiceDateOptions(props: OptionsProps) {
   );
 }
 
-function SupplierIdOptions(props: OptionsProps) {
-  const { data, setData } = props;
+function SupplierIdOptions() {
+  const [data, setData] = useContext(SimpleContext);
   const { value } = data.properties.supplierId;
 
   const handleParse = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
     const value = e.target.value === "" ? undefined : e.target.value;
-    setData(produce(d => { d.properties.supplierId.value = value; }));
+    setData(d => { d.properties.supplierId.value = value; });
   }, [setData]);
 
   return (
@@ -202,12 +196,12 @@ function SupplierIdOptions(props: OptionsProps) {
   );
 }
 
-function MemberIdOptions(props: OptionsProps) {
-  const { data, setData } = props;
+function MemberIdOptions() {
+  const [data, setData] = useContext(SimpleContext);
   const { column } = data.properties.memberId;
 
   const handleColumn = React.useCallback((c?: number) => {
-    setData(produce(d => { d.properties.memberId.column = c; }));
+    setData(d => { d.properties.memberId.column = c; });
   }, [setData]);
 
   return (
@@ -216,19 +210,19 @@ function MemberIdOptions(props: OptionsProps) {
       <Stack spacing={2} flex={1}>
         <FormControl>
           <FormLabel>Column</FormLabel>
-          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...'/>
+          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...' />
         </FormControl>
       </Stack>
     </Card>
   );
 }
 
-function InvoiceIdOptions(props: OptionsProps) {
-  const { data, setData } = props;
+function InvoiceIdOptions() {
+  const [data, setData] = useContext(SimpleContext);
   const { column } = data.properties.invoiceId;
 
   const handleColumn = React.useCallback((c?: number) => {
-    setData(produce(d => { d.properties.invoiceId.column = c; }));
+    setData(d => { d.properties.invoiceId.column = c; });
   }, [setData]);
 
   return (
@@ -237,19 +231,19 @@ function InvoiceIdOptions(props: OptionsProps) {
       <Stack spacing={2} flex={1}>
         <FormControl>
           <FormLabel>Column</FormLabel>
-          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...'/>
+          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...' />
         </FormControl>
       </Stack>
     </Card>
   );
 }
 
-function PurchaseAmountOptions(props: OptionsProps) {
-  const { data, setData } = props;
+function PurchaseAmountOptions() {
+  const [data, setData] = useContext(SimpleContext);
   const { column } = data.properties.purchaseAmount;
 
   const handleColumn = React.useCallback((c?: number) => {
-    setData(produce(d => { d.properties.purchaseAmount.column = c; }));
+    setData(d => { d.properties.purchaseAmount.column = c; });
   }, [setData]);
 
   return (
@@ -258,25 +252,25 @@ function PurchaseAmountOptions(props: OptionsProps) {
       <Stack spacing={2} flex={1}>
         <FormControl>
           <FormLabel>Column</FormLabel>
-          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...'/>
+          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...' />
         </FormControl>
       </Stack>
     </Card>
   );
 }
 
-function RebateAmountOptions(props: OptionsProps) {
-  const { data, setData } = props;
+function RebateAmountOptions() {
+  const [data, setData] = useContext(SimpleContext);
   const { column, multiplier } = data.properties.rebateAmount;
 
   const handleColumn = React.useCallback((c?: number) => {
-    setData(produce(d => { d.properties.rebateAmount.column = c; }));
+    setData(d => { d.properties.rebateAmount.column = c; });
   }, [setData]);
 
   const handleMultipler = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
     const value = e.target.value === "" ? undefined : parseFloat(e.target.value);
     const num = isNaN(value ?? NaN) ? undefined : value;
-    setData(produce(d => { d.properties.rebateAmount.multiplier = num; }));
+    setData(d => { d.properties.rebateAmount.multiplier = num; });
   }, [setData]);
 
   return (
@@ -285,7 +279,7 @@ function RebateAmountOptions(props: OptionsProps) {
       <Stack spacing={2} flex={1}>
         <FormControl>
           <FormLabel>Column</FormLabel>
-          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...'/>
+          <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...' />
         </FormControl>
         <FormControl>
           <FormLabel>Multiplier?</FormLabel>
@@ -296,28 +290,28 @@ function RebateAmountOptions(props: OptionsProps) {
   );
 }
 
-function DistributorIdOptions(props: OptionsProps) {
-  const { data, setData } = props;
+function DistributorIdOptions() {
+  const [data, setData] = useContext(SimpleContext);
   const fields = data.properties.distributorName;
 
   const handleType = React.useCallback((_: unknown, c: "value" | "column" | null) => {
     if (c == null) return;
-    setData(produce(d => { d.properties.distributorName = { type: c }; }));
+    setData(d => { d.properties.distributorName = { type: c }; });
   }, [setData]);
 
   const handleValue = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
     const value = e.target.value === "" ? undefined : e.target.value;
-    setData(produce(d => {
+    setData(d => {
       if (d.properties.distributorName.type !== "value") return;
       d.properties.distributorName = { type: "value", value };
-    }));
+    });
   }, [setData]);
 
   const handleColumn = React.useCallback((column?: number) => {
-    setData(produce(d => {
+    setData(d => {
       if (d.properties.distributorName.type !== "column") return;
       d.properties.distributorName = { type: "column", column };
-    }));
+    });
   }, [setData]);
 
   return (
@@ -331,10 +325,10 @@ function DistributorIdOptions(props: OptionsProps) {
             <Option value="column">Column</Option>
           </Select>
         </FormControl>
-        { fields.type === "column"? (
+        {fields.type === "column" ? (
           <FormControl>
             <FormLabel>Column</FormLabel>
-            <ColumnInput data={fields.column} setData={handleColumn} placeholder='Enter Column Id...'/>
+            <ColumnInput data={fields.column} setData={handleColumn} placeholder='Enter Column Id...' />
           </FormControl>
         ) : (
           <FormControl>
@@ -348,26 +342,24 @@ function DistributorIdOptions(props: OptionsProps) {
   );
 }
 
-function RebateDataOptions(props: OptionsProps) {
-  const { data, setData } = props;
-
+function RebateDataOptions() {
   return (
     <Accordion>
       <AccordionSummary>
-        <Typography level="h4" startDecorator={<SummarizeRoundedIcon />}>
+        <Typography>
           Rebate Data
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
         <Stack spacing={2} mt={2}>
-          <TransactionDateOptions data={data} setData={setData}/>
-          <SupplierIdOptions data={data} setData={setData}/>
-          <MemberIdOptions data={data} setData={setData}/>
-          <DistributorIdOptions data={data} setData={setData}/>
-          <PurchaseAmountOptions data={data} setData={setData}/>
-          <RebateAmountOptions data={data} setData={setData}/>
-          <InvoiceIdOptions data={data} setData={setData}/>
-          <InvoiceDateOptions data={data} setData={setData}/>
+          <TransactionDateOptions />
+          <SupplierIdOptions />
+          <MemberIdOptions />
+          <DistributorIdOptions />
+          <PurchaseAmountOptions />
+          <RebateAmountOptions />
+          <InvoiceIdOptions />
+          <InvoiceDateOptions />
         </Stack>
       </AccordionDetails>
     </Accordion>
@@ -376,57 +368,33 @@ function RebateDataOptions(props: OptionsProps) {
 
 /** ------------------------------------------------------------------------- */
 
-const { invoke } = window.api;
-
 interface SimpleTransformerEditProps {
-  item: TransformerFile["item"];
-  data: GoodReply<SimpleTransformerData>
+  data: SimpleTransformerDraft;
 }
 
-function AdvancedTransformerEdit(props: SimpleTransformerEditProps) {
-  const { item, data: info } = props;
-  const [data, setData] = React.useState<SimpleTransformerData>(info.data);
+function SimpleEditor(props: SimpleTransformerEditProps) {
+  const { data } = props;
   const dispatch = useAppDispatch();
 
-  React.useEffect(() => {
-    setData(info.data);
-  }, [info.data]);
-
-  const handleRevert = React.useCallback(() => {
-    setData(info.data);
-  }, [info.data]);
-
-  const handleSave = React.useCallback(async () => {
-    await invoke.updateTransformer({ item, data: good(data) });
-    await dispatch(pullTransformers());
-  }, [item, data, dispatch]);
-
-  const handleDelete = React.useCallback(async () => {
-    await invoke.deleteTransformer({ item, data: info });
-    await dispatch(pullTransformers());
-  }, [dispatch, info, item]);
+  const setData = React.useCallback((fn: (state: Draft<SimpleTransformerDraft>) => void) => {
+    dispatch(updateTransformerDraft(produce(fn)(data)));
+  }, [data, dispatch]);
 
   return (
-    <Stack padding={2} width={1} boxSizing="border-box" spacing={2} position="relative">
-      <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Typography level="h3">Configuration</Typography>
-        <Stack direction="row" spacing={1}>
-          <Button variant="outlined" color="neutral" startDecorator={<SaveRoundedIcon />} onClick={handleSave}>Save</Button>
-          <Button variant="outlined" color="neutral" startDecorator={<RestoreRoundedIcon />} onClick={handleRevert}>Revert</Button>
-          <IconButton variant='outlined' color="danger" onClick={handleDelete}>
-            <DeleteRoundedIcon />
-          </IconButton>
-        </Stack>
+    <SimpleContext.Provider value={[data, setData]}>
+      <Stack flex={1} position="relative">
+        <Sheet sx={{ overflow: "auto", flex: "1 1 0px" }}>
+          <AccordionGroup disableDivider size="lg">
+            <SourceOptions />
+            <RebateDataOptions />
+            <TuneOptions />
+          </AccordionGroup>
+        </Sheet>
       </Stack>
-      <AccordionGroup disableDivider size="lg">
-        <SourceOptions data={data} setData={setData} />
-        <RebateDataOptions data={data} setData={setData} />
-        <TuneOptions data={data} setData={setData} />
-      </AccordionGroup>
-    </Stack>
+    </SimpleContext.Provider>
   );
 }
 
 /** ------------------------------------------------------------------------- */
 
-export default React.memo(AdvancedTransformerEdit);
+export default React.memo(SimpleEditor);

@@ -34,7 +34,7 @@ export class SetTable implements TableOperator {
       if (!value.ok) {
         input.stats.issues.ignored_row.push({
           transformer: input.transformer,
-          row: row.split(),
+          row: row.split() as string[],
           source: row.source,
           reason: value.reason
         });

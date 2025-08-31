@@ -36,12 +36,6 @@ function NewQuarterModal() {
   const [year, setYear] = React.useState<string>("");
   const [quarter, setQuarter] = React.useState<number>(NaN);
 
-  const handleReset = React.useCallback(() => {
-    setCurrentStructure(false);
-    setYear("");
-    setQuarter(NaN);
-  }, []);
-
   const { success: new_ready, data: new_time } = React.useMemo(() => {
     return TimeSchema.safeParse({ quarter, year });
   }, [quarter, year]);
@@ -49,6 +43,13 @@ function NewQuarterModal() {
   const { success: old_ready, data: old_time } = React.useMemo(() => {
     return TimeSchema.safeParse(current_time);
   }, [current_time]);
+
+  const handleClose = React.useCallback(() => {
+    dispatch(toggleNewQuarterModal());
+    setCurrentStructure(false);
+    setYear("");
+    setQuarter(NaN);
+  }, [dispatch]);
 
   const handleCreate = React.useCallback(async () => {
     if (!new_ready || (currentStructure && !old_ready)) return;
@@ -62,13 +63,9 @@ function NewQuarterModal() {
       dispatch(pushMessage({ type: "error", text: reply.reason }));
     }
 
-    dispatch(toggleNewQuarterModal());
-    handleReset();
-  }, [currentStructure, dispatch, new_ready, new_time, old_ready, old_time, handleReset]);
+    handleClose();
+  }, [currentStructure, dispatch, handleClose, new_ready, new_time, old_ready, old_time]);
 
-  const handleClose = React.useCallback(() => {
-    dispatch(toggleNewQuarterModal());
-  }, [dispatch]);
 
   return (
     <Modal open={open} onClose={handleClose}>

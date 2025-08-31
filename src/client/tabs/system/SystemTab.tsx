@@ -63,9 +63,9 @@ function DoneMenu() {
     <Stack spacing={1} width={1} direction="row">
       <Button fullWidth size="lg" color="success" onClick={handleOutput} sx={{ borderRadius: 100 }} startDecorator={<FileOpenRoundedIcon />}>View Output</Button>
       <Tooltip title="Redo">
-      <IconButton size="lg" variant="soft" color="neutral" onClick={handleRedo} sx={{ borderRadius: 100 }}>
-        <UpdateRoundedIcon />
-      </IconButton>
+        <IconButton size="lg" variant="soft" color="neutral" onClick={handleRedo} sx={{ borderRadius: 100 }}>
+          <UpdateRoundedIcon />
+        </IconButton>
       </Tooltip>
     </Stack>
   );
@@ -84,9 +84,11 @@ function RunningMenu() {
 
   return (
     <Stack spacing={1} width={1} direction="row">
-      <IconButton onClick={handleExit} variant="outlined" color="danger" size="lg" sx={{ borderRadius: 100 }}>
-        <ClearRounded />
-      </IconButton>
+      <Tooltip title="Force Kill Program">
+        <IconButton onClick={handleExit} variant="outlined" color="danger" size="lg" sx={{ borderRadius: 100 }}>
+          <ClearRounded />
+        </IconButton>
+      </Tooltip>
       <Button fullWidth size="lg" variant="outlined" color="neutral" onClick={handleCancel} sx={{ borderRadius: 100 }} startDecorator={<BlockRounded />}>
         Cancel
       </Button>
@@ -287,13 +289,13 @@ function SystemTab() {
         <Stack direction="row" spacing={2}>
           <PerformanceCard />
           <DiscrepancyCard />
-          <Divider orientation="vertical"/>
+          <Divider orientation="vertical" />
           <ErrorCard />
-          <NoSourcesCard/>
-          <EmptySourceCard/>
-          <EmptyTableCard/>
-          <FailedTransformerCard/>
-          <IgnoredRowCard/>
+          <NoSourcesCard />
+          <EmptySourceCard />
+          <EmptyTableCard />
+          <FailedTransformerCard />
+          <IgnoredRowCard />
         </Stack>
       </Stack>
     </Stack>

@@ -10,7 +10,7 @@ export const Store = configureStore({
   reducer: {
     system: SystemSlice.reducer,
     ui: UISlice.reducer
-  }
+  },
 });
 
 /** ------------------------------------------------------------------------- */

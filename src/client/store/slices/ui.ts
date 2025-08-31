@@ -47,6 +47,9 @@ export const UISlice = createSlice({
     pushMessage(state, action: PayloadAction<Message>) {
       state.messages.push(action.payload);
     },
+    pushError(state, action: PayloadAction<string>) {
+      state.messages.push({ type: "error", text: action.payload });
+    },
     toggleTabs(state) {
       state.show.tabs = !state.show.tabs;
     },
@@ -101,7 +104,7 @@ export const UISlice = createSlice({
 
 export const {
   popMessage, pushMessage, toggleTabs, toggleSettings, setTab,
-  toggleNewQuarterModal, toggleNewTransformerModal, toggleContextFilter
+  toggleNewQuarterModal, toggleNewTransformerModal, toggleContextFilter, pushError
 } = UISlice.actions
 
 export const getLatestMessage = (state: RootState) => state.ui.messages.at(-1);
@@ -110,4 +113,4 @@ export const getTab = (state: RootState) => state.ui.tab;
 export const getNewQuarterModal = (state: RootState) => state.ui.show.new_quarter_modal;
 export const getContextFilter = (state: RootState) => state.ui.show.context_filter;
 export const getNewTransformerModal = (state: RootState) => state.ui.show.new_transformer_modal;
-export const getDisplayTab = (name: Tab) => (state: RootState) => state.ui.tab === name ? "initial" : "none";
+export const getDisplayTab = (name: Tab) => (state: RootState) => state.ui.tab === name ? undefined : "none";
