@@ -8,7 +8,9 @@ import { State } from "../../shared/state";
 import { bad, good } from "../../shared/reply";
 import { Settings } from "../../shared/settings";
 import { Context } from "../../shared/context";
-import { DiscrepencyResult, getEmptyStats } from "../../shared/stats";
+import { DiscrepencyResult, getEmptyStats, StatsData } from "../../shared/stats";
+import { writeFile } from "fs/promises";
+import path from "path";
 
 /** ------------------------------------------------------------------------- */
 
@@ -131,6 +133,39 @@ export class Runner extends EventEmitter<RunnerEvents> {
     }
   }
 
+  public async printStatFile(stats: StatsData) {
+    try {
+      const empty_sheet_issues = "EMPTY SHEETS:\n" + stats.issues.empty_sheet.map(i =>
+        `- '${i.sheet}' in '${i.source}', while running '${i.group}' > '${i.transformer}'.`
+      ).join("\n");
+
+      const empty_source_issues = "EMPTY SOURCES:\n" + stats.issues.empty_source.map(i =>
+        `- '${i.source}', while running '${i.group}' > '${i.transformer}'`
+      ).join("\n");
+
+      const failed_transformer_issues = "FAILED TRANSFORMERS:\n" + stats.issues.failed_transformer.map(i =>
+        `- '${i.transformer}', because '${i.reason}'`
+      ).join("\n");
+
+      const ignored_row_issues = "IGNORED ROWS:\n" + stats.issues.ignored_row.map(i =>
+        `- '${i.source}', because '${i.reason}', while running '${i.transformer}'.`
+      ).join("\n");
+
+      const no_source_issues = "NO SOURCES FOUND:\n" + stats.issues.no_source.map(i =>
+        `- '${i.transformer}'`
+      ).join("\n");
+
+      const no_valid_source_issues = "NO VALID SOURCES:\n" + stats.issues.no_valid_source.map(i =>
+        `- '${i.transformer}'`
+      ).join("\n");
+
+      const total = [empty_sheet_issues, empty_source_issues, failed_transformer_issues, ignored_row_issues, no_source_issues, no_valid_source_issues].join("\n\n");
+      await writeFile(path.resolve(this.state.directory, "ISSUES.txt"), total);
+    } catch (err) {
+      console.log(`GENERATING ISSUES.txt: ${err}`);
+    }
+  }
+
   /**
    * Runs the program. Returns an iterator, so that the program can be halted,
    * if needed.
@@ -151,7 +186,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     // Run the transformers.
     for (const [i, transformer] of transformers.entries()) {
       yield { type: "running", progress: i / transformers.length };
-      
+
       try {
         transformer.run(this.state, this.context, stats);
       } catch (error) {
@@ -193,7 +228,8 @@ export class Runner extends EventEmitter<RunnerEvents> {
 
     yield { type: "loading", message: "Saving data..." };
     await this.reconnect();
-    
+
+    await this.printStatFile(stats);
     yield { type: "done", results: stats };
   }
 
@@ -206,7 +242,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     for await (const status of this.iterator()) {
       await new Promise(setImmediate);
 
-      if (!this.running) {        
+      if (!this.running) {
         this.emit('status', { type: "idle" });
         return;
       }
