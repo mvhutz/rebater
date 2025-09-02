@@ -14,7 +14,7 @@ import { DialogActions, Option, Select } from '@mui/joy';
 import { FormHelperText } from '@mui/material';
 import { Time, TimeData, TimeSchema } from '../../shared/time';
 import { getQuarterList } from '../store/slices/system';
-import { addNewQuarter } from '../store/slices/thunk';
+import { addNewQuarter, pullAllQuarters } from '../store/slices/thunk';
 
 /** ------------------------------------------------------------------------- */
 
@@ -49,6 +49,7 @@ function NewQuarterModal() {
     })).unwrap();
 
     if (reply.ok) {
+      await dispatch(pullAllQuarters());
       handleClose();
     }
   }, [dispatch, handleClose, new_parsed, copyQuarter]);

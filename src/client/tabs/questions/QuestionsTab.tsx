@@ -6,7 +6,7 @@ import TabMenu from '../../view/TabMenu';
 import { getDisplayTab } from '../../store/slices/ui';
 import { getSystemQuestions } from '../../store/slices/system';
 import InputModal from './InputModal';
-import { Alert, Button, Divider, IconButton, Tooltip } from '@mui/joy';
+import { Alert, Button, IconButton, Tooltip } from '@mui/joy';
 import { clearAllQuestions, pullQuestions } from '../../store/slices/thunk';
 import DeleteRounded from '@mui/icons-material/DeleteRounded';
 
@@ -38,14 +38,15 @@ function QuestionsTab() {
           <Button variant="outlined" color='neutral' size='sm' sx={{ borderRadius: 1000 }} onClick={handleRefresh}>
             Refresh
           </Button>
-          <Tooltip title="Clear Questions">
-            <IconButton onClick={handleIgnoreAll} sx={{ borderRadius: 1000 }}>
-              <DeleteRounded fontSize='small'/>
-            </IconButton>
-          </Tooltip>
+          {questions.ok && questions.data.length > 0 &&
+            <Tooltip title="Clear Questions">
+              <IconButton onClick={handleIgnoreAll} sx={{ borderRadius: 1000 }}>
+                <DeleteRounded fontSize='small'/>
+              </IconButton>
+            </Tooltip>
+          }
         </Stack>
       </TabMenu>
-      <Divider orientation='horizontal'/>
       <Stack padding={2} spacing={2} px={8}>
         {questions.ok && questions.data.length > 0 &&
           <InputModal question={questions.data[0]} />

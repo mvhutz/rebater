@@ -166,7 +166,6 @@ function IdleMenu() {
         <Stack direction="row" spacing={0.5}>
           <Select
             value={current_quarter}
-            disabled={quarters.length === 0}
             sx={{ flex: 1, borderRadius: 18 }}
             placeholder={"No quarter!"}
             indicator={null}
