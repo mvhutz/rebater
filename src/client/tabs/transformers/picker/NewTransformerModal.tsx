@@ -10,8 +10,9 @@ import Input from '@mui/joy/Input';
 import Modal from '@mui/joy/Modal';
 import ModalDialog from '@mui/joy/ModalDialog';
 import Stack from '@mui/joy/Stack';
-import { DialogActions, FormHelperText, Radio, RadioGroup } from '@mui/joy';
+import { Autocomplete, DialogActions, FormHelperText, Radio, RadioGroup } from '@mui/joy';
 import { viewNewTransformer } from '../../../store/slices/thunk';
+import { getTransformerGroups } from '../../../store/slices/system';
 
 /** ------------------------------------------------------------------------- */
 
@@ -20,6 +21,7 @@ function NewTransformerModal() {
   const dispatch = useAppDispatch();
   const [name, setName] = React.useState("");
   const [group, setGroup] = React.useState("");
+  const groups = useAppSelector(getTransformerGroups);
   const [type, setType] = React.useState<"advanced" | "simple">("simple");
 
   const handleClose = React.useCallback(() => {
@@ -45,6 +47,8 @@ function NewTransformerModal() {
     const generated = await dispatch(viewNewTransformer({ name, group, type })).unwrap();
     if (generated) handleClose();
   }, [dispatch, handleClose, group, name, type]);
+
+  const group_names = groups.ok ? Object.keys(groups.data) : [];
 
   return (
     <Modal open={open} onClose={handleClose}>
@@ -79,7 +83,7 @@ function NewTransformerModal() {
           </FormControl>
           <FormControl sx={{ flex: 1 }}>
             <FormLabel>Group</FormLabel>
-            <Input disabled={type !== "simple"} value={group} placeholder='What group will this configuration be for?' slotProps={{ input: { size: 1 } }} onChange={e => setGroup(e.target.value)} />
+            <Autocomplete freeSolo options={group_names} disabled={type !== "simple"} value={group} placeholder='What group will this configuration be for?' slotProps={{ input: { size: 1 } }} onChange={(_, v) => setGroup(v ?? "")}/>
           </FormControl>
         </Stack>
         <DialogActions>
