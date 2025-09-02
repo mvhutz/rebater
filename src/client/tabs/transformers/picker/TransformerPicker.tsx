@@ -6,7 +6,7 @@ import { getCurrentTransformerId, getTransformerGroups } from '../../../store/sl
 import { Accordion, AccordionDetails, AccordionGroup, AccordionSummary, Button, IconButton, List, ListItem, ListItemButton, ListItemContent, Sheet, Stack, Tooltip } from '@mui/joy';
 import { ErrorOutlineRounded, RestoreRounded } from '@mui/icons-material';
 import { TransformerFile } from '../../../../shared/state/stores/TransformerStore';
-import { viewExistingTransformer } from '../../../store/slices/thunk';
+import { pullTransformers, viewExistingTransformer } from '../../../store/slices/thunk';
 
 /** ------------------------------------------------------------------------- */
 
@@ -25,6 +25,10 @@ function TransformerPicker() {
 
   const handleNewTransformer = React.useCallback(() => {
     dispatch(toggleNewTransformerModal());
+  }, [dispatch]);
+
+  const handleRefresh = React.useCallback(() => {
+    dispatch(pullTransformers());
   }, [dispatch]);
 
   const handleExistingTransformer = React.useCallback((file: TransformerFile) => {
@@ -84,7 +88,7 @@ function TransformerPicker() {
             New Transformer
           </Button>
           <Tooltip title="Refresh Transformers">
-            <IconButton size="sm" variant='outlined'>
+            <IconButton size="sm" variant='outlined' onClick={handleRefresh}>
               <RestoreRounded />
             </IconButton>
           </Tooltip>

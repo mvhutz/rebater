@@ -97,6 +97,10 @@ export const UISlice = createSlice({
         if (payload.ok) return;
         state.messages.push({ type: "error", text: payload.reason });
       })
+      .addCase(pullTransformers.fulfilled, (state, { payload }) => {
+        if (payload.ok) return;
+        state.messages.push({ type: "error", text: payload.reason });
+      })
   },
 });
 
