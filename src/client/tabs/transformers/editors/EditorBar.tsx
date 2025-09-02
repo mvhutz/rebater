@@ -63,8 +63,7 @@ interface EditorBarProps {
 function EditorBar(props: EditorBarProps) {
   const { info: { draft } } = props;
   const data = useAppSelector(getTransformerDraftAsData);
-
-  const name = data.ok ? data.data.name : draft.name ?? "??";
+  const name = data.ok ? data.data.name : draft.type === "simple" ? draft.name : "??";
   const group = draft.type === "simple" ? draft.group : "Advanced";
 
   console.log(data);
