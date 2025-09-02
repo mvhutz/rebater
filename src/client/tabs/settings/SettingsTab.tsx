@@ -3,7 +3,11 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import Button from '@mui/joy/Button';
 import Stack from '@mui/joy/Stack';
 import AdvancedSettings from './AdvancedSettings';
+<<<<<<< HEAD
 import { pullAllQuarters, pullQuestions, pullSystemSettings, pullTransformers, pushSystemSettings } from '../../store/slices/thunk';
+=======
+import { doPullAll, pushSystemSettings } from '../../store/slices/thunk';
+>>>>>>> feat/validation
 import { getDisplayTab, getVisible } from '../../store/slices/ui';
 import { Typography } from '@mui/joy';
 import TabMenu from '../../view/TabMenu';
@@ -17,17 +21,11 @@ function SettingsTab() {
 
   const handleSave = React.useCallback(async () => {
     await dispatch(pushSystemSettings());
-    await dispatch(pullSystemSettings());
-    await dispatch(pullTransformers());
-    await dispatch(pullAllQuarters());
-    await dispatch(pullQuestions());
+    await dispatch(doPullAll());
   }, [dispatch]);
 
   const handleRefresh = React.useCallback(async () => {
-    await dispatch(pullSystemSettings());
-    await dispatch(pullAllQuarters());
-    await dispatch(pullQuestions());
-    await dispatch(pullTransformers());
+    await dispatch(doPullAll());
   }, [dispatch]);
 
   if (!show) return null;
@@ -40,7 +38,11 @@ function SettingsTab() {
           <Button variant="solid" color='primary' size='sm' sx={{ borderRadius: 1000 }} onClick={handleSave}>
             Save
           </Button>
+<<<<<<< HEAD
           <Button variant='outlined' color="neutral" onClick={handleRefresh} sx={{ borderRadius: 1000 }}>
+=======
+          <Button variant='outlined' color="neutral" size='sm' onClick={handleRefresh} sx={{ borderRadius: 1000 }}>
+>>>>>>> feat/validation
               Refresh
             </Button>
         </Stack>

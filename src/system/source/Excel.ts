@@ -105,6 +105,14 @@ export class ExcelSourceOperator implements SourceOperator {
     return results;
   }
 
+  getPotentialSources(input: SourceInput): unknown[] {
+    const files = input.state.sources.getEntries()
+      .filter(e => e.item.group === this.group
+        && input.context.time.is(e.item.quarter));
+    
+    return files.toArray();
+  }
+
   run(input: SourceInput): Table[] {
     // Get the needed files.
     const files = input.state.sources.getEntries()
@@ -119,7 +127,7 @@ export class ExcelSourceOperator implements SourceOperator {
 
     for (const file of files) {
       const { data: source } = file;
-      assert.ok(source.ok, `Source file '${file.item.name}' is not loaded! Try refreshing app?`);
+      assert.ok(source.ok, `Source file '${file.item.name}' is invalid: '${source.ok ? "Unknown" : source.reason}'`);
 
       const workbook = XLSX.read(source.data, { type: "buffer" });
       results.push(...this.extractWorkBook(workbook, file.item.name, input));

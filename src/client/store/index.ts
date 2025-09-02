@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { setStatus, SystemSlice } from './slices/system';
 import { UISlice } from './slices/ui';
-import { pullAllQuarters, pullQuestions, pullSystemSettings, pullTransformers } from './slices/thunk';
+import { doPullAll, pullQuestions } from './slices/thunk';
 import { good } from '../../shared/reply';
 
 /** ------------------------------------------------------------------------- */
@@ -19,10 +19,7 @@ const { handle } = window.api;
 
 // Beginning data fetches.
 async function load() {
-  await Store.dispatch(pullSystemSettings());
-  await Store.dispatch(pullTransformers());
-  await Store.dispatch(pullAllQuarters());
-  await Store.dispatch(pullQuestions());
+  await Store.dispatch(doPullAll());
 }
 
 load();

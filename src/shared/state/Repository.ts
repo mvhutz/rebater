@@ -26,4 +26,12 @@ export class Repository {
   public getState(): Readonly<Reply<State>> {
     return this.state;
   }
+
+  public refresh() {
+    this.settings.unwatch();
+    this.settings.watch();
+    if (this.state.ok) {
+      this.state.data.refresh();
+    }
+  }
 }

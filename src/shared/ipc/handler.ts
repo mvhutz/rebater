@@ -131,6 +131,16 @@ export class IPCHandler {
     return good(undefined);
   }
 
+  async handleRefresh(): Promise<Reply> {
+    try {
+      this.repository.refresh();
+      this.thread.refresh();
+      return good(undefined);
+    } catch (err) {
+      return bad(`${err}`);
+    }
+  }
+
   async handleClearQuestions(): Promise<Reply> {
     const state_reply = this.repository.getState();
     if (!state_reply.ok) return state_reply;
@@ -223,6 +233,7 @@ export class IPCHandler {
     ipcMain.handle.createQuarter();
 
     ipcMain.handle.clearQuestions(async () => await this.handleClearQuestions());
+    ipcMain.handle.refreshProgram(async () => await this.handleRefresh());
     ipcMain.handle.openOutputFile(async (_, { data }) => await this.handleOpenOutputFile(data));
     ipcMain.handle.getTransformers(async () => await this.getTransformers());
     ipcMain.handle.createTransformer(async (_, { data }) => await this.createTransformer(data));
@@ -241,6 +252,7 @@ export class IPCHandler {
     // Remove on window close.
     this.window.on("close", () => {
       ipcMain.remove.clearQuestions();
+      ipcMain.remove.refreshProgram();
       ipcMain.remove.answerQuestion();
       ipcMain.remove.chooseDir();
       ipcMain.remove.getPing();

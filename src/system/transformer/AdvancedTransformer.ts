@@ -193,11 +193,18 @@ export class AdvancedTransformer implements Transformer {
     const start = performance.now();
 
     // 1. Pull sources.
-    const source_data = this.sources.map(s => s.run({ state, context, stats, transformer: this.name })).flat(1);
-    if (source_data.length === 0) {
-      const end = performance.now();
-      stats.performance.push({ start, end, name: this.name });
+    const source_input = { state, context, stats, transformer: this.name };
+    const potential_sources = this.sources.map(s => s.getPotentialSources(source_input)).flat(1);
+    if (potential_sources.length === 0) {
+      stats.performance.push({ start, end: performance.now(), name: this.name });
       stats.issues.no_source.push({ transformer: this.name });
+      return;
+    }
+
+    const source_data = this.sources.map(s => s.run(source_input)).flat(1);
+    if (source_data.length === 0) {
+      stats.performance.push({ start, end: performance.now(), name: this.name });
+      stats.issues.no_valid_source.push({ transformer: this.name });
       return;
     }
 
@@ -232,7 +239,6 @@ export class AdvancedTransformer implements Transformer {
       destination.run({ table: postprocessed_data, state, context });
     }
 
-    const end = performance.now();
-    stats.performance.push({ start, end, name: this.name });
+    stats.performance.push({ start, end: performance.now(), name: this.name });
   }
 }
