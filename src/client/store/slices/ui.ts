@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { RootState } from '..';
-import { pullAllQuarters, pullTransformers, pushSystemSettings, showOutputFile } from './thunk';
+import { addNewQuarter, clearAllQuestions, pullAllQuarters, pullTransformers, pushSystemSettings, showOutputFile } from './thunk';
 
 /** ------------------------------------------------------------------------- */
 
@@ -81,11 +81,6 @@ export const UISlice = createSlice({
       .addCase(pushSystemSettings.rejected, (state, { error }) => {
         state.messages.push({ type: "error", text: error.message ?? "Unknown error saving settings." });
       })
-      .addCase(pullTransformers.fulfilled, (state, { payload }) => {
-        if (!payload.ok) {
-          state.messages.push({ type: "error", text: payload.reason });
-        }
-      })
       .addCase(pullAllQuarters.rejected, (state, { error }) => {
         state.messages.push({ type: "error", text: error.message ?? "Unknown error loading quarters." });
       })
@@ -100,6 +95,20 @@ export const UISlice = createSlice({
       .addCase(pullTransformers.fulfilled, (state, { payload }) => {
         if (payload.ok) return;
         state.messages.push({ type: "error", text: payload.reason });
+      })
+      .addCase(addNewQuarter.fulfilled, (state, { payload }) => {
+        if (payload.ok) return;
+        state.messages.push({ type: "error", text: payload.reason });
+      })
+      .addCase(addNewQuarter.rejected, (state, { error }) => {
+        state.messages.push({ type: "error", text: error.message ?? "Unknown error loading quarters." });
+      })
+      .addCase(clearAllQuestions.fulfilled, (state, { payload }) => {
+        if (payload.ok) return;
+        state.messages.push({ type: "error", text: payload.reason });
+      })
+      .addCase(clearAllQuestions.rejected, (state, { error }) => {
+        state.messages.push({ type: "error", text: error.message ?? "Unknown error loading quarters." });
       })
   },
 });

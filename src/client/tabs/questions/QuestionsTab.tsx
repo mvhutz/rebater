@@ -1,26 +1,52 @@
 import React from 'react';
 import Stack from '@mui/joy/Stack';
 import Typography from '@mui/joy/Typography';
-// import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
-import { useAppSelector } from '../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import TabMenu from '../../view/TabMenu';
 import { getDisplayTab } from '../../store/slices/ui';
 import { getSystemQuestions } from '../../store/slices/system';
 import InputModal from './InputModal';
-import { Alert } from '@mui/joy';
+import { Alert, Button, Divider, IconButton, Tooltip } from '@mui/joy';
+import { clearAllQuestions, pullQuestions } from '../../store/slices/thunk';
+import DeleteRounded from '@mui/icons-material/DeleteRounded';
 
 /** ------------------------------------------------------------------------- */
 
 function QuestionsTab() {
   const display = useAppSelector(getDisplayTab("questions"));
   const questions = useAppSelector(getSystemQuestions);
+  const dispatch = useAppDispatch();
+
+  const handleIgnoreAll = React.useCallback(async (event: React.UIEvent) => {
+    event.preventDefault();
+
+    const reply = await dispatch(clearAllQuestions()).unwrap();
+    if (reply.ok) {
+      dispatch(pullQuestions());
+    }
+  }, [dispatch]);
+
+  const handleRefresh = React.useCallback(() => {
+    dispatch(pullQuestions());
+  }, [dispatch]);
 
   return (
     <Stack padding={0} display={display} height={1} boxSizing="border-box" position="relative">
       <TabMenu>
-        <Typography level="body-lg" pt={0.5} color="neutral"><i>Questions</i></Typography>
+        <Typography py={0.5} level="body-lg" color="neutral"><i>{questions.ok ? questions.data.length : "No"} Question(s) Left</i></Typography>
+        <Stack direction="row" spacing={1} position="absolute" right={0}>
+          <Button variant="outlined" color='neutral' size='sm' sx={{ borderRadius: 1000 }} onClick={handleRefresh}>
+            Refresh
+          </Button>
+          <Tooltip title="Clear Questions">
+            <IconButton onClick={handleIgnoreAll} sx={{ borderRadius: 1000 }}>
+              <DeleteRounded fontSize='small'/>
+            </IconButton>
+          </Tooltip>
+        </Stack>
       </TabMenu>
-      <Stack padding={2} spacing={2}>
+      <Divider orientation='horizontal'/>
+      <Stack padding={2} spacing={2} px={8}>
         {questions.ok && questions.data.length > 0 &&
           <InputModal question={questions.data[0]} />
         }

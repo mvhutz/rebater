@@ -131,14 +131,14 @@ export class IPCHandler {
     return good(undefined);
   }
 
-  async handleClearQuestions() {
+  async handleClearQuestions(): Promise<Reply> {
     const state_reply = this.repository.getState();
     if (!state_reply.ok) return state_reply;
     const { data: state } = state_reply;
 
     return await state.tracker.update(async () => {
       return good(new Map());
-    })
+    });
   }
 
   async handleGetQuestions(): Promise<Reply<Question[]>> {

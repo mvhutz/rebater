@@ -8,6 +8,7 @@ import { Question } from "../../../shared/worker/response";
 import { clearTransformerPage, getTransformerDraftAsData, getTransformerNames, getTransformerPageInfo, getValidTransformerFiles, setTransformerPage } from "./system";
 import { pushError } from "./ui";
 import { AdvancedTransformerDraft, SimpleTransformerDraft, TransformerDraft } from "./drafts";
+import { CreateQuarterOptions } from "../../../shared/ipc/system/createQuarter";
 
 /** ------------------------------------------------------------------------- */
 
@@ -329,5 +330,21 @@ export const deleteTransformerDraft = createAsyncThunk(
         dispatch(pushError("No transformer draft found!"));
         return;
     }
+  }
+);
+
+/** ------------------------------------------------------------------------- */
+
+export const addNewQuarter = createAsyncThunk(
+  "system/addNewQuarter",
+  async ({ createStructureFrom, quarter }: CreateQuarterOptions): Promise<Reply> => {
+    return await invoke.createQuarter({ createStructureFrom, quarter });
+  }
+);
+
+export const clearAllQuestions = createAsyncThunk(
+  "system/clearAllQuestions",
+  async (): Promise<Reply> => {
+    return await invoke.clearQuestions({});
   }
 );

@@ -32,7 +32,7 @@ const IPC = createInterprocess({
     setSettings: ignore<SettingsData, string>,
     getQuestions: ignore<unknown, Question[]>,
     answerQuestion: ignore<Answer>,
-    clearQuestions: ignore,
+    clearQuestions: ignore<unknown>,
     ignoreQuestion: ignore<Question>,
 
     // Those that do.

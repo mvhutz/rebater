@@ -56,7 +56,7 @@ function TransformerPicker() {
               </AccordionSummary>
             <AccordionDetails>
               {files.map(file => (
-                <List sx={{ '--ListItem-paddingLeft': '2rem' }}>
+                <List sx={{ '--ListItem-paddingLeft': '2rem' }} key={file.item.name}>
                   <ListItem>
                     <Tooltip title={getTransformerName(file)} placement="right">
                       <ListItemButton selected={transformer_id === file.item.name} key={file.item.name} onClick={() => handleExistingTransformer(file)}>
