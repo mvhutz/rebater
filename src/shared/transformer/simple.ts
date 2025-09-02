@@ -7,6 +7,10 @@ export interface SimpleTransformerData {
   source: {
     sheets: string[];
     file?: string;
+    trim: {
+      top: number;
+      bottom: number;
+    }
   }
   properties: {
     purchaseId: "counter";
@@ -36,6 +40,10 @@ export const SimpleTransformerSchema: z.ZodObject & z.ZodType<SimpleTransformerD
   source: z.strictObject({
     sheets: z.array(z.string()),
     file: z.string().optional(),
+    trim: z.strictObject({
+      top: z.coerce.number().int("Cannot trim header by a fractional amount!").nonnegative("Cannot trim header by a negative amount."),
+      bottom: z.coerce.number().int("Cannot trim footer by a fractional amount!").nonnegative("Cannot trim footer by a negative amount.")
+    }).default({ top: 0, bottom: 0 })
   }),
   properties: z.strictObject({
     purchaseId: z.literal("counter"),

@@ -49,8 +49,8 @@ function TransformerPicker() {
 
     inner = (
       <AccordionGroup size='sm' disableDivider>
-        {Object.entries(groups).map(([group, files]) => <React.Fragment key={group}>
-          <Accordion>
+        {Object.entries(groups).map(([group, files]) => (
+          <Accordion key={group}>
             <AccordionSummary>
               <Typography sx={{ fontVariant: "all-petite-caps" }} level="title-sm">{group} ({files.length})</Typography>
               </AccordionSummary>
@@ -70,7 +70,7 @@ function TransformerPicker() {
               ))}
             </AccordionDetails>
           </Accordion>
-        </React.Fragment>)}
+        ))}
       </AccordionGroup>
     )
   }

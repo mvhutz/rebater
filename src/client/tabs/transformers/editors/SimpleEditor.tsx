@@ -29,6 +29,14 @@ function SourceOptions() {
     setData(d => { d.source.file = value; });
   }, [setData]);
 
+  const handleTrimTop = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
+    setData(d => { d.source.trim.top = e.target.value; });
+  }, [setData]);
+
+  const handleTrimBottom = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
+    setData(d => { d.source.trim.bottom = e.target.value; });
+  }, [setData]);
+
   return (
     <Accordion>
       <AccordionSummary>
@@ -41,13 +49,24 @@ function SourceOptions() {
           <FormControl sx={{ flex: 1 }}>
             <FormLabel>File Name</FormLabel>
             <Input variant='soft' placeholder="Input file name..." value={data.source.file} onChange={handleFilename} />
-            <FormHelperText>Supports&nbsp;<code>glob</code>&nbsp;expressions.</FormHelperText>
+            <FormHelperText>Filter only specific files in the source group, by file name. Glob expressions are supported.</FormHelperText>
           </FormControl>
           <FormControl sx={{ flex: 1 }}>
             <FormLabel>Sheets</FormLabel>
             <MultiSelect placeholder="Input sheet names..." values={data.source.sheets} onValues={handleSheets} />
-            <FormHelperText>Supports regular expressions.</FormHelperText>
+            <FormHelperText>In each file, filter out which sheets should be considered. Supports regular expressions.</FormHelperText>
           </FormControl>
+          <Stack direction="row" spacing={2}>
+            <FormControl sx={{ flex: 1 }}>
+              <FormLabel>Trim Header</FormLabel>
+              <Input value={data.source.trim.top} onChange={handleTrimTop} slotProps={{ input: { type: "number", step: 1, min: 0 } }} variant='soft' />
+              <FormHelperText>Trim ending rows off each sheet.</FormHelperText>
+            </FormControl>
+            <FormControl sx={{ flex: 1 }}>
+              <FormLabel>Trim Footer</FormLabel>
+              <Input value={data.source.trim.bottom} onChange={handleTrimBottom} slotProps={{ input: { type: "number", step: 1, min: 0 } }} variant='soft' />
+            </FormControl>
+          </Stack>
         </Stack>
       </AccordionDetails>
     </Accordion>
@@ -383,7 +402,7 @@ function SimpleEditor(props: SimpleTransformerEditProps) {
   return (
     <SimpleContext.Provider value={[data, setData]}>
       <Stack flex={1} position="relative">
-        <Sheet sx={{ overflow: "auto", flex: "1 1 0px" }}>
+        <Sheet sx={{ overflow: "auto", flex: "1 1 0px", pb: 32 }}>
           <AccordionGroup disableDivider size="lg">
             <SourceOptions />
             <RebateDataOptions />

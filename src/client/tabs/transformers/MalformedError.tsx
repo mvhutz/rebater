@@ -14,7 +14,7 @@ function MalformedError(props: MalformedErrorProps) {
   const { error } = props;
 
   return (
-    <Stack sx={{ position: "absolute", bottom: 0 }} width={1} px={1} mb={1} boxSizing="border-box">
+    <Stack sx={{ position: "absolute", bottom: 0, left: 0, zIndex: 1000 }} width={1} px={1} mb={1} boxSizing="border-box">
       <Alert startDecorator={<ErrorIcon sx={{ fontSize: 25 }} />} sx={{ alignItems: 'flex-start', overflow: "scroll" }} color='danger' invertedColors variant="solid">
         <div>
           <div>Error</div>

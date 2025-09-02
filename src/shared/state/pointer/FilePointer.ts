@@ -19,7 +19,7 @@ export abstract class FilePointer<Data> {
     this.file = path.resolve(file);
     this.parent = path.resolve(path.dirname(file));
 
-    this.data = bad("Not loaded!");
+    this.data = this.onEmptyFile();
     this.emitter = new EventEmitter();
 
     if (watch) {
@@ -73,11 +73,13 @@ export abstract class FilePointer<Data> {
   public async setData(data: Data): Promise<void> {
     await this.runPrivileged(() => this.setDataUnsafe(data));
   }
+  
+  protected abstract onEmptyFile(): Reply<Data>;
 
   private async fetch(file: string): Promise<Reply<Data>> {
     // Return the default settings, if the file does not exist.
     if (!existsSync(file)) {
-      return bad("No file!");
+      return this.onEmptyFile();
     }
   
     // Should only be a file.
@@ -104,7 +106,7 @@ export abstract class FilePointer<Data> {
   }
 
   public watch() {
-    this.data = bad("Not loaded!");
+    this.data = this.onEmptyFile();
     this.watcher = fsWatch(this.parent, {
       ignored: f => path.resolve(f) !== this.parent && path.resolve(f) !== this.file
     });

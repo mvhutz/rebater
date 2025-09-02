@@ -114,7 +114,16 @@ export const viewExistingTransformer = createAsyncThunk(
         };
         break;
       case "simple":
-        draft = current.data.data;
+        draft = {
+          ...current.data.data,
+          source: {
+            ...current.data.data.source,
+            trim: {
+              top: current.data.data.source.trim.top.toString(),
+              bottom: current.data.data.source.trim.bottom.toString()
+            }
+          }
+        }
         break;
     }
 
@@ -152,7 +161,10 @@ function generateBasicDraft(name: string, group: string): SimpleTransformerDraft
     group: group,
     source: {
       sheets: [],
-      file: undefined
+      file: undefined,
+      trim: { 
+        
+      }
     },
     properties: {
       purchaseId: 'counter',

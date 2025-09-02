@@ -48,11 +48,6 @@ export class SimpleTransformer implements Transformer {
     /** --------------------------------------------------------------------- */
 
     const preprocessing: TableData[] = [];
-    if (this.data.options.additional_preprocessing != null) {
-      const json = JSON.parse(this.data.options.additional_preprocessing);
-      const parsed = z.array(TableSchema).parse(json);
-      preprocessing.push(...parsed);
-    }
 
     const FILE_TOTAL_COLUMN = 50;
     const REBATE_TOTAL_COLUMN = 51;
@@ -67,6 +62,16 @@ export class SimpleTransformer implements Transformer {
           { type: "sum", column: rebateAmount.column }
         ] }
       );
+    }
+
+    preprocessing.push(
+      { type: "trim", ...this.data.source.trim }
+    );
+
+    if (this.data.options.additional_preprocessing != null) {
+      const json = JSON.parse(this.data.options.additional_preprocessing);
+      const parsed = z.array(TableSchema).parse(json);
+      preprocessing.push(...parsed);
     }
 
     /** --------------------------------------------------------------------- */

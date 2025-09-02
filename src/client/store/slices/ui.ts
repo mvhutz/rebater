@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { RootState } from '..';
-import { addNewQuarter, clearAllQuestions, pullAllQuarters, pullTransformers, pushSystemSettings, showOutputFile } from './thunk';
+import { addNewQuarter, clearAllQuestions, pullAllQuarters, pullQuestions, pullTransformers, pushSystemSettings, showOutputFile } from './thunk';
 
 /** ------------------------------------------------------------------------- */
 
@@ -108,6 +108,13 @@ export const UISlice = createSlice({
         state.messages.push({ type: "error", text: payload.reason });
       })
       .addCase(clearAllQuestions.rejected, (state, { error }) => {
+        state.messages.push({ type: "error", text: error.message ?? "Unknown error loading quarters." });
+      })
+      .addCase(pullQuestions.fulfilled, (state, { payload }) => {
+        if (payload.ok) return;
+        state.messages.push({ type: "error", text: payload.reason });
+      })
+      .addCase(pullQuestions.rejected, (state, { error }) => {
         state.messages.push({ type: "error", text: error.message ?? "Unknown error loading quarters." });
       })
   },
