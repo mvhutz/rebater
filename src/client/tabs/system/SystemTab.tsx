@@ -24,11 +24,12 @@ import { SystemStatus } from '../../../shared/worker/response';
 import { TimeSchema } from '../../../shared/time';
 import moment from 'moment';
 import { z } from 'zod/v4';
-import NoSourcesCard from './cards/NoSourcesCard';
+import NoValidSourcesCard from './cards/NoValidSourcesCard';
 import EmptySourceCard from './cards/EmptySourceCard';
 import EmptyTableCard from './cards/EmptyTableCard';
 import FailedTransformerCard from './cards/FailedTransformerCard';
 import IgnoredRowCard from './cards/IgnoredRowCard';
+import NoSourcesCard from './cards/NoSourcesCard';
 
 /** ------------------------------------------------------------------------- */
 
@@ -288,9 +289,10 @@ function SystemTab() {
         <Stack direction="row" spacing={2}>
           <PerformanceCard />
           <DiscrepancyCard />
+          <NoSourcesCard />
           <Divider orientation="vertical" />
           <ErrorCard />
-          <NoSourcesCard />
+          <NoValidSourcesCard />
           <EmptySourceCard />
           <EmptyTableCard />
           <FailedTransformerCard />

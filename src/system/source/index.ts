@@ -24,6 +24,8 @@ export interface SourceOperator {
    * @returns All tables extracted.
    */
   run(input: SourceInput): Table[];
+
+  getPotentialSources(input: SourceInput): unknown[];
 }
 
 

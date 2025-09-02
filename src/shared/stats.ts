@@ -20,6 +20,12 @@ export const DiscrepencyResultSchema = z.object({
 
 export type DiscrepencyResult = z.infer<typeof DiscrepencyResultSchema>;
 
+export const NoValidSourceIssueSchema = z.strictObject({
+  transformer: z.string(),
+});
+
+export type NoValidSourceIssue = z.infer<typeof NoSourceIssueSchema>;
+
 export const NoSourceIssueSchema = z.strictObject({
   transformer: z.string(),
 });
@@ -64,6 +70,7 @@ export type FailedTransformerIssue = z.infer<typeof FailedTransformerIssueSchema
 export const StatsSchema = z.strictObject({
   issues: z.strictObject({
     no_source: z.array(NoSourceIssueSchema),
+    no_valid_source: z.array(NoValidSourceIssueSchema),
     empty_source: z.array(EmptySourceIssueSchema),
     empty_sheet: z.array(EmptySheetIssueSchema),
     ignored_row: z.array(IgnoredRowIssueSchema),
@@ -79,6 +86,7 @@ export function getEmptyStats(): StatsData {
   return {
     issues: {
       no_source: [],
+      no_valid_source: [],
       empty_source: [],
       empty_sheet: [],
       ignored_row: [],
