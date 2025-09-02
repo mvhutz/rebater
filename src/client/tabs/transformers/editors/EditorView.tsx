@@ -26,7 +26,7 @@ export function EditorView(props: EditorViewProps) {
   }
 
   return (
-    <Stack direction="column" flex={1} alignItems="stretch">
+    <Stack direction="column" flex={1} alignItems="stretch" position="relative">
       <EditorBar info={info} />
       <Divider />
       {editor}

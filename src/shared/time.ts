@@ -4,12 +4,12 @@ import { bad, good, Reply } from "./reply";
 /** ------------------------------------------------------------------------- */
 
 export const TimeSchema = z.strictObject({
-  year: z.int().nonnegative(),
+  year: z.coerce.number().int().nonnegative(),
   quarter: z.literal([1, 2, 3, 4]),
 });
 
 /** The JSON schema of a certain time. */
-export type TimeData = z.input<typeof TimeSchema>;
+export type TimeData = z.infer<typeof TimeSchema>;
 
 /**
  * Represents a specific time (year and quarter) that the system can handle.
@@ -27,8 +27,12 @@ export class Time {
     return { year: this.year, quarter: this.quarter };
   }
 
+  public static asString(time: Time | TimeData) {
+    return `${time.year}-Q${time.quarter}`;
+  } 
+
   public toString(): string {
-    return `${this.year}-Q${this.quarter}`;
+    return Time.asString(this);
   }
   
   public is(o: Time) {

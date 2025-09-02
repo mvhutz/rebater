@@ -26,7 +26,7 @@ function AdvancedEditor(props: AdvancedTransformerEditProps) {
 
   return (
     <Stack flex={1} position="relative">
-      <Sheet sx={{ overflow: "auto", flex: "1 1 0px" }}>
+      <Sheet sx={{ overflow: "auto", flex: "1 1 0px", pb: 32 }}>
         <Textarea variant='plain' value={data.text} onChange={handleText} sx={{
           fontFamily: "monospace",
           "--Textarea-focusedHighlight": "transparent !important",

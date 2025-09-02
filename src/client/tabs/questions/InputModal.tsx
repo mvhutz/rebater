@@ -4,11 +4,12 @@ import FormControl from '@mui/joy/FormControl';
 import FormLabel from '@mui/joy/FormLabel';
 import Input from '@mui/joy/Input';
 import { useAppDispatch } from '../../store/hooks';
-import { CardContent, Typography, Card, CardActions, Checkbox, Stack, Table } from '@mui/joy';
+import { Typography, Checkbox, Stack, Table } from '@mui/joy';
 import Markdown from 'react-markdown';
 import { Question } from '../../../shared/worker/response';
-import { clearQuestions, deleteQuestion } from '../../store/slices/system';
+import { deleteQuestion } from '../../store/slices/system';
 import { pushMessage } from '../../store/slices/ui';
+import { Card } from '@mui/material';
 
 /** ------------------------------------------------------------------------- */
 
@@ -84,17 +85,6 @@ function InputModal({ question }: { question: Question }) {
     dispatch(deleteQuestion(question));
   }, [dispatch, question]);
 
-  const handleIgnoreAll = React.useCallback(async (event: React.UIEvent) => {
-    event.preventDefault();
-
-    const reply = await invoke.clearQuestions({});
-    if (!reply.ok) {
-      dispatch(pushMessage({ type: "error", text: reply.reason }));
-    } else {
-      dispatch(clearQuestions());
-    }
-  }, [dispatch]);
-
   const toggleOptional = React.useCallback((value: string) => {
     setOptional(o => {
       if (o.includes(value)) {
@@ -111,33 +101,35 @@ function InputModal({ question }: { question: Question }) {
     inside = (
       <>
         <Typography>We do not know the <code>{question.unknown}</code> of this <code>{question.table}</code>:</Typography>
-        <Table noWrap>
-          <thead>
-            <tr>
-              <th>Property</th>
-              <th>Value</th>
-              <th style={{ width: "60px" }}>Require</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Object.entries(question.known).map(([property, value]) => (
-              <tr key={property}>
-                <td><code>{property}</code></td>
-                <td style={{ whiteSpace: "nowrap" }}>
-                  {value}
-                </td>
-                <td style={{ width: "60px" }}>
-                  <Checkbox checked={!optional.includes(property)} onChange={toggleOptional.bind(null, property)} size="sm"></Checkbox>
-                </td>
+        <Card variant='outlined' sx={{ borderRadius: 2, }}>
+          <Table size='sm' noWrap>
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Value</th>
+                <th style={{ width: "60px" }}>Require</th>
               </tr>
-            ))}
-          </tbody>
-        </Table>
+            </thead>
+            <tbody>
+              {Object.entries(question.known).map(([property, value]) => (
+                <tr key={property}>
+                  <td><code>{property}</code></td>
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    {value}
+                  </td>
+                  <td style={{ width: "60px" }}>
+                    <Checkbox checked={!optional.includes(property)} onChange={toggleOptional.bind(null, property)} size="sm"></Checkbox>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </Card>
         {question.suggestions.length > 0 && <>
           <Typography>Here are some suggestions:</Typography>
           <ul>
-            {question.suggestions.map(s => (
-              <li style={{ margin: 0 }}><Markdown>{s}</Markdown></li>
+            {question.suggestions.map((s, i) => (
+              <li style={{ margin: 0 }} key={i}><Markdown>{s}</Markdown></li>
             ))}
           </ul>
         </>}
@@ -146,25 +138,21 @@ function InputModal({ question }: { question: Question }) {
   }
 
   return (
-    <Card>
+    // <Card>
       <form onSubmit={handleForm}>
-        <Typography>Rebater needs your help!</Typography>
-        <CardContent>
           <Stack spacing={2}>
             {inside}
             <FormControl>
               <FormLabel>Answer</FormLabel>
-              <Input name="answer" required autoFocus={true} />
+              <Input variant='soft' name="answer" required autoFocus={true} />
             </FormControl>
           </Stack>
-        </CardContent>
-        <CardActions sx={{ mt: 2 }}>
-          <Button fullWidth color="neutral" variant="plain" onClick={handleIgnoreAll}>Clear</Button>
-          <Button fullWidth color="neutral" variant="outlined" onClick={handleIgnore}>Ignore</Button>
-          <Button fullWidth type="submit">Submit</Button>
-        </CardActions>
+        <Stack mt={2} direction="row" spacing={2} justifyContent="flex-end" width={1}>
+          <Button color="neutral" variant="outlined" onClick={handleIgnore}>Ignore</Button>
+          <Button type="submit">Submit</Button>
+        </Stack>
       </form>
-    </Card>
+    // </Card>
   );
 }
 

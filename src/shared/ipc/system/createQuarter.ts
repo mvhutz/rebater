@@ -8,11 +8,11 @@ import { Settings } from "../../settings";
 
 /** ------------------------------------------------------------------------- */
 
-interface CreateQuarterOptions {
+export interface CreateQuarterOptions {
   /** Which quarter will be created. */
   quarter: TimeData;
   /** If the user chooses to copy a quarter structure, it will be from those one. */
-  createStructureFrom?: TimeData;
+  createStructureFrom?: Maybe<TimeData>;
 }
 
 async function copyFileStructure(to: Time, isettings: Settings, from: Time) {

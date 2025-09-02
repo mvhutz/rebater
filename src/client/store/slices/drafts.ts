@@ -1,6 +1,5 @@
 import { TransformerMeta } from "../../../shared/state/stores/TransformerStore";
 import { TimeData } from "../../../shared/time";
-import { SimpleTransformerData } from "../../../shared/transformer/simple";
 
 /** ------------------------------------------------------------------------- */
 
@@ -24,9 +23,44 @@ export interface AdvancedTransformerDraft {
   text: string;
 }
 
-export type SimpleTransformerDraft = SimpleTransformerData;
+/** ------------------------------------------------------------------------- */
 
-export type TransformerDraft = SimpleTransformerData | AdvancedTransformerDraft;
+export interface SimpleTransformerDraft {
+  type: "simple";
+  name: string;
+  group: string;
+  source: {
+    sheets: string[];
+    file?: string;
+    trim: {
+      top?: string;
+      bottom?: string;
+    }
+  }
+  properties: {
+    purchaseId: "counter";
+    transactionDate: { column?: number; parse?: string; };
+    supplierId: { value?: string; }
+    memberId: { column?: number; }
+    distributorName:
+      | { type: "value", value?: string; }
+      | { type: "column", column?: number; }
+    purchaseAmount: { column?: number; };
+    rebateAmount: { column?: number; multiplier?: number; };
+    invoiceId: { column?: number; };
+    invoiceDate: { column?: number; parse?: string; };
+  }
+  options: {
+    canadian_rebate: boolean,
+    remove_null_rebates: boolean;
+    additional_preprocessing?: string;
+    additional_postprocessing?: string;
+  }
+}
+
+/** ------------------------------------------------------------------------- */
+
+export type TransformerDraft = SimpleTransformerDraft | AdvancedTransformerDraft;
 
 export interface CreateTransformerPageInfo {
   type: "create";

@@ -6,7 +6,7 @@ import { getCurrentTransformerId, getTransformerGroups } from '../../../store/sl
 import { Accordion, AccordionDetails, AccordionGroup, AccordionSummary, Button, IconButton, List, ListItem, ListItemButton, ListItemContent, Sheet, Stack, Tooltip } from '@mui/joy';
 import { ErrorOutlineRounded, RestoreRounded } from '@mui/icons-material';
 import { TransformerFile } from '../../../../shared/state/stores/TransformerStore';
-import { viewExistingTransformer } from '../../../store/slices/thunk';
+import { pullTransformers, viewExistingTransformer } from '../../../store/slices/thunk';
 
 /** ------------------------------------------------------------------------- */
 
@@ -27,6 +27,10 @@ function TransformerPicker() {
     dispatch(toggleNewTransformerModal());
   }, [dispatch]);
 
+  const handleRefresh = React.useCallback(() => {
+    dispatch(pullTransformers());
+  }, [dispatch]);
+
   const handleExistingTransformer = React.useCallback((file: TransformerFile) => {
     dispatch(viewExistingTransformer(file.item.name));
   }, [dispatch]);
@@ -45,14 +49,14 @@ function TransformerPicker() {
 
     inner = (
       <AccordionGroup size='sm' disableDivider>
-        {Object.entries(groups).map(([group, files]) => <React.Fragment key={group}>
-          <Accordion>
+        {Object.entries(groups).map(([group, files]) => (
+          <Accordion key={group}>
             <AccordionSummary>
               <Typography sx={{ fontVariant: "all-petite-caps" }} level="title-sm">{group} ({files.length})</Typography>
               </AccordionSummary>
             <AccordionDetails>
               {files.map(file => (
-                <List sx={{ '--ListItem-paddingLeft': '2rem' }}>
+                <List sx={{ '--ListItem-paddingLeft': '2rem' }} key={file.item.name}>
                   <ListItem>
                     <Tooltip title={getTransformerName(file)} placement="right">
                       <ListItemButton selected={transformer_id === file.item.name} key={file.item.name} onClick={() => handleExistingTransformer(file)}>
@@ -66,7 +70,7 @@ function TransformerPicker() {
               ))}
             </AccordionDetails>
           </Accordion>
-        </React.Fragment>)}
+        ))}
       </AccordionGroup>
     )
   }
@@ -84,7 +88,7 @@ function TransformerPicker() {
             New Transformer
           </Button>
           <Tooltip title="Refresh Transformers">
-            <IconButton size="sm" variant='outlined'>
+            <IconButton size="sm" variant='outlined' onClick={handleRefresh}>
               <RestoreRounded />
             </IconButton>
           </Tooltip>

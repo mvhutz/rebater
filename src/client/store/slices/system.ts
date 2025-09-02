@@ -10,6 +10,7 @@ import { ContextDraft, SettingsDraft, TransformerDraft, TransformerPageInfo } fr
 import { TransformerData } from '../../../shared/transformer';
 import { AdvancedTransformerSchema } from '../../../shared/transformer/advanced';
 import { z } from 'zod/v4';
+import { SimpleTransformerSchema } from '../../../shared/transformer/simple';
 
 /** ------------------------------------------------------------------------- */
 
@@ -214,7 +215,7 @@ export const getQuarterList = (state: RootState): TimeData[] => {
 
 export const getTransformerGroups = createSelector([getTransformers], (transformers_reply) => {
   const result: Record<string, TransformerFile[]> = {};
-  if (!transformers_reply.ok) return transformers_reply;
+  if (!transformers_reply.ok) return bad(transformers_reply.reason);
 
   for (const transformer of transformers_reply.data) {
     if (!transformer.data.ok) {
@@ -251,8 +252,7 @@ export const getCurrentTransformerId = (state: RootState) => state.system.transf
   ? state.system.transformer_page.meta.name
   : null;
 
-export const getTransformerDraftAsData = (state: RootState): Reply<TransformerData> => {
-  const page = getTransformerPageInfo(state);
+export const getTransformerDraftAsData = createSelector([getTransformerPageInfo], (page: TransformerPageInfo): Reply<TransformerData> => {
   if (page.type === "empty") {
     return bad("No transformer draft found!");
   }
@@ -260,7 +260,16 @@ export const getTransformerDraftAsData = (state: RootState): Reply<TransformerDa
   const { draft } = page;
 
   if (draft.type === "simple") {
-    return good(draft);
+    try {
+      const parse_reply = SimpleTransformerSchema.safeParse(draft);
+      if (parse_reply.success) {
+        return good(parse_reply.data);
+      } else {
+        return bad(z.prettifyError(parse_reply.error));
+      }
+    } catch(err) {
+      return bad(`${err}`);
+    }
   } else {
     try {
       const json = JSON.parse(draft.text);
@@ -274,4 +283,4 @@ export const getTransformerDraftAsData = (state: RootState): Reply<TransformerDa
       return bad(`${err}`);
     }
   }
-}
+});

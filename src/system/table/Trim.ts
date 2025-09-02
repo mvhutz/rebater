@@ -19,8 +19,8 @@ export class TrimTable implements TableOperator {
    * @param bottom How many rows to remove from the bottom of the table.
    */
   public constructor(input: TrimTableData) {
-    this.top = input.top == null ? undefined : input.top;
-    this.bottom = input.bottom == null ? undefined : -input.bottom;
+    this.top = input.top == null || input.top === 0 ? undefined : input.top;
+    this.bottom = input.bottom == null|| input.bottom === 0 ? undefined : -input.bottom;
   }
 
   run(input: TableInput): Table {

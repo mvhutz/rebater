@@ -11,6 +11,10 @@ const TrackerSchema = z.array(z.tuple([z.string(), QuestionSchema]));
  * Stores any question makde by the Transformers.
  */
 export class TrackerPointer extends FilePointer<Map<string, Question>> {
+  protected onEmptyFile(): Reply<Map<string, Question>> {
+    return good(new Map());
+  }
+
   public serialize(data: Map<string, Question>): Reply<string> {
     return good(JSON.stringify(data.entries().toArray()));
   }

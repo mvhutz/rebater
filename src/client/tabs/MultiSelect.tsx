@@ -34,7 +34,7 @@ function MultiSelect(props: MultiSelectProps) {
     <Textarea variant='soft' placeholder={placeholder} value={text} onChange={e => setText(e.target.value)} onKeyDown={handleKeyDown} endDecorator={
       values.length > 0 && <Stack direction="row" flexWrap="wrap" gap={0.5}>
         {values.map((v, i) => (
-          <Chip color="primary" endDecorator={<ChipDelete onDelete={() => handleDelete(i)} />}>{v}</Chip>
+          <Chip key={v} color="primary" endDecorator={<ChipDelete onDelete={() => handleDelete(i)} />}>{v}</Chip>
         ))}
       </Stack>
     } />

@@ -9,62 +9,50 @@ import Input from '@mui/joy/Input';
 import Modal from '@mui/joy/Modal';
 import ModalDialog from '@mui/joy/ModalDialog';
 import Stack from '@mui/joy/Stack';
-import { getNewQuarterModal, pushMessage, toggleNewQuarterModal } from '../store/slices/ui';
-import { DialogActions, Option, Select, Switch } from '@mui/joy';
+import { getNewQuarterModal, toggleNewQuarterModal } from '../store/slices/ui';
+import { DialogActions, Option, Select } from '@mui/joy';
 import { FormHelperText } from '@mui/material';
-import z from 'zod/v4';
-import { TimeData } from '../../shared/time';
-import { getDraftTime } from '../store/slices/system';
+import { Time, TimeData, TimeSchema } from '../../shared/time';
+import { getQuarterList } from '../store/slices/system';
+import { addNewQuarter, pullAllQuarters } from '../store/slices/thunk';
 
 /** ------------------------------------------------------------------------- */
-
-const TimeSchema: z.ZodType<TimeData> = z.strictObject({
-  year: z.coerce.number(),
-  quarter: z.literal([1, 2, 3, 4]),
-});
-
-/** ------------------------------------------------------------------------- */
-
-const { invoke } = window.api;
 
 function NewQuarterModal() {
   const open = useAppSelector(getNewQuarterModal);
-  const current_time = useAppSelector(getDraftTime);
+  const all_quarters = useAppSelector(getQuarterList);
   const dispatch = useAppDispatch();
 
-  const [currentStructure, setCurrentStructure] = React.useState(false);
+  const [copyQuarter, setCopyQuarter] = React.useState<TimeData | null>();
   const [year, setYear] = React.useState<string>("");
   const [quarter, setQuarter] = React.useState<number>(NaN);
 
-  const { success: new_ready, data: new_time } = React.useMemo(() => {
+  const new_parsed = React.useMemo(() => {
     return TimeSchema.safeParse({ quarter, year });
   }, [quarter, year]);
 
-  const { success: old_ready, data: old_time } = React.useMemo(() => {
-    return TimeSchema.safeParse(current_time);
-  }, [current_time]);
+  console.log(new_parsed);
 
   const handleClose = React.useCallback(() => {
     dispatch(toggleNewQuarterModal());
-    setCurrentStructure(false);
+    setCopyQuarter(null);
     setYear("");
     setQuarter(NaN);
   }, [dispatch]);
 
   const handleCreate = React.useCallback(async () => {
-    if (!new_ready || (currentStructure && !old_ready)) return;
+    if (!new_parsed.success) return;
 
-    const reply = await invoke.createQuarter({
-      createStructureFrom: currentStructure ? old_time : undefined,
-      quarter: new_time,
-    });
+    const reply = await dispatch(addNewQuarter({
+      quarter: new_parsed.data,
+      createStructureFrom: copyQuarter
+    })).unwrap();
 
-    if (!reply.ok) {
-      dispatch(pushMessage({ type: "error", text: reply.reason }));
+    if (reply.ok) {
+      await dispatch(pullAllQuarters());
+      handleClose();
     }
-
-    handleClose();
-  }, [currentStructure, dispatch, handleClose, new_ready, new_time, old_ready, old_time]);
+  }, [dispatch, handleClose, new_parsed, copyQuarter]);
 
 
   return (
@@ -92,15 +80,18 @@ function NewQuarterModal() {
             </FormControl>
           </Stack>
           <FormControl>
-            <Stack direction="row" alignItems="center" justifyContent="space-between">
-              <FormLabel>Copy Structure</FormLabel>
-              <Switch disabled={!old_ready} checked={currentStructure} onChange={e => setCurrentStructure(e.target.checked)} />
-            </Stack>
-            <FormHelperText>Copy the directory structure (excluding files) of the current quarter's sources.</FormHelperText>
+            <FormLabel>Copy Directory From</FormLabel>
+            <Select value={copyQuarter} onChange={(_, v) => setCopyQuarter(v)}>
+              <Option value={null}>No Quarter</Option>
+              {all_quarters.map(q => (
+                <Option value={q}>{Time.asString(q)}</Option>
+              ))}
+            </Select>
+            <FormHelperText>Optionally, copy the directory structure (excluding files) of a selected quarter's sources.</FormHelperText>
           </FormControl>
         </Stack>
         <DialogActions>
-          <Button type="submit" onClick={handleCreate} disabled={!new_ready || (currentStructure && !old_ready)}>Create</Button>
+          <Button type="submit" onClick={handleCreate} disabled={!new_parsed.success}>Create</Button>
           <Button type="submit" color="neutral" variant="outlined" onClick={handleClose}>Ignore</Button>
         </DialogActions>
       </ModalDialog>

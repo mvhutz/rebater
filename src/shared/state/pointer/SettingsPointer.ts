@@ -6,6 +6,10 @@ import { FilePointer } from "./FilePointer";
 /** ------------------------------------------------------------------------- */
 
 export class SettingsPointer extends FilePointer<Settings> {
+  protected onEmptyFile(): Reply<Settings> {
+    return bad("No settings file found!");
+  }
+
   public serialize(data: Settings): Reply<string> {
     return good(JSON.stringify(data.data));
   }
