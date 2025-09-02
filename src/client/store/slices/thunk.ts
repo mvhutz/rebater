@@ -360,3 +360,20 @@ export const clearAllQuestions = createAsyncThunk(
     return await invoke.clearQuestions({});
   }
 );
+
+export const doRefreshProgram = createAsyncThunk(
+  "system/doRefreshProgram",
+  async (): Promise<Reply> => {
+    return await invoke.refreshProgram({});
+  }
+);
+
+export const doPullAll = createAsyncThunk(
+  "system/doPullAll",
+  async (_, { dispatch }): Promise<void> => {
+    await dispatch(pullSystemSettings());
+    await dispatch(pullAllQuarters());
+    await dispatch(pullQuestions());
+    await dispatch(pullTransformers());
+  }
+);

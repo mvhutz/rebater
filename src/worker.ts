@@ -23,6 +23,9 @@ console.log("DATA", workerData);
 const repository = new Repository(workerData);
 
 const SYSTEM = {
+  refresh() {
+    repository.refresh();
+  },
   /**
    * Run the program.
    */
