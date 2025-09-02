@@ -33,7 +33,7 @@ function QuestionsTab() {
   return (
     <Stack padding={0} display={display} height={1} boxSizing="border-box" position="relative">
       <TabMenu>
-        <Typography py={0.5} level="body-lg" color="neutral"><i>{questions.ok ? questions.data.length : "No"} Question(s) Left</i></Typography>
+        <Typography level="body-lg" color="neutral"><i>{questions.ok ? questions.data.length : "No"} Question(s) Left</i></Typography>
         <Stack direction="row" spacing={1} position="absolute" right={0}>
           <Button variant="outlined" color='neutral' size='sm' sx={{ borderRadius: 1000 }} onClick={handleRefresh}>
             Refresh

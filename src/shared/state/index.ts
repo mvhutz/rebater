@@ -36,4 +36,25 @@ export class State {
     this.transformers = new TransformerStore(path.join(directory, "transformers"), false);
     this.debug = new MatrixStore(path.join(directory, "debug"), true);
   }
+
+  refresh() {
+    this.tracker.unwatch();
+    this.tracker.watch();
+    this.references.unwatch();
+    this.references.watch();
+    this.sources.unwatch();
+    this.sources.watch();
+    this.destinations.unwatch();
+    this.destinations.watch();
+    this.outputs.unwatch();
+    this.outputs.watch();
+    this.truths.unwatch();
+    this.truths.watch();
+    this.utilities.unwatch();
+    this.utilities.watch();
+    this.transformers.unwatch();
+    this.transformers.watch();
+    this.debug.unwatch();
+    this.debug.watch();
+  }
 }

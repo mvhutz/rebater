@@ -34,6 +34,7 @@ const IPC = createInterprocess({
     answerQuestion: ignore<Answer>,
     clearQuestions: ignore<unknown>,
     ignoreQuestion: ignore<Question>,
+    refreshProgram: ignore<unknown>,
 
     // Those that do.
     runProgram: ignore<ContextData>,

@@ -17,18 +17,19 @@ import TabMenu from '../../view/TabMenu';
 import { getContextFilter, getDisplayTab, pushMessage, toggleContextFilter, toggleNewQuarterModal } from '../../store/slices/ui';
 import { Badge, Box, Button, Chip, Divider, IconButton, Option, Select, Tooltip } from '@mui/joy';
 import FileOpenRoundedIcon from '@mui/icons-material/FileOpenRounded';
-import { killSystem, showOutputFile, startSystem } from '../../store/slices/thunk';
+import { doPullAll, doRefreshProgram, killSystem, showOutputFile, startSystem } from '../../store/slices/thunk';
 import BlockRounded from '@mui/icons-material/BlockRounded';
 import { AddRounded, ClearRounded, PlayArrowRounded, TuneRounded } from '@mui/icons-material';
 import { SystemStatus } from '../../../shared/worker/response';
 import { TimeSchema } from '../../../shared/time';
 import moment from 'moment';
 import { z } from 'zod/v4';
-import NoSourcesCard from './cards/NoSourcesCard';
+import NoValidSourcesCard from './cards/NoValidSourcesCard';
 import EmptySourceCard from './cards/EmptySourceCard';
 import EmptyTableCard from './cards/EmptyTableCard';
 import FailedTransformerCard from './cards/FailedTransformerCard';
 import IgnoredRowCard from './cards/IgnoredRowCard';
+import NoSourcesCard from './cards/NoSourcesCard';
 
 /** ------------------------------------------------------------------------- */
 
@@ -272,11 +273,22 @@ function SystemTab() {
   const progress = useAppSelector(getSystemProgress);
   const loading = useAppSelector(isSystemLoading);
   const display = useAppSelector(getDisplayTab("system"));
+  const dispatch = useAppDispatch();
+
+  const handleRefresh = React.useCallback(async () => {
+    await dispatch(doRefreshProgram());
+    await dispatch(doPullAll());
+  }, [dispatch]);
 
   return (
     <Stack padding={0} display={display} overflow="scroll">
       <TabMenu>
         <Typography level="body-lg" pt={0.5} color="neutral"><i>System:</i> {messageText}</Typography>
+        <Stack direction="row" spacing={1} position="absolute" right={0}>
+          <Button variant='outlined' color="neutral" size='sm' onClick={handleRefresh} sx={{ borderRadius: 1000 }}>
+            Refresh
+          </Button>
+        </Stack>
       </TabMenu>
       <Stack padding={4} spacing={4} alignItems="center">
         <Stack direction="column" gap={2} spacing={6} pt={5} flexGrow={1} position="relative">
@@ -288,9 +300,10 @@ function SystemTab() {
         <Stack direction="row" spacing={2}>
           <PerformanceCard />
           <DiscrepancyCard />
+          <NoSourcesCard />
           <Divider orientation="vertical" />
           <ErrorCard />
-          <NoSourcesCard />
+          <NoValidSourcesCard />
           <EmptySourceCard />
           <EmptyTableCard />
           <FailedTransformerCard />
