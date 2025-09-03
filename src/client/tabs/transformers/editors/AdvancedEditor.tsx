@@ -1,10 +1,9 @@
 import React from 'react';
 import Stack from '@mui/joy/Stack';
 import { Textarea, Sheet } from '@mui/joy';
-import MalformedError from '../MalformedError';
 import { AdvancedTransformerDraft } from '../../../store/slices/drafts';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { getTransformerDraftAsData, updateTransformerDraft } from '../../../store/slices/system';
+import { useAppDispatch } from '../../../store/hooks';
+import { updateTransformerDraft } from '../../../store/slices/system';
 import { produce } from 'immer';
 
 /** ------------------------------------------------------------------------- */
@@ -15,7 +14,6 @@ interface AdvancedTransformerEditProps {
 
 function AdvancedEditor(props: AdvancedTransformerEditProps) {
   const { data } = props;
-  const draft = useAppSelector(getTransformerDraftAsData);
   const dispatch = useAppDispatch();
 
   const handleText = React.useCallback<React.ChangeEventHandler<HTMLTextAreaElement>>((e) => {
@@ -35,7 +33,6 @@ function AdvancedEditor(props: AdvancedTransformerEditProps) {
           padding: 2
         }} size='sm' />
       </Sheet>
-      {!draft.ok && <MalformedError error={draft.reason} />}
     </Stack>
   );
 }

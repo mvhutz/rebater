@@ -29,7 +29,19 @@ export const AdvancedDraft2Transformer = z.codec(
   }),
   AdvancedTransformerSchema,
   {
-    decode: v => String2JSON.pipe(AdvancedTransformerSchema).decode(v.text),
+    decode: (v, ctx) => {
+      try {
+        return String2JSON.pipe(AdvancedTransformerSchema).decode(v.text);
+      } catch (err: unknown) {
+        ctx.issues.push({
+          code: "invalid_format",
+          format: "json",
+          input: v.text,
+          message: String(err),
+        });
+        return z.NEVER;
+      }
+    },
     encode: v => ({ type: "advanced" as const, text: JSON.stringify(v, null, 2) })
   }
 )

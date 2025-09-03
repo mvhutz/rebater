@@ -31,7 +31,11 @@ function OptionsBar() {
   return (
     <Stack direction="row" spacing={1} flex={1} justifyContent="end">
       {page.type === "update" &&
-        <Button size="sm" disabled={!draft.ok} variant="soft" color="neutral" onClick={handleSave}>Save</Button>
+        <Tooltip color="danger" sx={{ maxWidth: 300 }} variant='outlined' disableInteractive={draft.ok} title={draft.ok ? "" : draft.reason}>
+          <span>
+            <Button size="sm" disabled={!draft.ok} variant="soft" color="neutral" onClick={handleSave}>Save</Button>
+          </span>
+        </Tooltip>
       }
       {page.type === "create" &&
         <Button size="sm" disabled={!draft.ok} variant="solid" color="primary" onClick={handleSave}>Create</Button>
@@ -80,7 +84,7 @@ function EditorBar(props: EditorBarProps) {
           </Typography>
         </Tooltip>
       </Stack>
-      <OptionsBar/>
+      <OptionsBar />
     </Stack>
   )
 }
