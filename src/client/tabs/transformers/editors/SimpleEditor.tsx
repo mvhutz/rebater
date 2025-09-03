@@ -83,12 +83,14 @@ function HandledTextArea(props: HandledInputProps) {
 /** ------------------------------------------------------------------------- */
 
 function SourceOptions() {
-  const [data, setData] = useContext(SimpleContext);
+  const [data, setData, issues] = useContext(SimpleContext);
   const { source: { file, sheets, trim: { top, bottom } } } = data;
 
   const handleSheets = React.useCallback((v: string[]) => {
     setData(d => { d.source.sheets = v; });
   }, [setData]);
+
+  console.log(issues);
 
   const file_path = ["source", "file"];
   const top_path = ["source", "trim", "top"];

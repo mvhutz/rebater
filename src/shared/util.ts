@@ -45,10 +45,10 @@ export function getTrueIndex(index: string | number): number {
 
 /** ------------------------------------------------------------------------- */
 
-export const String2Number = z.codec(z.string(), z.number(), {
+export const String2Number = z.codec(z.string().regex(z.regexes.number), z.number(), {
   decode: (v, ctx) => {
     try {
-      return z.coerce.number().parse(v);
+      return Number.parseFloat(v);
     } catch (err) {
       ctx.issues.push({
         code: "invalid_format",
@@ -67,24 +67,22 @@ export const Excel2Number = z.codec(z.string().regex(/^[A-Z]+$/), z.number(), {
   encode: getExcelFromIndex
 });
 
-export function String2JSON<T>(schema: z.ZodType<T>) {
-  return z.codec(z.string(), schema, {
-    decode: (jsonString, ctx) => {
-      try {
-        return schema.parse(JSON.parse(jsonString));
-      } catch (err: unknown) {
-        ctx.issues.push({
-          code: "invalid_format",
-          format: "json",
-          input: jsonString,
-          message: String(err),
-        });
-        return z.NEVER;
-      }
-    },
-    encode: (value) => JSON.stringify(value, null, 2),
-  });
-}
+export const String2JSON = z.codec(z.string(), z.unknown(), {
+  decode: (jsonString, ctx) => {
+    try {
+      return JSON.parse(jsonString) as unknown;
+    } catch (err: unknown) {
+      ctx.issues.push({
+        code: "invalid_format",
+        format: "json",
+        input: jsonString,
+        message: String(err),
+      });
+      return z.NEVER;
+    }
+  },
+  encode: (value) => JSON.stringify(value, null, 2),
+});
 
 export const EmptyString = z.codec(z.string(), z.string().optional(), {
   decode: v => v === "" ? undefined : v,

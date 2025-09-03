@@ -29,7 +29,7 @@ export const AdvancedDraft2Transformer = z.codec(
   }),
   AdvancedTransformerSchema,
   {
-    decode: v => String2JSON(AdvancedTransformerSchema).decode(v.text),
+    decode: v => String2JSON.pipe(AdvancedTransformerSchema).decode(v.text),
     encode: v => ({ type: "advanced" as const, text: JSON.stringify(v, null, 2) })
   }
 )
@@ -90,8 +90,8 @@ export const SimpleDraft2Transformer = z.strictObject({
   options: z.strictObject({
     canadian_rebate: z.boolean(),
     remove_null_rebates: z.boolean(),
-    additional_preprocessing: DefaultString("[]").pipe(String2JSON(z.array(TableSchema))),
-    additional_postprocessing: DefaultString("[]").pipe(String2JSON(z.array(TableSchema))),
+    additional_preprocessing: DefaultString("[]").pipe(String2JSON).pipe(z.array(TableSchema)),
+    additional_postprocessing: DefaultString("[]").pipe(String2JSON).pipe(z.array(TableSchema)),
   }),
 }) satisfies z.ZodType<SimpleTransformerData>;
 
