@@ -34,7 +34,7 @@ export interface SimpleTransformerData {
   }
 }
 
-export const SimpleTransformerSchema: z.ZodObject & z.ZodType<SimpleTransformerData> = z.strictObject({
+export const SimpleTransformerSchema = z.strictObject({
   type: z.literal("simple"),
   name: z.string(),
   group: z.string(),
@@ -44,7 +44,7 @@ export const SimpleTransformerSchema: z.ZodObject & z.ZodType<SimpleTransformerD
     trim: z.strictObject({
       top: z.number().int().nonnegative(),
       bottom: z.number().int().nonnegative()
-    })
+    }).default({ top: 0, bottom: 0 })
   }),
   properties: z.strictObject({
     purchaseId: z.literal("counter"),
@@ -66,13 +66,13 @@ export const SimpleTransformerSchema: z.ZodObject & z.ZodType<SimpleTransformerD
         type: z.literal("column"),
         value: z.number()
       }),
-    ]),
+    ]).catch({ type: "name", value: "" }),
     purchaseAmount: z.strictObject({
       column: z.number()
     }),
     rebateAmount: z.strictObject({
       column: z.number(),
-      multiplier: z.number()
+      multiplier: z.number().default(1)
     }),
     invoiceId: z.strictObject({
       column: z.number()
@@ -85,7 +85,7 @@ export const SimpleTransformerSchema: z.ZodObject & z.ZodType<SimpleTransformerD
   options: z.strictObject({
     canadian_rebate: z.boolean(),
     remove_null_rebates: z.boolean(),
-    additional_preprocessing: z.array(TableSchema),
-    additional_postprocessing: z.array(TableSchema),
+    additional_preprocessing: z.array(TableSchema).catch([]),
+    additional_postprocessing: z.array(TableSchema).catch([]),
   }),
-});
+}) satisfies z.ZodType<SimpleTransformerData>;

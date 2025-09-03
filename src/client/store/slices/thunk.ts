@@ -90,41 +90,36 @@ export const viewExistingTransformer = createAsyncThunk(
   'system/viewTransformer',
   async (name: string, { getState, dispatch }): Promise<void> => {
     const state = getState() as RootState;
-    console.log(1);
     const valid = getValidTransformerFiles(state);
-    console.log(2);
     const current = valid.find(f => f.item.name === name);
-    console.log(3);
+
     if (current == null) {
       dispatch(clearTransformerPage());
       dispatch(pushError("Cannot find the transformer to edit!"));
       return;
     }
-    console.log(4);
+
     if (!current.data.ok) {
       dispatch(clearTransformerPage());
       dispatch(pushError("Cannot edit malformed transformer!"));
       return;
     }
-    console.log(4);
+
     try {
-    const encoded = Draft2Transformer.safeEncode(current.data.data);
-    console.log(5);
-    if (!encoded.success) {
-      dispatch(clearTransformerPage());
-      dispatch(pushError(z.prettifyError(encoded.error)));
-      return;
-    }
+      const encoded = Draft2Transformer.safeEncode(current.data.data);
+      if (!encoded.success) {
+        dispatch(clearTransformerPage());
+        dispatch(pushError(z.prettifyError(encoded.error)));
+        return;
+      }
 
-    console.log(6);
-
-    dispatch(setTransformerPage({
-      type: "update",
-      meta: current.item,
-      draft: encoded.data,
-    }));
+      dispatch(setTransformerPage({
+        type: "update",
+        meta: current.item,
+        draft: encoded.data,
+      }));
     } catch (err) {
-      console.log(err);
+      dispatch(pushError(String(err)));
     }
   }
 );
@@ -156,7 +151,7 @@ function generateBasicDraft(name: string, group: string): SimpleTransformerDraft
     source: {
       sheets: [],
       file: "",
-      trim: { 
+      trim: {
         top: "",
         bottom: ""
       }
@@ -250,8 +245,8 @@ export const discardTransformerDraft = createAsyncThunk(
   async (_, { getState, dispatch }): Promise<boolean> => {
     const state = getState() as RootState;
     const page = getTransformerPageInfo(state);
-    
-    switch(page.type) {
+
+    switch (page.type) {
       case "create":
         dispatch(clearTransformerPage());
         return true;
@@ -269,8 +264,8 @@ export const saveTransformerDraft = createAsyncThunk(
   async (_, { getState, dispatch }): Promise<boolean> => {
     const state = getState() as RootState;
     const page = getTransformerPageInfo(state);
-    
-    switch(page.type) {
+
+    switch (page.type) {
       case "create": {
         const draft = getTransformerDraftAsData(state);
         if (!draft.ok) {
@@ -287,7 +282,7 @@ export const saveTransformerDraft = createAsyncThunk(
         const { data: file } = created;
         await dispatch(pullTransformers());
         await dispatch(viewExistingTransformer(file.item.name));
-      }  break;
+      } break;
       case "update": {
         const draft = getTransformerDraftAsData(state);
         if (!draft.ok) {
@@ -318,8 +313,8 @@ export const deleteTransformerDraft = createAsyncThunk(
   async (_, { getState, dispatch }): Promise<void> => {
     const state = getState() as RootState;
     const page = getTransformerPageInfo(state);
-    
-    switch(page.type) {
+
+    switch (page.type) {
       case "create":
         dispatch(clearTransformerPage());
         return;

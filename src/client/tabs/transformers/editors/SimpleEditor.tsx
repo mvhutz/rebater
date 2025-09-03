@@ -321,7 +321,7 @@ function DistributorIdOptions() {
         <FormControl>
           <FormLabel>Type</FormLabel>
           <Select value={type} onChange={handleType} variant='soft'>
-            <Option value="value" defaultChecked>Name</Option>
+            <Option value="name" defaultChecked>Name</Option>
             <Option value="column">Column</Option>
           </Select>
         </FormControl>

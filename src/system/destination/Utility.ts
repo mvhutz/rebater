@@ -20,7 +20,6 @@ export class UtilityDestinationOperator implements DestinationOperator {
   run(input: DestinationInput): void {
     // Convert to a reference.
     const data = input.table.split().map(row => row.split());
-    console.log(data);
     const { data: raw } = Papa.parse(Papa.unparse(data), { header: true });
     const reference_data = ReferenceSchema.parse(raw);
 
