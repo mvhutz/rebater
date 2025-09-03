@@ -7,8 +7,9 @@ import { TransformerFile } from "../../../shared/state/stores/TransformerStore";
 import { Question } from "../../../shared/worker/response";
 import { clearTransformerPage, getTransformerDraftAsData, getTransformerNames, getTransformerPageInfo, getValidTransformerFiles, setTransformerPage } from "./system";
 import { pushError } from "./ui";
-import { AdvancedTransformerDraft, SimpleTransformerDraft, TransformerDraft } from "./drafts";
+import { AdvancedTransformerDraft, Draft2Transformer, SimpleTransformerDraft, TransformerDraft } from "./drafts";
 import { CreateQuarterOptions } from "../../../shared/ipc/system/createQuarter";
+import { z } from "zod/v4";
 
 /** ------------------------------------------------------------------------- */
 
@@ -89,49 +90,42 @@ export const viewExistingTransformer = createAsyncThunk(
   'system/viewTransformer',
   async (name: string, { getState, dispatch }): Promise<void> => {
     const state = getState() as RootState;
-
+    console.log(1);
     const valid = getValidTransformerFiles(state);
+    console.log(2);
     const current = valid.find(f => f.item.name === name);
+    console.log(3);
     if (current == null) {
       dispatch(clearTransformerPage());
       dispatch(pushError("Cannot find the transformer to edit!"));
       return;
     }
-
+    console.log(4);
     if (!current.data.ok) {
       dispatch(clearTransformerPage());
       dispatch(pushError("Cannot edit malformed transformer!"));
       return;
     }
-
-    let draft: TransformerDraft;
-
-    switch (current.data.data.type) {
-      case "advanced":
-        draft = {
-          type: "advanced",
-          text: JSON.stringify(current.data.data, null, 2),
-        };
-        break;
-      case "simple":
-        draft = {
-          ...current.data.data,
-          source: {
-            ...current.data.data.source,
-            trim: {
-              top: current.data.data.source.trim.top.toString(),
-              bottom: current.data.data.source.trim.bottom.toString()
-            }
-          }
-        }
-        break;
+    console.log(4);
+    try {
+    const encoded = Draft2Transformer.safeEncode(current.data.data);
+    console.log(5);
+    if (!encoded.success) {
+      dispatch(clearTransformerPage());
+      dispatch(pushError(z.prettifyError(encoded.error)));
+      return;
     }
+
+    console.log(6);
 
     dispatch(setTransformerPage({
       type: "update",
       meta: current.item,
-      draft: draft,
+      draft: encoded.data,
     }));
+    } catch (err) {
+      console.log(err);
+    }
   }
 );
 
@@ -161,47 +155,48 @@ function generateBasicDraft(name: string, group: string): SimpleTransformerDraft
     group: group,
     source: {
       sheets: [],
-      file: undefined,
+      file: "",
       trim: { 
-        
+        top: "",
+        bottom: ""
       }
     },
     properties: {
       purchaseId: 'counter',
       transactionDate: {
-        column: undefined,
-        parse: undefined
+        column: "",
+        parse: ""
       },
       supplierId: {
-        value: undefined
+        value: ""
       },
       memberId: {
-        column: undefined
+        column: ""
       },
       distributorName: {
-        type: 'value',
-        value: undefined
+        type: 'name',
+        value: ""
       },
       purchaseAmount: {
-        column: undefined
+        column: ""
       },
       rebateAmount: {
-        column: undefined,
-        multiplier: undefined
+        column: "",
+        multiplier: ""
       },
       invoiceId: {
-        column: undefined
+        column: ""
       },
       invoiceDate: {
-        column: undefined,
-        parse: undefined
+        column: "",
+        parse: ""
       }
     },
     options: {
       canadian_rebate: false,
       remove_null_rebates: false,
-      additional_preprocessing: undefined,
-      additional_postprocessing: undefined
+      additional_preprocessing: "",
+      additional_postprocessing: ""
     }
   }
 }

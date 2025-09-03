@@ -16,7 +16,7 @@ export class TrackerPointer extends FilePointer<Map<string, Question>> {
   }
 
   public serialize(data: Map<string, Question>): Reply<string> {
-    return good(JSON.stringify(data.entries().toArray()));
+    return good(JSON.stringify(data.entries().toArray(), null, 2));
   }
   
   public deserialize(data: string): Reply<Map<string, Question>> {

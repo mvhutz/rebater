@@ -11,7 +11,7 @@ export class SettingsPointer extends FilePointer<Settings> {
   }
 
   public serialize(data: Settings): Reply<string> {
-    return good(JSON.stringify(data.data));
+    return good(JSON.stringify(data.data, null, 2));
   }
 
   public deserialize(data: string): Reply<Settings> {

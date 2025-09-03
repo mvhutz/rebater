@@ -8,7 +8,6 @@ import { CreateTransformerPageInfo, UpdateTransformerPageInfo } from '../../../s
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { deleteTransformerDraft, discardTransformerDraft, saveTransformerDraft } from '../../../store/slices/thunk';
 import { getTransformerDraftAsData, getTransformerPageInfo } from '../../../store/slices/system';
-import MalformedError from '../MalformedError';
 
 /** ------------------------------------------------------------------------- */
 
@@ -66,8 +65,6 @@ function EditorBar(props: EditorBarProps) {
   const name = data.ok ? data.data.name : draft.type === "simple" ? draft.name : "??";
   const group = draft.type === "simple" ? draft.group : "Advanced";
 
-  console.log(data);
-
   return (
     <Stack direction="row" alignItems="center" p={1}>
       <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.25} flex={0} flexShrink={1}>
@@ -84,7 +81,6 @@ function EditorBar(props: EditorBarProps) {
         </Tooltip>
       </Stack>
       <OptionsBar/>
-      {!data.ok && <MalformedError error={data.reason} />}
     </Stack>
   )
 }

@@ -6,11 +6,9 @@ import { Time, TimeData } from '../../../shared/time';
 import { Question, SystemStatus } from '../../../shared/worker/response';
 import { bad, good, Reply } from '../../../shared/reply';
 import { TransformerFile } from '../../../shared/state/stores/TransformerStore';
-import { ContextDraft, SettingsDraft, TransformerDraft, TransformerPageInfo } from './drafts';
+import { ContextDraft, Draft2Transformer, SettingsDraft, TransformerDraft, TransformerPageInfo } from './drafts';
 import { TransformerData } from '../../../shared/transformer';
-import { AdvancedTransformerSchema } from '../../../shared/transformer/advanced';
 import { z } from 'zod/v4';
-import { SimpleTransformerSchema } from '../../../shared/transformer/simple';
 
 /** ------------------------------------------------------------------------- */
 
@@ -263,28 +261,10 @@ export const getTransformerDraftAsData = createSelector([getTransformerPageInfo]
 
   const { draft } = page;
 
-  if (draft.type === "simple") {
-    try {
-      const parse_reply = SimpleTransformerSchema.safeParse(draft);
-      if (parse_reply.success) {
-        return good(parse_reply.data);
-      } else {
-        return bad(z.prettifyError(parse_reply.error));
-      }
-    } catch(err) {
-      return bad(String(err));
-    }
+  const parse_reply = Draft2Transformer.safeDecode(draft);
+  if (parse_reply.success) {
+    return good(parse_reply.data);
   } else {
-    try {
-      const json: unknown = JSON.parse(draft.text);
-      const parse_reply = AdvancedTransformerSchema.safeParse(json);
-      if (parse_reply.success) {
-        return good(parse_reply.data);
-      } else {
-        return bad(z.prettifyError(parse_reply.error));
-      }
-    } catch(err) {
-      return bad(String(err));
-    }
+    return bad(z.prettifyError(parse_reply.error));
   }
 });

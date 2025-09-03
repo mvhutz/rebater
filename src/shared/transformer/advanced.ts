@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { ExcelIndexSchema } from "../util";
+import { Excel2Number } from "../util";
 
 /** ------------------------------------------------------------------------- */
 
@@ -64,7 +64,7 @@ export interface ChopTableData {
 
 export const ChopTableSchema = z.strictObject({
   type: z.literal("chop"),
-  column: ExcelIndexSchema,
+  column: z.union([Excel2Number, z.number()]),
   is: z.array(z.string()),
   keep: z.union([z.literal("top"), z.literal("bottom")]).default("bottom"),
   otherwise: z.union([z.literal("drop"), z.literal("take")]).default("drop")
@@ -78,8 +78,8 @@ export interface CoalesceTableData {
 
 export const CoalesceTableSchema = z.strictObject({
   type: z.literal("coalesce"),
-  match: z.array(ExcelIndexSchema),
-  combine: z.array(ExcelIndexSchema).default([])
+  match: z.array(z.union([Excel2Number, z.number()])),
+  combine: z.array(z.union([Excel2Number, z.number()])).default([])
 });
 
 export interface DebugTableData {
@@ -122,7 +122,7 @@ export interface PercolateTableData {
 
 export const PercolateTableSchema = z.strictObject({
   type: z.literal("percolate"),
-  columns: z.array(ExcelIndexSchema),
+  columns: z.array(z.union([Excel2Number, z.number()])),
   matches: z.array(z.string()).default([""])
 });
 
@@ -135,7 +135,7 @@ export interface SelectTableData {
 
 export const SelectTableSchema = z.strictObject({
   type: z.literal("select"),
-  column: ExcelIndexSchema,
+  column: z.union([Excel2Number, z.number()]),
   is: z.string(),
   action: z.union([z.literal("drop"), z.literal("keep")]).default("keep"),
 });
@@ -148,7 +148,7 @@ export interface SetTableData {
 
 export const SetTableSchema = z.strictObject({
   type: z.literal("set"),
-  column: ExcelIndexSchema,
+  column: z.union([Excel2Number, z.number()]),
   to: z.lazy(() => z.array(RowSchema)),
 });
 
@@ -272,7 +272,7 @@ export interface ColumnRowData {
 
 export const ColumnRowSchema = z.strictObject({
   type: z.literal("column"),
-  index: ExcelIndexSchema
+  index: z.union([Excel2Number, z.number()])
 });
 
 export interface ConcatRowData {
@@ -434,7 +434,7 @@ export interface SumRowData {
 
 export const SumRowSchema = z.strictObject({
   type: z.literal("sum"),
-  column: ExcelIndexSchema,
+  column: z.union([Excel2Number, z.number()]),
 });
 
 export interface TrimRowData {
@@ -525,7 +525,7 @@ export interface AdvancedTransformerData {
   destination: DestinationData[];
 }
 
-export const AdvancedTransformerSchema: z.ZodObject & z.ZodType<AdvancedTransformerData> = z.strictObject({
+export const AdvancedTransformerSchema: z.ZodType<AdvancedTransformerData> = z.strictObject({
   type: z.literal("advanced"),
   name: z.string(),
   tags: z.array(z.string()),
@@ -538,4 +538,4 @@ export const AdvancedTransformerSchema: z.ZodObject & z.ZodType<AdvancedTransfor
   })),
   postprocess: z.array(TableSchema),
   destination: z.array(DestinationSchema),
-});
+}) satisfies z.ZodObject;
