@@ -34,7 +34,7 @@ export abstract class RowOperator {
       if (err instanceof Error) {
         return bad(err.message);
       } else {
-        return bad(`${err}`);
+        return bad(String(err));
       }
     }
   }

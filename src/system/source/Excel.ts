@@ -88,7 +88,9 @@ export class ExcelSourceOperator implements SourceOperator {
     for (const sheetName of sheetsToTake) {
       const sheet = workbook.Sheets[sheetName];
       const props = workbook.Workbook?.Sheets?.find(p => p.name === sheetName);
-      if (props?.Hidden) continue;
+      if (props?.Hidden !== 0) continue;
+      
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       assert.ok(sheet != null, `Cannot find sheet '${sheetName}' in workbook!`);
 
       results.push(...this.extractWorkSheet(sheet, sheetName, filepath, input));

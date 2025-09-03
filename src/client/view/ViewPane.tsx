@@ -118,7 +118,7 @@ function ViewPane() {
         dispatch(setTab(tab));
         break;
       default:
-        dispatch(pushMessage({ type: "error", text: `Invalid tab '${tab}'.` }));
+        dispatch(pushMessage({ type: "error", text: `Invalid tab '${String(tab)}'.` }));
         break;
     }
   }, [dispatch]);

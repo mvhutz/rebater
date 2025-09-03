@@ -41,7 +41,7 @@ export class ChopTable implements TableOperator {
   run(input: TableInput): Table {
     const index = input.table.split().findIndex(row => {
       const datum = row.get(this.column);
-      if (datum == null) return;
+      if (datum == null) return false;
       return this.is.includes(datum.trim());
     });
 

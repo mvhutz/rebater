@@ -36,6 +36,6 @@ export async function getAllQuarters(): Promise<Reply<TimeData[]>> {
     }
     return good(quarters);
   } catch (err) {
-    return bad(`${err}`);
+    return bad(String(err));
   }
 }

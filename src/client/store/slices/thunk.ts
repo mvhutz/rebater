@@ -7,8 +7,9 @@ import { TransformerFile } from "../../../shared/state/stores/TransformerStore";
 import { Question } from "../../../shared/worker/response";
 import { clearTransformerPage, getTransformerDraftAsData, getTransformerNames, getTransformerPageInfo, getValidTransformerFiles, setTransformerPage } from "./system";
 import { pushError } from "./ui";
-import { AdvancedTransformerDraft, SimpleTransformerDraft, TransformerDraft } from "./drafts";
+import { AdvancedTransformerDraft, Draft2Transformer, SimpleTransformerDraft, TransformerDraft } from "./drafts";
 import { CreateQuarterOptions } from "../../../shared/ipc/system/createQuarter";
+import { z } from "zod/v4";
 
 /** ------------------------------------------------------------------------- */
 
@@ -89,9 +90,9 @@ export const viewExistingTransformer = createAsyncThunk(
   'system/viewTransformer',
   async (name: string, { getState, dispatch }): Promise<void> => {
     const state = getState() as RootState;
-
     const valid = getValidTransformerFiles(state);
     const current = valid.find(f => f.item.name === name);
+
     if (current == null) {
       dispatch(clearTransformerPage());
       dispatch(pushError("Cannot find the transformer to edit!"));
@@ -104,34 +105,22 @@ export const viewExistingTransformer = createAsyncThunk(
       return;
     }
 
-    let draft: TransformerDraft;
+    try {
+      const encoded = Draft2Transformer.safeEncode(current.data.data);
+      if (!encoded.success) {
+        dispatch(clearTransformerPage());
+        dispatch(pushError(z.prettifyError(encoded.error)));
+        return;
+      }
 
-    switch (current.data.data.type) {
-      case "advanced":
-        draft = {
-          type: "advanced",
-          text: JSON.stringify(current.data.data, null, 2),
-        };
-        break;
-      case "simple":
-        draft = {
-          ...current.data.data,
-          source: {
-            ...current.data.data.source,
-            trim: {
-              top: current.data.data.source.trim.top.toString(),
-              bottom: current.data.data.source.trim.bottom.toString()
-            }
-          }
-        }
-        break;
+      dispatch(setTransformerPage({
+        type: "update",
+        meta: current.item,
+        draft: encoded.data,
+      }));
+    } catch (err) {
+      dispatch(pushError(String(err)));
     }
-
-    dispatch(setTransformerPage({
-      type: "update",
-      meta: current.item,
-      draft: draft,
-    }));
   }
 );
 
@@ -161,47 +150,48 @@ function generateBasicDraft(name: string, group: string): SimpleTransformerDraft
     group: group,
     source: {
       sheets: [],
-      file: undefined,
-      trim: { 
-        
+      file: "",
+      trim: {
+        top: "",
+        bottom: ""
       }
     },
     properties: {
       purchaseId: 'counter',
       transactionDate: {
-        column: undefined,
-        parse: undefined
+        column: "",
+        parse: ""
       },
       supplierId: {
-        value: undefined
+        value: ""
       },
       memberId: {
-        column: undefined
+        column: ""
       },
       distributorName: {
-        type: 'value',
-        value: undefined
+        type: 'name',
+        value: ""
       },
       purchaseAmount: {
-        column: undefined
+        column: ""
       },
       rebateAmount: {
-        column: undefined,
-        multiplier: undefined
+        column: "",
+        multiplier: ""
       },
       invoiceId: {
-        column: undefined
+        column: ""
       },
       invoiceDate: {
-        column: undefined,
-        parse: undefined
+        column: "",
+        parse: ""
       }
     },
     options: {
       canadian_rebate: false,
       remove_null_rebates: false,
-      additional_preprocessing: undefined,
-      additional_postprocessing: undefined
+      additional_preprocessing: "",
+      additional_postprocessing: ""
     }
   }
 }
@@ -255,13 +245,13 @@ export const discardTransformerDraft = createAsyncThunk(
   async (_, { getState, dispatch }): Promise<boolean> => {
     const state = getState() as RootState;
     const page = getTransformerPageInfo(state);
-    
-    switch(page.type) {
+
+    switch (page.type) {
       case "create":
         dispatch(clearTransformerPage());
         return true;
       case "update":
-        dispatch(viewExistingTransformer(page.meta.name));
+        await dispatch(viewExistingTransformer(page.meta.name));
         return true;
       case "empty":
         return true;
@@ -274,8 +264,8 @@ export const saveTransformerDraft = createAsyncThunk(
   async (_, { getState, dispatch }): Promise<boolean> => {
     const state = getState() as RootState;
     const page = getTransformerPageInfo(state);
-    
-    switch(page.type) {
+
+    switch (page.type) {
       case "create": {
         const draft = getTransformerDraftAsData(state);
         if (!draft.ok) {
@@ -292,7 +282,7 @@ export const saveTransformerDraft = createAsyncThunk(
         const { data: file } = created;
         await dispatch(pullTransformers());
         await dispatch(viewExistingTransformer(file.item.name));
-      }  break;
+      } break;
       case "update": {
         const draft = getTransformerDraftAsData(state);
         if (!draft.ok) {
@@ -323,8 +313,8 @@ export const deleteTransformerDraft = createAsyncThunk(
   async (_, { getState, dispatch }): Promise<void> => {
     const state = getState() as RootState;
     const page = getTransformerPageInfo(state);
-    
-    switch(page.type) {
+
+    switch (page.type) {
       case "create":
         dispatch(clearTransformerPage());
         return;

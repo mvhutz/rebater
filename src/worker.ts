@@ -19,12 +19,12 @@ function sendError(message?: string): WorkerResponse {
 
 /** ------------------------------------------------------------------------- */
 
-console.log("DATA", workerData);
-const repository = new Repository(workerData);
+const settings_file = z.string().parse(workerData);
+const repository = new Repository(settings_file);
 
 const SYSTEM = {
-  refresh() {
-    repository.refresh();
+  async refresh() {
+    await repository.refresh();
   },
   /**
    * Run the program.
@@ -54,24 +54,22 @@ const SYSTEM = {
       
       // Create runner.
       const runner = new Runner(state, settings, context);
-      runner.on("status", status => observer.next({ type: "status", status }));
+      runner.on("status", status => { observer.next({ type: "status", status }); });
 
       // Run it.
       runner.run()
-        .catch(async error => {
-          if (runner == null) return;
-
+        .then(() => {
+          observer.complete();
+        })
+        .catch(async (error: unknown) => {
           if (error instanceof z.ZodError) {
             observer.next(sendError(z.prettifyError(error)));
           } else if (error instanceof Error) {
             observer.next(sendError(error.message));
           } else {
-            observer.next(error(`${error}`));
+            observer.next(sendError(String(error)));
           }
 
-          observer.complete();
-        })
-        .then(() => {
           observer.complete();
         });
     })

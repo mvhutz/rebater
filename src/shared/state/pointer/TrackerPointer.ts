@@ -16,7 +16,7 @@ export class TrackerPointer extends FilePointer<Map<string, Question>> {
   }
 
   public serialize(data: Map<string, Question>): Reply<string> {
-    return good(JSON.stringify(data.entries().toArray()));
+    return good(JSON.stringify(data.entries().toArray(), null, 2));
   }
   
   public deserialize(data: string): Reply<Map<string, Question>> {
@@ -24,7 +24,7 @@ export class TrackerPointer extends FilePointer<Map<string, Question>> {
     try {
       json = JSON.parse(data);
     } catch (err) {
-      return bad(`There is an issue with the questions configuration: ${err}`);
+      return bad(`There is an issue with the questions configuration: ${String(err)}`);
     }
 
     const parsed = TrackerSchema.safeParse(json);

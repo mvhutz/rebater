@@ -37,24 +37,25 @@ export class State {
     this.debug = new MatrixStore(path.join(directory, "debug"), true);
   }
 
-  refresh() {
-    this.tracker.unwatch();
+  async refresh() {
+    await this.tracker.unwatch();
+    await this.references.unwatch();
+    await this.sources.unwatch();
+    await this.destinations.unwatch();
+    await this.outputs.unwatch();
+    await this.truths.unwatch();
+    await this.utilities.unwatch();
+    await this.transformers.unwatch();
+    await this.debug.unwatch();
+
     this.tracker.watch();
-    this.references.unwatch();
     this.references.watch();
-    this.sources.unwatch();
     this.sources.watch();
-    this.destinations.unwatch();
     this.destinations.watch();
-    this.outputs.unwatch();
     this.outputs.watch();
-    this.truths.unwatch();
     this.truths.watch();
-    this.utilities.unwatch();
     this.utilities.watch();
-    this.transformers.unwatch();
     this.transformers.watch();
-    this.debug.unwatch();
     this.debug.watch();
   }
 }

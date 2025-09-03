@@ -8,7 +8,6 @@ import { CreateTransformerPageInfo, UpdateTransformerPageInfo } from '../../../s
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { deleteTransformerDraft, discardTransformerDraft, saveTransformerDraft } from '../../../store/slices/thunk';
 import { getTransformerDraftAsData, getTransformerPageInfo } from '../../../store/slices/system';
-import MalformedError from '../MalformedError';
 
 /** ------------------------------------------------------------------------- */
 
@@ -32,7 +31,11 @@ function OptionsBar() {
   return (
     <Stack direction="row" spacing={1} flex={1} justifyContent="end">
       {page.type === "update" &&
-        <Button size="sm" disabled={!draft.ok} variant="soft" color="neutral" onClick={handleSave}>Save</Button>
+        <Tooltip color="danger" sx={{ maxWidth: 300 }} variant='outlined' disableInteractive={draft.ok} title={draft.ok ? "" : draft.reason}>
+          <span>
+            <Button size="sm" disabled={!draft.ok} variant="soft" color="neutral" onClick={handleSave}>Save</Button>
+          </span>
+        </Tooltip>
       }
       {page.type === "create" &&
         <Button size="sm" disabled={!draft.ok} variant="solid" color="primary" onClick={handleSave}>Create</Button>
@@ -66,8 +69,6 @@ function EditorBar(props: EditorBarProps) {
   const name = data.ok ? data.data.name : draft.type === "simple" ? draft.name : "??";
   const group = draft.type === "simple" ? draft.group : "Advanced";
 
-  console.log(data);
-
   return (
     <Stack direction="row" alignItems="center" p={1}>
       <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.25} flex={0} flexShrink={1}>
@@ -83,8 +84,7 @@ function EditorBar(props: EditorBarProps) {
           </Typography>
         </Tooltip>
       </Stack>
-      <OptionsBar/>
-      {!data.ok && <MalformedError error={data.reason} />}
+      <OptionsBar />
     </Stack>
   )
 }

@@ -63,7 +63,7 @@ function NewTransformerModal() {
         <Stack spacing={3}>
           <FormControl sx={{ flex: 1 }}>
             <FormLabel>Title</FormLabel>
-            <Input value={name} placeholder='Give the transformer a name...' slotProps={{ input: { size: 1 } }} onChange={e => setName(e.target.value)} />
+            <Input value={name} placeholder='Give the transformer a name...' slotProps={{ input: { size: 1 } }} onChange={e => { setName(e.target.value) }} />
             <FormHelperText>Every transformer must be named. Make sure it is unique.</FormHelperText>
           </FormControl>
           <FormControl>
@@ -89,7 +89,7 @@ function NewTransformerModal() {
           </FormControl>
           <FormControl sx={{ flex: 1 }}>
             <FormLabel>Group</FormLabel>
-            <Autocomplete autoSelect freeSolo options={group_names} disabled={type !== "simple"} value={group} placeholder='Enter a group name...' slotProps={{ input: { size: 1 } }} onChange={(_, v) => setGroup(v ?? "")}/>
+            <Autocomplete autoSelect freeSolo options={group_names} disabled={type !== "simple"} value={group} placeholder='Enter a group name...' slotProps={{ input: { size: 1 } }} onChange={(_, v) => { setGroup(v ?? "") }}/>
             <FormHelperText>A transformer turns a specific group of source files into rebates. Choose a currently present source group, or make a new one!</FormHelperText>
           </FormControl>
         </Stack>

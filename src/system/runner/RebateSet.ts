@@ -14,10 +14,10 @@ const COMMON_PARSE = ["MM/DD/YY", "M/D/YYYY"];
  */
 export class RebateSet {
   /** Rebates, sorted by invoice. */
-  private buckets: Record<string, Rebate[]>;
+  private buckets: Map<string, Rebate[]>;
 
   constructor(rebates: Rebate[]) {
-    this.buckets = {};
+    this.buckets = new Map();
 
     for (const rebate of rebates) {
       this.give(rebate);
@@ -29,7 +29,7 @@ export class RebateSet {
    * @returns A list of all rebates.
    */
   public values() {
-    return Object.values(this.buckets).flat();
+    return this.buckets.values().toArray().flat(1);
   }
 
   /**
@@ -38,7 +38,7 @@ export class RebateSet {
    * @returns If found, a list containing (1) the bucket it is in, and (2) its index in that bucket.
    */
   public find(rebate: Rebate): Maybe<[string, number]> {
-    const bucket = this.buckets[rebate.invoiceId];
+    const bucket = this.buckets.get(rebate.invoiceId);
     if (bucket == null) return null;
 
     for (let i = 0; i < bucket.length; i++) {
@@ -64,7 +64,12 @@ export class RebateSet {
    * @param rebate The rebate to add.
    */
   public give(rebate: Rebate) {
-    (this.buckets[rebate.invoiceId] ??= []).push(rebate);
+    const bucket = this.buckets.get(rebate.invoiceId);
+    if (bucket == null) {
+      this.buckets.set(rebate.invoiceId, [rebate]);
+    } else {
+      bucket.push(rebate);
+    }
   }
 
   /**
@@ -76,7 +81,10 @@ export class RebateSet {
     const place = this.find(rebate);
     if (place == null) return false;
 
-    this.buckets[place[0]].splice(place[1], 1);
+    const bucket = this.buckets.get(place[0]);
+    if (bucket == null) return false;
+
+    bucket.splice(place[1], 1);
     return true;
   }
 

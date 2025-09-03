@@ -52,7 +52,7 @@ export async function createQuarter(_: unknown, options: CreateQuarterOptions): 
   // The new quarter cannot exist already.
   const current_quarter = quarters.find(q => new_quarter.is(q));
   if (current_quarter != null) {
-    return bad(`Quarter ${new_quarter} already exists!`);
+    return bad(`Quarter ${new_quarter.toString()} already exists!`);
   }
 
   // Create folder.
@@ -64,7 +64,7 @@ export async function createQuarter(_: unknown, options: CreateQuarterOptions): 
     const copy_quarter = new Time(createStructureFrom);
 
     if (!quarters.find(q => copy_quarter.is(q))) {
-      return bad(`Quarter to create structure from, ${copy_quarter}, does not exist!`);
+      return bad(`Quarter to create structure from, ${copy_quarter.toString()}, does not exist!`);
     }
 
     await copyFileStructure(new_quarter, settings, copy_quarter);

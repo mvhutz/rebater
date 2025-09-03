@@ -24,7 +24,7 @@ export class RebateStore extends FileStore<Rebate[], RebateMeta> {
   }
 
   public serialize(data: Rebate[]): Reply<Buffer> {
-    return Replier.of(good(data)).map(Papa.unparse).map(Buffer.from).end();
+    return Replier.of(good(data)).map(Papa.unparse).map(f => Buffer.from(f)).end();
   }
   
   public deserialize(raw: Buffer): Reply<Rebate[]> {

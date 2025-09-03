@@ -42,7 +42,6 @@ export class SetTable implements TableOperator {
         return null;
       }
 
-      if (value.data == null) return null;
       return row.set(this.column, value.data);
     });
   }

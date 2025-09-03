@@ -21,7 +21,7 @@ export class ColumnRow implements RowOperator {
 
   run(input: RowInput): string {
     const value = input.row.get(this.index);
-    assert.ok(value != null, `There is no data in column '${this.index + 1}'.`);
+    assert.ok(value != null, `There is no data in column '${(this.index + 1).toString()}'.`);
 
     return value;
   }

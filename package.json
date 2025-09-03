@@ -1,7 +1,7 @@
 {
   "name": "rebater",
   "productName": "Rebater",
-  "version": "3.0.0-rc2",
+  "version": "3.0.0-rc3",
   "description": "A desktop application to automate Fuse Alliance's Rebate process for its distributors.",
   "main": ".vite/build/main.js",
   "scripts": {
@@ -101,6 +101,6 @@
     "xlsx": "^0.18.5",
     "xml-js": "^1.6.11",
     "xmlbuilder": "^15.1.1",
-    "zod": "^3.25.67"
+    "zod": "4.1"
   }
 }

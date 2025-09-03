@@ -38,7 +38,7 @@ export abstract class FilePointer<Data> {
       return out;
     } catch (err) {
       await release();
-      return bad(`Error running operation on '${this.file}': ${err}`);
+      return bad(`Error running operation on '${this.file}': ${String(err)}`);
     }
   }
 
@@ -111,13 +111,15 @@ export abstract class FilePointer<Data> {
       ignored: f => path.resolve(f) !== this.parent && path.resolve(f) !== this.file
     });
 
-    this.watcher.on("add", () =>  this.pull());
-    this.watcher.on("change", () => this.pull());
-    this.watcher.on("unlink", () => this.pull());
+    const pull = () =>  { void this.pull() };
+
+    this.watcher.on("add", pull);
+    this.watcher.on("change", pull);
+    this.watcher.on("unlink", pull);
   }
 
-  public unwatch() {
-    this.watcher?.close();
+  public async unwatch() {
+    await this.watcher?.close();
     this.watcher = null;
   }
 }

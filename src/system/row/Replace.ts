@@ -47,7 +47,7 @@ export class ReplaceRow implements RowOperator {
 
     let truePut = this.put;
     if (this.put_meta) {
-      truePut = this.put_meta.run(input) ?? "";
+      truePut = this.put_meta.run(input);
     }
 
     if (this.characters != null) {

@@ -1,7 +1,6 @@
-import z from "zod/v4";
 import { AdvancedTransformer } from "./AdvancedTransformer";
 import { Transformer } from "./Transformer";
-import { AdvancedTransformerData, DestinationData, SourceData, TableData, TableSchema } from "../../shared/transformer/advanced";
+import { AdvancedTransformerData, DestinationData, SourceData, TableData } from "../../shared/transformer/advanced";
 import { SimpleTransformerData } from "../../shared/transformer/simple";
 import { State } from "../../shared/state";
 import { Context } from "../../shared/context";
@@ -41,7 +40,7 @@ export class SimpleTransformer implements Transformer {
     const source: SourceData = {
       type: "excel",
       group: this.data.group,
-      file: this.data.source.file ?? "*",
+      file: this.data.source.file,
       sheets: this.data.source.sheets
     }
 
@@ -52,7 +51,7 @@ export class SimpleTransformer implements Transformer {
     const FILE_TOTAL_COLUMN = 50;
     const REBATE_TOTAL_COLUMN = 51;
 
-    if (this.data.options.canadian_rebate && rebateAmount.column) {
+    if (this.data.options.canadian_rebate) {
       preprocessing.push(
         { type: "set", column: FILE_TOTAL_COLUMN, to: [
           { type: "meta", value: "row.source" },
@@ -64,124 +63,94 @@ export class SimpleTransformer implements Transformer {
       );
     }
 
-    preprocessing.push(
-      { type: "trim", ...this.data.source.trim }
-    );
-
-    if (this.data.options.additional_preprocessing != null) {
-      const json = JSON.parse(this.data.options.additional_preprocessing);
-      const parsed = z.array(TableSchema).parse(json);
-      preprocessing.push(...parsed);
-    }
+    preprocessing.push({ type: "trim", ...this.data.source.trim });
+    preprocessing.push(...this.data.options.additional_preprocessing);
 
     /** --------------------------------------------------------------------- */
 
     const properties: AdvancedTransformerData["properties"] = [];
 
-
     properties.push({ name: "purchaseId", definition: [
       { type: "counter" }
     ] });
 
-    if (transactionDate.column) {
-      properties.push({ name: "transactionDate", definition: [
-        { type: "column", index: transactionDate.column },
-        { type: "coerce",
-          as: "date",
-          parse: transactionDate.parse ? [transactionDate.parse] : [],
-          year: "keep",
-          format: "M/D/YYYY" }
-      ] });
-    }
+    properties.push({ name: "transactionDate", definition: [
+      { type: "column", index: transactionDate.column },
+      { type: "coerce",
+        as: "date",
+        parse: transactionDate.parse != null ? [transactionDate.parse] : [],
+        year: "keep",
+        format: "M/D/YYYY" }
+    ] });
 
-    if (supplierId.value) {
-      properties.push({ name: "supplierId", definition: [
-        { type: "literal", value: supplierId.value }
-      ] });
-    }
+    properties.push({ name: "supplierId", definition: [
+      { type: "literal", value: supplierId.value }
+    ] });
 
-    if (memberId.column) {
-      properties.push({ name: "memberId", definition: [
-        { type: "column", index: memberId.column },
-        { type: "reference", table: "customers", match: "customerName", take: "fuseId", group: this.data.group },
-      ] });
-    }
+    properties.push({ name: "memberId", definition: [
+      { type: "column", index: memberId.column },
+      { type: "reference", table: "customers", match: "customerName", take: "fuseId", group: this.data.group },
+    ] });
 
     if (distributorName.type === "column") {
-      if (distributorName.column) {
-        properties.push({ name: "distributorName", definition: [
-          { type: "column", index: distributorName.column },
-          { type: "reference", table: "distributors", match: "fuzzyName", take: "trueName", group: this.data.group },
-        ] });
-      }
+      properties.push({ name: "distributorName", definition: [
+        { type: "column", index: distributorName.value },
+        { type: "reference", table: "distributors", match: "fuzzyName", take: "trueName", group: this.data.group },
+      ] });
     } else {
-      if (distributorName.value) {
-        properties.push({ name: "distributorName", definition: [
-          { type: "literal", value: distributorName.value },
-        ] });
-      }
+      properties.push({ name: "distributorName", definition: [
+        { type: "literal", value: distributorName.value },
+      ] });
     }
 
-    if (purchaseAmount.column) {
-      properties.push({ name: "purchaseAmount", definition: [
-        { type: "column", index: purchaseAmount.column },
+    properties.push({ name: "purchaseAmount", definition: [
+      { type: "column", index: purchaseAmount.column },
+      { type: "coerce", as: "usd", round: "default" }
+    ] });
+
+    if (this.data.options.canadian_rebate) {
+      properties.push({ name: "rebateAmount", definition: [
+        { type: "column", index: rebateAmount.column },
+        { type: "multiply", with: [
+          { type: "column", index: FILE_TOTAL_COLUMN }
+        ] },
+        { type: "divide", with: [
+          { type: "column", index: REBATE_TOTAL_COLUMN }
+        ] },
+        { type: "multiply", with: [
+          { type: "literal", value: rebateAmount.multiplier.toString() }
+        ] },
+        { type: "coerce", as: "usd", round: "default" }
+      ] });
+    } else {
+      properties.push({ name: "rebateAmount", definition: [
+        { type: "column", index: rebateAmount.column },
+        { type: "multiply", with: [
+          { type: "literal", value: rebateAmount.multiplier.toString() }
+        ] },
         { type: "coerce", as: "usd", round: "default" }
       ] });
     }
 
-    if (rebateAmount.column != null) {
-      if (this.data.options.canadian_rebate) {
-        properties.push({ name: "rebateAmount", definition: [
-          { type: "column", index: rebateAmount.column },
-          { type: "multiply", with: [
-            { type: "column", index: FILE_TOTAL_COLUMN }
-          ] },
-          { type: "divide", with: [
-            { type: "column", index: REBATE_TOTAL_COLUMN }
-          ] },
-          { type: "multiply", with: [
-            { type: "literal", value: (rebateAmount.multiplier ?? 1).toString() }
-          ] },
-          { type: "coerce", as: "usd", round: "default" }
-        ] });
-      } else {
-        properties.push({ name: "rebateAmount", definition: [
-          { type: "column", index: rebateAmount.column },
-          { type: "multiply", with: [
-            { type: "literal", value: (rebateAmount.multiplier ?? 1).toString() }
-          ] },
-          { type: "coerce", as: "usd", round: "default" }
-        ] });
-      }
-    }
+    properties.push({ name: "invoiceId", definition: [
+      { type: "column", index: invoiceId.column },
+      { type: "character", select: "1234567890", action: "keep" },
+      { type: "coerce", as: "number", otherwise: "99999" }
+    ] });
 
-    if (invoiceId.column) {
-      properties.push({ name: "invoiceId", definition: [
-        { type: "column", index: invoiceId.column },
-        { type: "character", select: "1234567890", action: "keep" },
-        { type: "coerce", as: "number", otherwise: "99999" }
-      ] });
-    }
-
-    if (invoiceDate.column) {
-      properties.push({ name: "invoiceDate", definition: [
-        { type: "column", index: invoiceDate.column },
-        { type: "coerce",
-          as: "date",
-          parse: transactionDate.parse ? [transactionDate.parse] : [],
-          year: "keep",
-          format: "M/D/YYYY" }
-      ] });
-    }
+    properties.push({ name: "invoiceDate", definition: [
+      { type: "column", index: invoiceDate.column },
+      { type: "coerce",
+        as: "date",
+        parse: transactionDate.parse != null ? [transactionDate.parse] : [],
+        year: "keep",
+        format: "M/D/YYYY" }
+    ] });
 
     /** --------------------------------------------------------------------- */
 
     const postprocessing: TableData[] = [];
-    if (this.data.options.additional_postprocessing != null) {
-      const json = JSON.parse(this.data.options.additional_postprocessing);
-      const parsed = z.array(TableSchema).parse(json);
-      postprocessing.push(...parsed);
-    }
+    postprocessing.push(...this.data.options.additional_postprocessing);
 
     if (this.data.options.remove_null_rebates) {
       postprocessing.push({ type: "select", column: 6, is: "0.00", action: "drop" });

@@ -73,7 +73,7 @@ export const UISlice = createSlice({
     builder
       .addCase(pushSystemSettings.fulfilled, (state, { payload }) => {
         if (!payload.ok) {
-          state.messages.push({ type: "error", text: payload.reason ?? "Unknown error saving settings." });
+          state.messages.push({ type: "error", text: payload.reason });
         } else {
           state.messages.push({ type: "info", text: "Settings saved!" });
         }

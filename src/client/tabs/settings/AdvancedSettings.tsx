@@ -20,11 +20,6 @@ function BasicTargetSettings() {
 
   const handleDirectory = React.useCallback(async () => {
     const [new_directory] = await invoke.chooseDir();
-    if (new_directory == null) {
-      alert("No directory chosen!");
-      return;
-    }
-
     dispatch(setDraftSystemDirectory(new_directory));
   }, [dispatch, invoke]);
 

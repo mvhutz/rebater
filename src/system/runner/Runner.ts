@@ -94,21 +94,21 @@ export class Runner extends EventEmitter<RunnerEvents> {
   public async disconnect() {
     try {
       await this.state.sources.pullAll();
-      this.state.sources.unwatch();
+      await this.state.sources.unwatch();
 
-      this.state.destinations.unwatch();
+      await this.state.destinations.unwatch();
       this.state.destinations.wipe();
 
-      this.state.utilities.unwatch();
+      await this.state.utilities.unwatch();
       this.state.utilities.wipe();
 
-      this.state.debug.unwatch();
+      await this.state.debug.unwatch();
       this.state.debug.wipe();
 
-      this.state.tracker.unwatch();
+      await this.state.tracker.unwatch();
       return good(undefined);
     } catch (err) {
-      return bad(`Could not prepare runner for execution: ${err}`);
+      return bad(`Could not prepare runner for execution: ${String(err)}`);
     }
   }
 
@@ -129,7 +129,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
       this.state.tracker.watch();
       return good(undefined);
     } catch (err) {
-      return bad(`Could not return runner to idle behavior: ${err}`);
+      return bad(`Could not return runner to idle behavior: ${String(err)}`);
     }
   }
 
@@ -162,7 +162,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
       const total = [empty_sheet_issues, empty_source_issues, failed_transformer_issues, ignored_row_issues, no_source_issues, no_valid_source_issues].join("\n\n");
       await writeFile(path.resolve(this.state.directory, "ISSUES.txt"), total);
     } catch (err) {
-      console.log(`GENERATING ISSUES.txt: ${err}`);
+      console.log(`GENERATING ISSUES.txt: ${String(err)}`);
     }
   }
 
@@ -197,7 +197,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
         } else if (error instanceof Error) {
           reason = error.message;
         } else {
-          reason = `${error}`;
+          reason = String(error);
         }
 
         stats.issues.failed_transformer.push({ transformer: transformer.name, reason });
@@ -242,6 +242,7 @@ export class Runner extends EventEmitter<RunnerEvents> {
     for await (const status of this.iterator()) {
       await new Promise(setImmediate);
 
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (!this.running) {
         this.emit('status', { type: "idle" });
         return;

@@ -11,8 +11,6 @@ function PerformanceCard() {
   const results = useAppSelector(getRunResults);
   if (results == null) return;
 
-  console.log(results.performance);
-
   return (
     <AnalysisAccordion disabled={results.performance.length === 0} amount={results.performance.length} title="Performance" color="success" subtitle="View similarity to expected results." icon={<SpeedIcon />}>
       <Table size='sm' color="neutral" variant="outlined" sx={{ mt: 2, borderRadius: "sm", overflow: "hidden" }}>

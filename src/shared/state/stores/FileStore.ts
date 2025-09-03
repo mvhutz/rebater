@@ -44,7 +44,7 @@ export abstract class FileStore<Data, Item> {
       return out;
     } catch (err) {
       await release();
-      return bad(`Error running operation on '${this.directory}': ${err}`);
+      return bad(`Error running operation on '${this.directory}': ${String(err)}`);
     }
   }
 
@@ -62,7 +62,7 @@ export abstract class FileStore<Data, Item> {
       this.entries.set(file.data, { item, data });
       return data;
     } catch (err) {
-      return bad(`Could not pull data from file '${file.data}': ${err}`);
+      return bad(`Could not pull data from file '${file.data}': ${String(err)}`);
     }
   }
 
@@ -101,7 +101,7 @@ export abstract class FileStore<Data, Item> {
       await writeFile(file.data, serialized.data);
       return good(entry);
     } catch (err) {
-      return bad(`Could not update file ${file.data}: ${err}`);
+      return bad(`Could not update file ${file.data}: ${String(err)}`);
     }
   }
 
@@ -140,7 +140,7 @@ export abstract class FileStore<Data, Item> {
       await rm(file.data);
       return good(undefined);
     } catch (err) {
-      return bad(`Could not delete file '${file.data}': ${err}`);
+      return bad(`Could not delete file '${file.data}': ${String(err)}`);
     }
   }
 
@@ -215,14 +215,14 @@ export abstract class FileStore<Data, Item> {
       ignored: f => path.resolve(f) !== this.parent && !path.resolve(f).startsWith(this.directory)
     });
 
-    this.watcher.on("add", file =>  this.handleAddFile(file));
-    this.watcher.on("change", file => this.handleUpdateFile(file));
-    this.watcher.on("unlink", file => this.handleDeleteFile(file));
+    this.watcher.on("add", file =>  { void this.handleAddFile(file) });
+    this.watcher.on("change", file => { void this.handleUpdateFile(file) });
+    this.watcher.on("unlink", file => { void this.handleDeleteFile(file) });
     this.watcher.on("ready", () => { this.ready = true; });
   }
 
-  public unwatch() {
-    this.watcher?.close();
+  public async unwatch() {
+    await this.watcher?.close();
     this.watcher = null;
   }
 }
