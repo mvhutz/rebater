@@ -138,7 +138,7 @@ function InputModal({ question }: { question: Question }) {
         </FormControl>
       </Stack>
       <Stack mt={2} direction="row" spacing={2} justifyContent="flex-end" width={1}>
-        <Button color="neutral" variant="outlined" onClick={handleIgnorePermanently}>Permanently Ignore</Button>
+        <Button color="neutral" variant="plain" onClick={handleIgnorePermanently}>Permanently Ignore</Button>
         <Box flex={1}/>
         <Button color="neutral" variant="outlined" onClick={handleIgnore}>Discard</Button>
         <Button type="submit">Submit</Button>
