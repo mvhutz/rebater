@@ -73,6 +73,10 @@ export class SearchRow implements RowOperator {
     }
 
     const result = view.ask(values, this.take);
+    if (result === "[IGNORE]") {
+      throw Error(`Ignored value '${input.value}' for '${this.table}'.`);
+    }
+    
     if (result != null) {
       return result;
     }
