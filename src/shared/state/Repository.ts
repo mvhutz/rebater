@@ -27,11 +27,12 @@ export class Repository {
     return this.state;
   }
 
-  public refresh() {
-    this.settings.unwatch();
+  public async refresh() {
+    await this.settings.unwatch();
     this.settings.watch();
+    
     if (this.state.ok) {
-      this.state.data.refresh();
+      await this.state.data.refresh();
     }
   }
 }

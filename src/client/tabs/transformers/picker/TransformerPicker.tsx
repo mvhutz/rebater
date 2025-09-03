@@ -27,12 +27,12 @@ function TransformerPicker() {
     dispatch(toggleNewTransformerModal());
   }, [dispatch]);
 
-  const handleRefresh = React.useCallback(() => {
-    dispatch(pullTransformers());
+  const handleRefresh = React.useCallback(async () => {
+    await dispatch(pullTransformers());
   }, [dispatch]);
 
-  const handleExistingTransformer = React.useCallback((file: TransformerFile) => {
-    dispatch(viewExistingTransformer(file.item.name));
+  const handleExistingTransformer = React.useCallback(async (file: TransformerFile) => {
+    await dispatch(viewExistingTransformer(file.item.name));
   }, [dispatch]);
 
   let inner;

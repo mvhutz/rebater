@@ -28,7 +28,7 @@ export class Time {
   }
 
   public static asString(time: Time | TimeData) {
-    return `${time.year}-Q${time.quarter}`;
+    return `${time.year.toString()}-Q${time.quarter.toString()}`;
   } 
 
   public toString(): string {
@@ -46,7 +46,7 @@ export class Time {
    * @param from The string to parse.
    * @returns If valid, a new `Time` object. Otherwise, `null`.
    */
-  public static parse(from: string): Reply<Time> {
+  public static parse(this: void, from: string): Reply<Time> {
     const matches = from.match(Time.REGEX);
     if (matches == null) {
       return bad(`Time ${from} does not match format 'YYYY-QQ'!`);

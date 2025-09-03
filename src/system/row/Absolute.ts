@@ -9,7 +9,7 @@ import { RowInput, RowOperator } from ".";
 export class AbsoluteRowOperator implements RowOperator {
   run(input: RowInput): string {
     const num = parseFloat(input.value);
-    assert.ok(!isNaN(num), `Value '${num}' is not a number.`);
+    assert.ok(!isNaN(num), `Value '${num.toString()}' is not a number.`);
 
     return Math.abs(num).toString();
   }

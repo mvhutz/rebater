@@ -19,9 +19,11 @@ function AdvancedEditor(props: AdvancedTransformerEditProps) {
   const dispatch = useAppDispatch();
 
   const handleText = React.useCallback<React.ChangeEventHandler<HTMLTextAreaElement>>((e) => {
-    dispatch(updateTransformerDraft(produce(p => {
+    const updater = produce<AdvancedTransformerDraft>(p => {
       p.text = e.target.value;
-    })(data)))
+    })(data);
+
+    dispatch(updateTransformerDraft(updater));
   }, [data, dispatch]);
 
   return (

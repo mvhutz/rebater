@@ -19,7 +19,7 @@ export class SettingsPointer extends FilePointer<Settings> {
     try {
       json = JSON.parse(data);
     } catch (err) {
-      return bad(`There is an issue with the settings configuration: ${err}`);
+      return bad(`There is an issue with the settings configuration: ${String(err)}`);
     }
 
     const parsed = SettingsSchema.safeParse(json);

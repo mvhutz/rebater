@@ -1,6 +1,7 @@
 import assert from "assert";
 import { RowInput, RowOperator } from ".";
 import { SearchRowData } from "../../shared/transformer/advanced";
+import { AdvancedTransformer } from "../transformer/AdvancedTransformer";
 
 /** ------------------------------------------------------------------------- */
 
@@ -51,9 +52,9 @@ export class SearchRow implements RowOperator {
    */
   public constructor(input: SearchRowData) {
     const matches_entries = Object.entries(input.matches ?? []);
-    const definitions = Object.fromEntries(matches_entries.map(m => m[1].definition));
-    const primary = matches_entries.filter(o => o[1].primary).map(o => o[0]);
-    const optional = matches_entries.filter(o => o[1].optional).map(o => o[0]);
+    const definitions = Object.fromEntries(matches_entries.map(m => [m[0], m[1].definition.map(AdvancedTransformer.parseRow)]));
+    const primary = matches_entries.filter(o => o[1].primary === true).map(o => o[0]);
+    const optional = matches_entries.filter(o => o[1].optional === true).map(o => o[0]);
 
     this.table = input.table;
     this.take = input.take;
@@ -80,7 +81,7 @@ export class SearchRow implements RowOperator {
     assert.ok(!input.state.tracker.has(hash), 'You must answer a question to proceed.');
 
     let suggestions: { key: string; value: string; group: string; }[] = [];
-    if (this.primary) {
+    if (this.primary != null) {
       suggestions = search.suggest(this.primary, values[this.primary], this.take);
     }
 

@@ -22,12 +22,12 @@ function QuestionsTab() {
 
     const reply = await dispatch(clearAllQuestions()).unwrap();
     if (reply.ok) {
-      dispatch(pullQuestions());
+      await dispatch(pullQuestions());
     }
   }, [dispatch]);
 
-  const handleRefresh = React.useCallback(() => {
-    dispatch(pullQuestions());
+  const handleRefresh = React.useCallback(async () => {
+    await dispatch(pullQuestions());
   }, [dispatch]);
 
   return (

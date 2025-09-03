@@ -15,7 +15,7 @@ interface AnalysisAccordionProps {
 }
 
 function AnalysisAccordion(props: AnalysisAccordionProps) {
-  const { children, title, subtitle, icon, color, amount, disabled } = props;
+  const { children, title, subtitle, icon, color, amount, disabled = false } = props;
   const [open, setOpen] = React.useState(false);
 
   const handleToggle = React.useCallback(() => {

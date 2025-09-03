@@ -261,7 +261,7 @@ export const discardTransformerDraft = createAsyncThunk(
         dispatch(clearTransformerPage());
         return true;
       case "update":
-        dispatch(viewExistingTransformer(page.meta.name));
+        await dispatch(viewExistingTransformer(page.meta.name));
         return true;
       case "empty":
         return true;

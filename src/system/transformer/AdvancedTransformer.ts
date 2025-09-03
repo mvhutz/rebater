@@ -81,14 +81,14 @@ export class AdvancedTransformer implements Transformer {
   private readonly destinations: DestinationOperator[];
   public readonly requirements: string[];
 
-  public static parseDestination(data: DestinationData): DestinationOperator {
+  public static parseDestination(this: void, data: DestinationData): DestinationOperator {
     switch (data.type) {
       case "rebate": return new RebateDestinationOperator(data);
       case "utility": return new UtilityDestinationOperator(data);
     }
   }
 
-  public static parseRow(data: RowData): RowOperator {
+  public static parseRow(this: void, data: RowData): RowOperator {
     switch (data.type) {
       case "abs": return new AbsoluteRowOperator();
       case "add": return new AddRowOperator(data);
@@ -119,7 +119,7 @@ export class AdvancedTransformer implements Transformer {
     }
   }
 
-  public static parseTable(data: TableData): TableOperator {
+  public static parseTable(this: void, data: TableData): TableOperator {
     switch (data.type) {
       case "chop": return new ChopTable(data);
       case "coalesce": return new CoalesceTable(data);
@@ -133,10 +133,8 @@ export class AdvancedTransformer implements Transformer {
     }
   }
 
-  public static parseSource(data: SourceData): SourceOperator {
-    switch (data.type) {
-      case "excel": return new ExcelSourceOperator(data);
-    }
+  public static parseSource(this: void, data: SourceData): SourceOperator {
+    return new ExcelSourceOperator(data);
   }
 
   public constructor(data: AdvancedTransformerData) {

@@ -24,7 +24,7 @@ export class TrackerPointer extends FilePointer<Map<string, Question>> {
     try {
       json = JSON.parse(data);
     } catch (err) {
-      return bad(`There is an issue with the questions configuration: ${err}`);
+      return bad(`There is an issue with the questions configuration: ${String(err)}`);
     }
 
     const parsed = TrackerSchema.safeParse(json);

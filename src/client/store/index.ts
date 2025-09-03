@@ -22,13 +22,13 @@ async function load() {
   await Store.dispatch(doPullAll());
 }
 
-load();
+void load();
 
 // Handle system responses.
 handle.runnerUpdate(async (_, { data }) => {
   Store.dispatch(setStatus(data));
   if (data.type === "done") {
-    Store.dispatch(pullQuestions());
+    await Store.dispatch(pullQuestions());
   }
   return good(undefined);
 });

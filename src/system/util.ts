@@ -10,7 +10,7 @@ import { Rebate } from "../shared/worker/response";
  */
 export function getRebateHash(rebate: Rebate): string {
   const { transactionDate, supplierId, memberId, distributorName, purchaseAmount, rebateAmount, invoiceId, invoiceDate } = rebate;
-  return `${transactionDate},${supplierId},${memberId},${distributorName},${purchaseAmount},${rebateAmount},${invoiceId},${invoiceDate}`;
+  return `${transactionDate},${supplierId},${memberId},${distributorName},${purchaseAmount.toString()},${rebateAmount.toString()},${invoiceId},${invoiceDate}`;
 }
 
 /**

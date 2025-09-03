@@ -52,7 +52,7 @@ export class SimpleTransformer implements Transformer {
     const FILE_TOTAL_COLUMN = 50;
     const REBATE_TOTAL_COLUMN = 51;
 
-    if (this.data.options.canadian_rebate && rebateAmount.column) {
+    if (this.data.options.canadian_rebate && rebateAmount.column != null) {
       preprocessing.push(
         { type: "set", column: FILE_TOTAL_COLUMN, to: [
           { type: "meta", value: "row.source" },
@@ -69,7 +69,7 @@ export class SimpleTransformer implements Transformer {
     );
 
     if (this.data.options.additional_preprocessing != null) {
-      const json = JSON.parse(this.data.options.additional_preprocessing);
+      const json: unknown = JSON.parse(this.data.options.additional_preprocessing);
       const parsed = z.array(TableSchema).parse(json);
       preprocessing.push(...parsed);
     }
@@ -83,24 +83,24 @@ export class SimpleTransformer implements Transformer {
       { type: "counter" }
     ] });
 
-    if (transactionDate.column) {
+    if (transactionDate.column != null) {
       properties.push({ name: "transactionDate", definition: [
         { type: "column", index: transactionDate.column },
         { type: "coerce",
           as: "date",
-          parse: transactionDate.parse ? [transactionDate.parse] : [],
+          parse: transactionDate.parse != null ? [transactionDate.parse] : [],
           year: "keep",
           format: "M/D/YYYY" }
       ] });
     }
 
-    if (supplierId.value) {
+    if (supplierId.value != null) {
       properties.push({ name: "supplierId", definition: [
         { type: "literal", value: supplierId.value }
       ] });
     }
 
-    if (memberId.column) {
+    if (memberId.column != null) {
       properties.push({ name: "memberId", definition: [
         { type: "column", index: memberId.column },
         { type: "reference", table: "customers", match: "customerName", take: "fuseId", group: this.data.group },
@@ -108,21 +108,21 @@ export class SimpleTransformer implements Transformer {
     }
 
     if (distributorName.type === "column") {
-      if (distributorName.column) {
+      if (distributorName.column != null) {
         properties.push({ name: "distributorName", definition: [
           { type: "column", index: distributorName.column },
           { type: "reference", table: "distributors", match: "fuzzyName", take: "trueName", group: this.data.group },
         ] });
       }
     } else {
-      if (distributorName.value) {
+      if (distributorName.value != null) {
         properties.push({ name: "distributorName", definition: [
           { type: "literal", value: distributorName.value },
         ] });
       }
     }
 
-    if (purchaseAmount.column) {
+    if (purchaseAmount.column != null) {
       properties.push({ name: "purchaseAmount", definition: [
         { type: "column", index: purchaseAmount.column },
         { type: "coerce", as: "usd", round: "default" }
@@ -155,7 +155,7 @@ export class SimpleTransformer implements Transformer {
       }
     }
 
-    if (invoiceId.column) {
+    if (invoiceId.column != null) {
       properties.push({ name: "invoiceId", definition: [
         { type: "column", index: invoiceId.column },
         { type: "character", select: "1234567890", action: "keep" },
@@ -163,12 +163,12 @@ export class SimpleTransformer implements Transformer {
       ] });
     }
 
-    if (invoiceDate.column) {
+    if (invoiceDate.column != null) {
       properties.push({ name: "invoiceDate", definition: [
         { type: "column", index: invoiceDate.column },
         { type: "coerce",
           as: "date",
-          parse: transactionDate.parse ? [transactionDate.parse] : [],
+          parse: transactionDate.parse != null ? [transactionDate.parse] : [],
           year: "keep",
           format: "M/D/YYYY" }
       ] });
@@ -178,7 +178,7 @@ export class SimpleTransformer implements Transformer {
 
     const postprocessing: TableData[] = [];
     if (this.data.options.additional_postprocessing != null) {
-      const json = JSON.parse(this.data.options.additional_postprocessing);
+      const json: unknown = JSON.parse(this.data.options.additional_postprocessing);
       const parsed = z.array(TableSchema).parse(json);
       postprocessing.push(...parsed);
     }

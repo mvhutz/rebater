@@ -47,7 +47,7 @@ export abstract class Transformer {
 
   public abstract getDeps(): string[];
 
-  public static parseTransformer(data: TransformerData): Transformer {
+  public static parseTransformer(this: void, data: TransformerData): Transformer {
     switch (data.type) {
       case "advanced": return new AdvancedTransformer(data);
       case "simple": return new SimpleTransformer(data);

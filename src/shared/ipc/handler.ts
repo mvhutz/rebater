@@ -133,11 +133,11 @@ export class IPCHandler {
 
   async handleRefresh(): Promise<Reply> {
     try {
-      this.repository.refresh();
+      await this.repository.refresh();
       this.thread.refresh();
       return good(undefined);
     } catch (err) {
-      return bad(`${err}`);
+      return bad(String(err));
     }
   }
 
@@ -166,7 +166,7 @@ export class IPCHandler {
     if (!state_reply.ok) return state_reply;
 
     const { data: state } = state_reply;
-    state.tracker.resolve(question.hash);
+    await state.tracker.resolve(question.hash);
     return good(undefined);
   }
 
@@ -174,7 +174,7 @@ export class IPCHandler {
    * The user wants to ungracefully kill the program.
    */
   async handleCancelProgram() {
-    this.worker.terminate();
+    await this.worker.terminate();
     this.worker = new Worker('worker.js', { workerData: IPCHandler.SETTINGS_FILE });
     this.thread = await spawn<System>(this.worker);
 
@@ -192,8 +192,8 @@ export class IPCHandler {
   /**
    * The worker sends the handler a status message.
    */
-  private handleWorkerStatus(status: SystemStatus) {
-    ipcMain.invoke.runnerUpdate(this.window, status);
+  private async handleWorkerStatus(status: SystemStatus) {
+    await ipcMain.invoke.runnerUpdate(this.window, status);
   }
 
   /**
@@ -201,13 +201,13 @@ export class IPCHandler {
    * @param mainWindow The current window.
    * @param message The message.
    */
-  private handleWorkerMessage(message: WorkerResponse) {
+  private async handleWorkerMessage(message: WorkerResponse) {
     switch (message.type) {
       case "status":
-        this.handleWorkerStatus(message.status);
+        await this.handleWorkerStatus(message.status);
         break;
       case "question":
-        ipcMain.invoke.runnerQuestion(this.window, message);
+        await ipcMain.invoke.runnerQuestion(this.window, message);
         break;
     }
   }
@@ -219,7 +219,7 @@ export class IPCHandler {
   async handleRunProgram(context: ContextData) {    
     // Create new worker.
     const observable = this.thread.run(context);
-    observable.subscribe(m => this.handleWorkerMessage(m));
+    observable.subscribe(m => { void this.handleWorkerMessage(m) });
 
     return good(undefined);
   }

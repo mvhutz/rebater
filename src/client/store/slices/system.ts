@@ -2,7 +2,7 @@ import { createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { type RootState } from '..'
 import { type SettingsData } from '../../../shared/settings';
 import { killSystem, pullAllQuarters, pullQuestions, pullSystemSettings, pullTransformers, startSystem } from './thunk';
-import { TimeData } from '../../../shared/time';
+import { Time, TimeData } from '../../../shared/time';
 import { Question, SystemStatus } from '../../../shared/worker/response';
 import { bad, good, Reply } from '../../../shared/reply';
 import { TransformerFile } from '../../../shared/state/stores/TransformerStore';
@@ -77,7 +77,7 @@ export const SystemSlice = createSlice({
       state.draft.settings.directory = action.payload;
     },
     setDraftSystemTime: (state, action: PayloadAction<TimeData>) => {
-      state.draft.context.time = action.payload ?? undefined;
+      state.draft.context.time = action.payload;
     },
     setDraftSystemTesting: (state, action: PayloadAction<boolean>) => {
       state.draft.settings.testing.enabled = action.payload;
@@ -213,6 +213,10 @@ export const getQuarterList = (state: RootState): TimeData[] => {
   return state.system.quarters
 }
 
+export const getQuarterTimeList = createSelector([getQuarterList], (times: TimeData[]): Time[] => {
+  return times.map(t => new Time(t));
+});
+
 export const getTransformerGroups = createSelector([getTransformers], (transformers_reply) => {
   const result: Record<string, TransformerFile[]> = {};
   if (!transformers_reply.ok) return bad(transformers_reply.reason);
@@ -268,11 +272,11 @@ export const getTransformerDraftAsData = createSelector([getTransformerPageInfo]
         return bad(z.prettifyError(parse_reply.error));
       }
     } catch(err) {
-      return bad(`${err}`);
+      return bad(String(err));
     }
   } else {
     try {
-      const json = JSON.parse(draft.text);
+      const json: unknown = JSON.parse(draft.text);
       const parse_reply = AdvancedTransformerSchema.safeParse(json);
       if (parse_reply.success) {
         return good(parse_reply.data);
@@ -280,7 +284,7 @@ export const getTransformerDraftAsData = createSelector([getTransformerPageInfo]
         return bad(z.prettifyError(parse_reply.error));
       }
     } catch(err) {
-      return bad(`${err}`);
+      return bad(String(err));
     }
   }
 });

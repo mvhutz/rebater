@@ -27,7 +27,7 @@ export class SumRow implements RowOperator {
     // Get table sums.
     let cached_table = this.cache.get(input.table);
     if (cached_table == null) {
-      this.cache.set(input.table, cached_table = new Map());
+      this.cache.set(input.table, cached_table = new Map<number, number>());
     }
 
     // Get sum.
@@ -37,10 +37,11 @@ export class SumRow implements RowOperator {
     // Make sum.
     let sum = 0;
     for (const _row of input.table.split()) {
-      const value = parseFloat(_row.get(this.column) ?? "");
-      assert.ok(!isNaN(value), `Cannot add value '${_row.get(this.column)}' to sum; it is not a number!`);
+      const value = _row.get(this.column) ?? "";
+      const parsed = parseFloat(value);
+      assert.ok(!isNaN(parsed), `Cannot add value '${value}' to sum; it is not a number!`);
 
-      sum += value;
+      sum += parsed;
     }
 
     // Remember sum.

@@ -6,7 +6,7 @@ import Typography from '@mui/joy/Typography';
 import NightsStayRoundedIcon from '@mui/icons-material/NightsStayRounded';
 import DoneRoundedIcon from '@mui/icons-material/DoneRounded';
 import PriorityHighRoundedIcon from '@mui/icons-material/PriorityHighRounded';
-import { getDraftTime, getDraftTransformersSettings, getQuarterList, getSystemProgress, getSystemStatus, getSystemStatusName, getTransformers, isSystemLoading, setDraftSystemTime, setDraftTransformersNames, setDraftTransformersTags, setStatus } from '../../store/slices/system';
+import { getDraftTime, getDraftTransformersSettings, getQuarterTimeList, getSystemProgress, getSystemStatus, getSystemStatusName, getTransformers, isSystemLoading, setDraftSystemTime, setDraftTransformersNames, setDraftTransformersTags, setStatus } from '../../store/slices/system';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { type SvgIconOwnProps } from '@mui/material';
 import UpdateRoundedIcon from '@mui/icons-material/UpdateRounded';
@@ -42,7 +42,7 @@ function InnerText({ status }: { status: SystemStatus }) {
     case "done": return <DoneRoundedIcon sx={INNER_TEXT_ICON_SX} />;
     case "idle": return <NightsStayRoundedIcon sx={INNER_TEXT_ICON_SX} />;
     case "loading": return <HourglassEmptyRoundedIcon sx={INNER_TEXT_ICON_SX} />;
-    case "running": return `${(Math.round(100 * status.progress))}%`;
+    case "running": return `${(Math.round(100 * status.progress)).toString()}%`;
     case "error": return <PriorityHighRoundedIcon sx={INNER_TEXT_ICON_SX} />;
   }
 }
@@ -101,7 +101,7 @@ function IdleMenu() {
   const dispatch = useAppDispatch();
 
   const time = useAppSelector(getDraftTime);
-  const quarters = useAppSelector(getQuarterList);
+  const quarters = useAppSelector(getQuarterTimeList);
   const context_filter = useAppSelector(getContextFilter);
 
   const handleQuarter = React.useCallback((_: unknown, new_quarter: Maybe<string>) => {
@@ -159,7 +159,7 @@ function IdleMenu() {
     return new Set(tags);
   }, [transformers_reply]);
 
-  const current_quarter = time == null ? null : `${time.year}-Q${time.quarter}`;
+  const current_quarter = time == null ? null : `${time.year.toString()}-Q${time.quarter.toString()}`;
 
   return (
     <Stack spacing={2} width={1} direction="column">
@@ -179,7 +179,7 @@ function IdleMenu() {
             }
             onChange={handleQuarter}>
             {quarters.map(q => (
-              <Option value={`${q.year}-Q${q.quarter}`} key={`${q.year}-Q${q.quarter}`}>{q.year}-Q{q.quarter}</Option>
+              <Option value={q.toString()} key={q.toString()}>{q.toString()}</Option>
             ))}
           </Select>
           <Tooltip title="Toggle Filters">
@@ -200,7 +200,7 @@ function IdleMenu() {
               sx={{ flex: 1, borderRadius: 18 }}
               variant="soft"
               placeholder={<Typography color="neutral">All Transformers</Typography>}
-              renderValue={s => `${s.length} Transformers`}
+              renderValue={s => `${s.length.toString()} Transformers`}
             >
               {transformers_reply.ok &&
                 transformers_reply.data.map(t => t.data.ok && (
@@ -223,7 +223,7 @@ function IdleMenu() {
               multiple
               value={selected_tags}
               onChange={handleIncludeTags}
-              renderValue={s => `${s.length} Tags`}
+              renderValue={s => `${s.length.toString()} Tags`}
               sx={{ flex: 1, borderRadius: 18 }}
               variant="soft"
               placeholder={<Typography color="neutral">Any Tags</Typography>}

@@ -31,8 +31,6 @@ function NewQuarterModal() {
     return TimeSchema.safeParse({ quarter, year });
   }, [quarter, year]);
 
-  console.log(new_parsed);
-
   const handleClose = React.useCallback(() => {
     dispatch(toggleNewQuarterModal());
     setCopyQuarter(null);
@@ -66,12 +64,12 @@ function NewQuarterModal() {
           <Stack direction="row" spacing={2} pt={1}>
             <FormControl sx={{ flex: 1 }}>
               <FormLabel>Year</FormLabel>
-              <Input value={year} placeholder='----' slotProps={{ input: { size: 1 } }} onChange={e => setYear(e.target.value)} />
+              <Input value={year} placeholder='----' slotProps={{ input: { size: 1 } }} onChange={e => { setYear(e.target.value) }} />
               <FormHelperText>The quarter to process.</FormHelperText>
             </FormControl>
             <FormControl>
               <FormLabel>Quarter</FormLabel>
-              <Select value={quarter} placeholder="--" onChange={(_, v) => setQuarter(v ?? NaN)}>
+              <Select value={quarter} placeholder="--" onChange={(_, v) => { setQuarter(v ?? NaN) }}>
                 <Option value={1}>Q1</Option>
                 <Option value={2}>Q2</Option>
                 <Option value={3}>Q3</Option>
@@ -81,7 +79,7 @@ function NewQuarterModal() {
           </Stack>
           <FormControl>
             <FormLabel>Copy Directory From</FormLabel>
-            <Select value={copyQuarter} onChange={(_, v) => setCopyQuarter(v)}>
+            <Select value={copyQuarter} onChange={(_, v) => { setCopyQuarter(v) }}>
               <Option value={null}>No Quarter</Option>
               {all_quarters.map(q => (
                 <Option value={q}>{Time.asString(q)}</Option>
