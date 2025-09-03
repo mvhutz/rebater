@@ -155,8 +155,9 @@ function TransactionDateOptions() {
           <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...' />
         </FormControl>
         <FormControl>
-          <FormLabel>Date Format?</FormLabel>
+          <FormLabel>Date Format</FormLabel>
           <Input variant='soft' value={parse ?? ""} onChange={handleParse} placeholder='M/D/YYYY...' />
+          <FormHelperText sx={{ display: "block" }}>Optional. Most common formats are automatically parsed. Formats are defined <a href="https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format">here</a>.</FormHelperText>
         </FormControl>
       </Stack>
     </Card>
@@ -185,8 +186,9 @@ function InvoiceDateOptions() {
           <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...' />
         </FormControl>
         <FormControl>
-          <FormLabel>Date Format?</FormLabel>
+          <FormLabel>Date Format</FormLabel>
           <Input variant='soft' value={parse ?? ""} onChange={handleParse} placeholder='M/D/YYYY...' />
+          <FormHelperText sx={{ display: "block" }}>Optional. Most common formats are automatically parsed. Formats are defined <a href="https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format">here</a>.</FormHelperText>
         </FormControl>
       </Stack>
     </Card>
@@ -207,7 +209,7 @@ function SupplierIdOptions() {
       <Typography level="title-lg" flex={1}>Supplier Id</Typography>
       <Stack spacing={2} flex={1}>
         <FormControl>
-          <FormLabel>Value</FormLabel>
+          <FormLabel>Number</FormLabel>
           <Input variant='soft' value={value ?? ""} onChange={handleParse} placeholder='Enter Id...' />
         </FormControl>
       </Stack>
@@ -301,8 +303,9 @@ function RebateAmountOptions() {
           <ColumnInput data={column} setData={handleColumn} placeholder='Enter Column Id...' />
         </FormControl>
         <FormControl>
-          <FormLabel>Multiplier?</FormLabel>
+          <FormLabel>Multiplier</FormLabel>
           <Input variant='soft' type="number" slotProps={{ input: { step: "any" } }} value={multiplier ?? ""} onChange={handleMultipler} placeholder='Enter optional multipler...' />
+          <FormHelperText>Optional. Ignored if left blank.</FormHelperText>
         </FormControl>
       </Stack>
     </Card>
@@ -338,9 +341,9 @@ function DistributorIdOptions() {
       <Typography level="title-lg" flex={1}>Distributor Id</Typography>
       <Stack spacing={2} flex={1}>
         <FormControl>
-          <FormLabel>Column</FormLabel>
+          <FormLabel>Type</FormLabel>
           <Select value={fields.type} onChange={handleType} variant='soft'>
-            <Option value="value" defaultChecked>Value</Option>
+            <Option value="value" defaultChecked>Name</Option>
             <Option value="column">Column</Option>
           </Select>
         </FormControl>
@@ -351,8 +354,8 @@ function DistributorIdOptions() {
           </FormControl>
         ) : (
           <FormControl>
-            <FormLabel>Column</FormLabel>
-            <Input variant='soft' value={fields.value ?? ""} onChange={handleValue} placeholder='Enter value...' />
+            <FormLabel>Name</FormLabel>
+            <Input variant='soft' value={fields.value ?? ""} onChange={handleValue} placeholder='Enter name...' />
           </FormControl>
         )
         }
