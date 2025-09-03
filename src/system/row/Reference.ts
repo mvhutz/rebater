@@ -69,6 +69,10 @@ export class ReferenceRow implements RowOperator {
       [this.match]: input.value,
       group: this.group,
     }, this.take);
+
+    if (result === "[IGNORE]") {
+      throw Error(`Ignored value '${input.value}' for '${this.table}'.`);
+    }
     
     if (result != null) {
       return result;
