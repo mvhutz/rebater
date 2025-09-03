@@ -11,4 +11,4 @@ export type TransformerData =
 export const TransformerSchema = z.discriminatedUnion("type", [
   AdvancedTransformerSchema,
   SimpleTransformerSchema
-])
+]) satisfies z.ZodType<TransformerData>;

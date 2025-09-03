@@ -28,7 +28,14 @@ export async function getSettings(): Promise<Reply<SettingsData>> {
 
   // Parse data.
   const raw = await readFile(file, 'utf-8');
-  const json: unknown = JSON.parse(raw);
+  
+  let json: unknown;
+  try {
+    json = JSON.parse(raw);
+  } catch (err) {
+    return bad(String(err));
+  }
+
   const parsed = SettingsSchema.safeParse(json);
 
   if (!parsed.success) {

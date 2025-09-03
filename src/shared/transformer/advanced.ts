@@ -525,7 +525,7 @@ export interface AdvancedTransformerData {
   destination: DestinationData[];
 }
 
-export const AdvancedTransformerSchema: z.ZodType<AdvancedTransformerData> = z.strictObject({
+export const AdvancedTransformerSchema = z.strictObject({
   type: z.literal("advanced"),
   name: z.string(),
   tags: z.array(z.string()),
@@ -538,4 +538,4 @@ export const AdvancedTransformerSchema: z.ZodType<AdvancedTransformerData> = z.s
   })),
   postprocess: z.array(TableSchema),
   destination: z.array(DestinationSchema),
-}) satisfies z.ZodObject;
+}) satisfies z.ZodType<AdvancedTransformerData> satisfies z.ZodObject;
