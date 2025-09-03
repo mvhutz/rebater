@@ -46,7 +46,7 @@ function IgnoredRowCard() {
       disabled={ignored_row.length === 0}
       amount={ignored_row.length}
       color="danger"
-      title="Ignored Rows"
+      title="Rejected Rows"
       subtitle="During execution, these rows where omitted from the output data. If these rows do contain data, you may have to omdify the transformers."
       icon={<NotificationsPausedRoundedIcon />}>
       <Card orientation="vertical" variant='outlined'>

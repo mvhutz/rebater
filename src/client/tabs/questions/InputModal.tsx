@@ -4,7 +4,7 @@ import FormControl from '@mui/joy/FormControl';
 import FormLabel from '@mui/joy/FormLabel';
 import Input from '@mui/joy/Input';
 import { useAppDispatch } from '../../store/hooks';
-import { Typography, Checkbox, Stack, Table } from '@mui/joy';
+import { Typography, Checkbox, Stack, Table, Box } from '@mui/joy';
 import Markdown from 'react-markdown';
 import { Question } from '../../../shared/worker/response';
 import { deleteQuestion } from '../../store/slices/system';
@@ -20,6 +20,7 @@ function InputModal({ question }: { question: Question }) {
 
   const [known, setKnown] = React.useState<Record<string, string>>({});
   const [optional, setOptional] = React.useState<string[]>([]);
+  const [answer, setAnswer] = React.useState("");
 
   React.useEffect(() => {
     const result: Record<string, string> = {};
@@ -31,11 +32,7 @@ function InputModal({ question }: { question: Question }) {
     setKnown(result);
   }, [question]);
 
-  const handleForm = React.useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const { currentTarget } = event;
-
-    const data = new FormData(currentTarget);
+  const handleAnswer = React.useCallback(async (text: string) => {
     const { hash, unknown } = question;
 
     const known_copy = { ...known };
@@ -43,26 +40,37 @@ function InputModal({ question }: { question: Question }) {
       known_copy[option] = "*"
     }
 
-    const answer = data.get("answer");
-    if (answer == null || answer instanceof File) return;
-
     const answered = await invoke.answerQuestion({
       hash,
       answer: {
         ...known_copy,
-        [unknown]: answer
+        [unknown]: text
       },
       reference: question.table
     });
+
     if (!answered.ok) {
       dispatch(pushMessage({ type: "error", text: answered.reason }));
-      return;
+      return false;
     }
 
-    currentTarget.reset();
+    setAnswer("");
 
     dispatch(deleteQuestion(question));
+    return true;
   }, [dispatch, known, optional, question]);
+
+  const handleForm = React.useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (answer === "") return;
+
+    await handleAnswer(answer);
+  }, [answer, handleAnswer]);
+
+  const handleIgnorePermanently = React.useCallback(async () => {
+    await handleAnswer("[IGNORE]");
+  }, [handleAnswer]);
 
   const handleIgnore = React.useCallback(async (event: React.UIEvent) => {
     event.preventDefault();
@@ -126,11 +134,13 @@ function InputModal({ question }: { question: Question }) {
         {inside}
         <FormControl>
           <FormLabel>Answer</FormLabel>
-          <Input variant='soft' name="answer" required autoFocus={true} />
+          <Input value={answer} onChange={e => { setAnswer(e.target.value) }} variant='soft' required autoFocus={true} />
         </FormControl>
       </Stack>
       <Stack mt={2} direction="row" spacing={2} justifyContent="flex-end" width={1}>
-        <Button color="neutral" variant="outlined" onClick={handleIgnore}>Ignore</Button>
+        <Button color="neutral" variant="outlined" onClick={handleIgnorePermanently}>Permanently Ignore</Button>
+        <Box flex={1}/>
+        <Button color="neutral" variant="outlined" onClick={handleIgnore}>Discard</Button>
         <Button type="submit">Submit</Button>
       </Stack>
     </form>

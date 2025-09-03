@@ -90,7 +90,7 @@ function NewQuarterModal() {
         </Stack>
         <DialogActions>
           <Button type="submit" onClick={handleCreate} disabled={!new_parsed.success}>Create</Button>
-          <Button type="submit" color="neutral" variant="outlined" onClick={handleClose}>Ignore</Button>
+          <Button type="submit" color="neutral" variant="outlined" onClick={handleClose}>Cancel</Button>
         </DialogActions>
       </ModalDialog>
     </Modal>
