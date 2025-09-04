@@ -192,14 +192,14 @@ export class AdvancedTransformer implements Transformer {
 
     // 1. Pull sources.
     const source_input = { state, context, stats, transformer: this.name };
-    const potential_sources = this.sources.map(s => s.getPotentialSources(source_input)).flat(1);
+    const potential_sources = this.sources.flatMap(s => s.getPotentialSources(source_input));
     if (potential_sources.length === 0) {
       stats.performance.push({ start, end: performance.now(), name: this.name });
       stats.issues.no_source.push({ transformer: this.name });
       return;
     }
 
-    const source_data = this.sources.map(s => s.run(source_input)).flat(1);
+    const source_data = this.sources.flatMap(s => s.run(source_input));
     if (source_data.length === 0) {
       stats.performance.push({ start, end: performance.now(), name: this.name });
       stats.issues.no_valid_source.push({ transformer: this.name });

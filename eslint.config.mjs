@@ -3,11 +3,14 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
+import jsdoc from 'eslint-plugin-jsdoc';
 
 export default tseslint.config(
   eslint.configs.recommended,
   tseslint.configs.strictTypeChecked,
   tseslint.configs.stylistic,
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+  jsdoc.configs['flat/recommended-typescript'],
   reactHooks.configs['recommended-latest'],
   {
     rules: {
