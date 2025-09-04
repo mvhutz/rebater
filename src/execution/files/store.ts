@@ -1,6 +1,6 @@
 import { Err, None, Ok, Option, Result, Some } from 'ts-results';
 import { RebaterResult, Thrown } from './error';
-import { readdir, readFile, writeFile } from 'fs/promises';
+import { readdir, readFile, rm, writeFile } from 'fs/promises';
 import Lockfile from 'proper-lockfile';
 import path from 'path';
 
@@ -20,7 +20,7 @@ export class Locker {
         retries: { forever: true, randomize: true }
       });
     } catch (err) {
-      return Err(Thrown("FILE_STORE", "LOCK_FILE", `Could not obtain lock for '${this.path}'.`, err));
+      return Err(Thrown("LOCKER", "OBTAIN_LOCK", { file: this.path, cause: err }));
     }
 
     const out = await fn();
@@ -30,7 +30,7 @@ export class Locker {
       return out;
     } catch (err) {
       await release();
-      return Err(Thrown("FILE_STORE", "LOCK_FILE", `Could not release lock for '${this.path}'.`, err));
+      return Err(Thrown("LOCKER", "RELEASE_LOCK", { file: this.path, cause: err }));
     }
   }
 }
@@ -75,7 +75,7 @@ export abstract class FileStore<Details, Data> {
     return {
       details,
       data: (await Result.wrapAsync(() => readFile(name)))
-        .mapErr(err => Thrown("FILE_STORE", "READ_FILE", `Could not read '${this.name}' file: '${name}'.`, err))
+        .mapErr(err => Thrown("FILE_STORE", "READ_FILE", { store: this.name, file: name, cause: err }))
         .andThen(this.serializer.deserialize)
     };
   }
@@ -88,7 +88,7 @@ export abstract class FileStore<Details, Data> {
     if (buffer.err) return buffer;
 
     return (await Result.wrapAsync(() => writeFile(name, buffer.safeUnwrap())))
-      .mapErr(err => Thrown("FILE_STORE", "SAVE_FILE", `Could not save '${this.name}' file: '${name}'.`, err));
+      .mapErr(err => Thrown("FILE_STORE", "SAVE_FILE", { store: this.name, file: name, cause: err }));
   }
 
   public async push(file: FileItem<Details, Data>): Promise<RebaterResult> {
@@ -102,9 +102,20 @@ export abstract class FileStore<Details, Data> {
     });
   }
 
+  private async deleteUnsafe(details: Details): Promise<RebaterResult> {
+    const name = this.parser.toFile(details);
+
+    return (await Result.wrapAsync(() => rm(name)))
+      .mapErr(err => Thrown("FILE_STORE", "REMOVE_FILE", { store: this.name, file: name, cause: err }));
+  }
+
+  public async delete(details: Details): Promise<RebaterResult> {
+    return this.locker.run(() => this.deleteUnsafe(details));
+  }
+
   public async getDetails(): Promise<RebaterResult<ArrayIterator<Details>>> {
     return (await Result.wrapAsync(() => readdir(this.directory, { withFileTypes: true, recursive: true })))
-      .mapErr(err => Thrown("FILE_STORE", "READ_DIRECTORY", `Could not read '${this.name}' directory: '${this.directory}'.`, err))
+      .mapErr(err => Thrown("FILE_STORE", "READ_DIRECTORY", { store: this.name, directory: this.directory, cause: err }))
       .map(entries => entries.values()
         .filter(e => e.isFile())
         .map(e => this.parser.fromFile(e.name))
@@ -170,7 +181,7 @@ export class FileCollection<Details, Data> {
     const file = this.parser.toFile(details);
 
     return this.get(details)
-      .toResult(Thrown("FILE_COLLECTION", "FILE_NOT_FOUND", `File '${file}' does not exist in collection: '${this.name}'.`));
+      .toResult(Thrown("FILE_COLLECTION", "FILE_NOT_FOUND", { collection: this.name, file }));
   }
 
   public set(item: FileItem<Details, Data>): RebaterResult {
@@ -181,7 +192,7 @@ export class FileCollection<Details, Data> {
   public add(item: FileItem<Details, Data>): RebaterResult {
     if (this.get(item.details).some) {
       const file = this.parser.toFile(item.details);
-      return Err(Thrown("FILE_COLLECTION", "FILE_ALREADY_EXISTS", `File '${file}' already exists in collection: '${this.name}'.`))
+      return Err(Thrown("FILE_COLLECTION", "FILE_ALREADY_EXISTS", { collection: this.name, file }))
     }
 
     return this.set(item);
